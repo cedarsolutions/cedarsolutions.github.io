@@ -1,0 +1,444 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>CedarBackup3.actions.stage &#8212; Cedar Backup v3  documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="Cedar Backup v3  documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Cedar Backup v3  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for CedarBackup3.actions.stage</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: iso-8859-1 -*-</span>
+<span class="c1"># vim: set ft=python ts=3 sw=3 expandtab:</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+<span class="c1">#</span>
+<span class="c1">#              C E D A R</span>
+<span class="c1">#          S O L U T I O N S       &quot;Software done right.&quot;</span>
+<span class="c1">#           S O F T W A R E</span>
+<span class="c1">#</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright (c) 2004-2008,2010,2015 Kenneth J. Pronovici.</span>
+<span class="c1"># All rights reserved.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is free software; you can redistribute it and/or</span>
+<span class="c1"># modify it under the terms of the GNU General Public License,</span>
+<span class="c1"># Version 2, as published by the Free Software Foundation.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</span>
+<span class="c1">#</span>
+<span class="c1"># Copies of the GNU General Public License are available from</span>
+<span class="c1"># the Free Software Foundation website, http://www.gnu.org/.</span>
+<span class="c1">#</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+<span class="c1">#</span>
+<span class="c1"># Author   : Kenneth J. Pronovici &lt;pronovic@ieee.org&gt;</span>
+<span class="c1"># Language : Python 3 (&gt;= 3.4)</span>
+<span class="c1"># Project  : Cedar Backup, release 3</span>
+<span class="c1"># Purpose  : Implements the standard &#39;stage&#39; action.</span>
+<span class="c1">#</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Module documentation</span>
+<span class="c1">########################################################################</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Implements the standard &#39;stage&#39; action.</span>
+<span class="sd">:author: Kenneth J. Pronovici &lt;pronovic@ieee.org&gt;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Imported modules</span>
+<span class="c1">########################################################################</span>
+
+<span class="c1"># System modules</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="c1"># Cedar Backup modules</span>
+<span class="kn">from</span> <span class="nn">CedarBackup3.peer</span> <span class="k">import</span> <span class="n">RemotePeer</span><span class="p">,</span> <span class="n">LocalPeer</span>
+<span class="kn">from</span> <span class="nn">CedarBackup3.util</span> <span class="k">import</span> <span class="n">getUidGid</span><span class="p">,</span> <span class="n">changeOwnership</span><span class="p">,</span> <span class="n">isStartOfWeek</span><span class="p">,</span> <span class="n">isRunningAsRoot</span>
+<span class="kn">from</span> <span class="nn">CedarBackup3.actions.constants</span> <span class="k">import</span> <span class="n">DIR_TIME_FORMAT</span><span class="p">,</span> <span class="n">STAGE_INDICATOR</span>
+<span class="kn">from</span> <span class="nn">CedarBackup3.actions.util</span> <span class="k">import</span> <span class="n">writeIndicatorFile</span>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Module-wide constants and variables</span>
+<span class="c1">########################################################################</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;CedarBackup3.log.actions.stage&quot;</span><span class="p">)</span>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Public functions</span>
+<span class="c1">########################################################################</span>
+
+<span class="c1">##########################</span>
+<span class="c1"># executeStage() function</span>
+<span class="c1">##########################</span>
+
+<span class="c1"># pylint: disable=W0613</span>
+<div class="viewcode-block" id="executeStage"><a class="viewcode-back" href="../../../CedarBackup3.actions.html#CedarBackup3.actions.stage.executeStage">[docs]</a><span class="k">def</span> <span class="nf">executeStage</span><span class="p">(</span><span class="n">configPath</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Executes the stage backup action.</span>
+
+<span class="sd">   *Note:* The daily directory is derived once and then we stick with it, just</span>
+<span class="sd">   in case a backup happens to span midnite.</span>
+
+<span class="sd">   *Note:* As portions of the stage action is complete, we will write various</span>
+<span class="sd">   indicator files so that it&#39;s obvious what actions have been completed.  Each</span>
+<span class="sd">   peer gets a stage indicator in its collect directory, and then the master</span>
+<span class="sd">   gets a stage indicator in its daily staging directory.  The store process</span>
+<span class="sd">   uses the master&#39;s stage indicator to decide whether a directory is ready to</span>
+<span class="sd">   be stored.  Currently, nothing uses the indicator at each peer, and it</span>
+<span class="sd">   exists for reference only.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      configPath (String representing a path on disk): Path to configuration file on disk</span>
+<span class="sd">      options (Options object): Program command-line options</span>
+<span class="sd">      config (Config object): Program configuration</span>
+<span class="sd">   Raises:</span>
+<span class="sd">      ValueError: Under many generic error conditions</span>
+<span class="sd">      IOError: If there are problems reading or writing files</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Executing the &#39;stage&#39; action.&quot;</span><span class="p">)</span>
+   <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">config</span><span class="o">.</span><span class="n">stage</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Stage configuration is not properly filled in.&quot;</span><span class="p">)</span>
+   <span class="n">dailyDir</span> <span class="o">=</span> <span class="n">_getDailyDir</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+   <span class="n">localPeers</span> <span class="o">=</span> <span class="n">_getLocalPeers</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+   <span class="n">remotePeers</span> <span class="o">=</span> <span class="n">_getRemotePeers</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+   <span class="n">allPeers</span> <span class="o">=</span> <span class="n">localPeers</span> <span class="o">+</span> <span class="n">remotePeers</span>
+   <span class="n">stagingDirs</span> <span class="o">=</span> <span class="n">_createStagingDirs</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">dailyDir</span><span class="p">,</span> <span class="n">allPeers</span><span class="p">)</span>
+   <span class="k">for</span> <span class="n">peer</span> <span class="ow">in</span> <span class="n">allPeers</span><span class="p">:</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Staging peer [</span><span class="si">%s</span><span class="s2">].&quot;</span><span class="p">,</span> <span class="n">peer</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+      <span class="n">ignoreFailures</span> <span class="o">=</span> <span class="n">_getIgnoreFailuresFlag</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">peer</span><span class="p">)</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="n">peer</span><span class="o">.</span><span class="n">checkCollectIndicator</span><span class="p">():</span>
+         <span class="k">if</span> <span class="ow">not</span> <span class="n">ignoreFailures</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Peer [</span><span class="si">%s</span><span class="s2">] was not ready to be staged.&quot;</span><span class="p">,</span> <span class="n">peer</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+         <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Peer [</span><span class="si">%s</span><span class="s2">] was not ready to be staged.&quot;</span><span class="p">,</span> <span class="n">peer</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+         <span class="k">continue</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Found collect indicator.&quot;</span><span class="p">)</span>
+      <span class="n">targetDir</span> <span class="o">=</span> <span class="n">stagingDirs</span><span class="p">[</span><span class="n">peer</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+      <span class="k">if</span> <span class="n">isRunningAsRoot</span><span class="p">():</span>
+         <span class="c1"># Since we&#39;re running as root, we can change ownership</span>
+         <span class="n">ownership</span> <span class="o">=</span> <span class="n">getUidGid</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupUser</span><span class="p">,</span>  <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupGroup</span><span class="p">)</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Using target dir [</span><span class="si">%s</span><span class="s2">], ownership [</span><span class="si">%d</span><span class="s2">:</span><span class="si">%d</span><span class="s2">].&quot;</span><span class="p">,</span> <span class="n">targetDir</span><span class="p">,</span> <span class="n">ownership</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ownership</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="c1"># Non-root cannot change ownership, so don&#39;t set it</span>
+         <span class="n">ownership</span> <span class="o">=</span> <span class="kc">None</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Using target dir [</span><span class="si">%s</span><span class="s2">], ownership [None].&quot;</span><span class="p">,</span> <span class="n">targetDir</span><span class="p">)</span>
+      <span class="k">try</span><span class="p">:</span>
+         <span class="n">count</span> <span class="o">=</span> <span class="n">peer</span><span class="o">.</span><span class="n">stagePeer</span><span class="p">(</span><span class="n">targetDir</span><span class="o">=</span><span class="n">targetDir</span><span class="p">,</span> <span class="n">ownership</span><span class="o">=</span><span class="n">ownership</span><span class="p">)</span>  <span class="c1"># note: utilize effective user&#39;s default umask</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Staged </span><span class="si">%d</span><span class="s2"> files for peer [</span><span class="si">%s</span><span class="s2">].&quot;</span><span class="p">,</span> <span class="n">count</span><span class="p">,</span> <span class="n">peer</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+         <span class="n">peer</span><span class="o">.</span><span class="n">writeStageIndicator</span><span class="p">()</span>
+      <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">IOError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Error staging [</span><span class="si">%s</span><span class="s2">]: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">peer</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+   <span class="n">writeIndicatorFile</span><span class="p">(</span><span class="n">dailyDir</span><span class="p">,</span> <span class="n">STAGE_INDICATOR</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupUser</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupGroup</span><span class="p">)</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Executed the &#39;stage&#39; action successfully.&quot;</span><span class="p">)</span></div>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Private utility functions</span>
+<span class="c1">########################################################################</span>
+
+<span class="c1">################################</span>
+<span class="c1"># _createStagingDirs() function</span>
+<span class="c1">################################</span>
+
+<span class="k">def</span> <span class="nf">_createStagingDirs</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">dailyDir</span><span class="p">,</span> <span class="n">peers</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Creates staging directories as required.</span>
+
+<span class="sd">   The main staging directory is the passed in daily directory, something like</span>
+<span class="sd">   ``staging/2002/05/23``.  Then, individual peers get their own directories,</span>
+<span class="sd">   i.e. ``staging/2002/05/23/host``.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      config: Config object</span>
+<span class="sd">      dailyDir: Daily staging directory</span>
+<span class="sd">      peers: List of all configured peers</span>
+
+<span class="sd">   Returns:</span>
+<span class="sd">       Dictionary mapping peer name to staging directory</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="n">mapping</span> <span class="o">=</span> <span class="p">{}</span>
+   <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">dailyDir</span><span class="p">):</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Staging directory [</span><span class="si">%s</span><span class="s2">] already existed.&quot;</span><span class="p">,</span> <span class="n">dailyDir</span><span class="p">)</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="k">try</span><span class="p">:</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Creating staging directory [</span><span class="si">%s</span><span class="s2">].&quot;</span><span class="p">,</span> <span class="n">dailyDir</span><span class="p">)</span>
+         <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">dailyDir</span><span class="p">)</span>
+         <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="p">[</span> <span class="n">dailyDir</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dailyDir</span><span class="p">,</span> <span class="s2">&quot;..&quot;</span><span class="p">),</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dailyDir</span><span class="p">,</span> <span class="s2">&quot;..&quot;</span><span class="p">,</span> <span class="s2">&quot;..&quot;</span><span class="p">),</span> <span class="p">]:</span>
+            <span class="n">changeOwnership</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupUser</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupGroup</span><span class="p">)</span>
+      <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+         <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Unable to create staging directory: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span>
+   <span class="k">for</span> <span class="n">peer</span> <span class="ow">in</span> <span class="n">peers</span><span class="p">:</span>
+      <span class="n">peerDir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dailyDir</span><span class="p">,</span> <span class="n">peer</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+      <span class="n">mapping</span><span class="p">[</span><span class="n">peer</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">peerDir</span>
+      <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">peerDir</span><span class="p">):</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Peer staging directory [</span><span class="si">%s</span><span class="s2">] already existed.&quot;</span><span class="p">,</span> <span class="n">peerDir</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="k">try</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Creating peer staging directory [</span><span class="si">%s</span><span class="s2">].&quot;</span><span class="p">,</span> <span class="n">peerDir</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">peerDir</span><span class="p">)</span>
+            <span class="n">changeOwnership</span><span class="p">(</span><span class="n">peerDir</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupUser</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupGroup</span><span class="p">)</span>
+         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Unable to create staging directory: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span>
+   <span class="k">return</span> <span class="n">mapping</span>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Private attribute &quot;getter&quot; functions</span>
+<span class="c1">########################################################################</span>
+
+<span class="c1">####################################</span>
+<span class="c1"># _getIgnoreFailuresFlag() function</span>
+<span class="c1">####################################</span>
+
+<span class="k">def</span> <span class="nf">_getIgnoreFailuresFlag</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">peer</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Gets the ignore failures flag based on options, configuration, and peer.</span>
+<span class="sd">   Args:</span>
+<span class="sd">      options: Options object</span>
+<span class="sd">      config: Configuration object</span>
+<span class="sd">      peer: Peer to check</span>
+<span class="sd">   Returns:</span>
+<span class="sd">       Whether to ignore stage failures for this peer</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Ignore failure mode for this peer: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">peer</span><span class="o">.</span><span class="n">ignoreFailureMode</span><span class="p">)</span>
+   <span class="k">if</span> <span class="n">peer</span><span class="o">.</span><span class="n">ignoreFailureMode</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">peer</span><span class="o">.</span><span class="n">ignoreFailureMode</span> <span class="o">==</span> <span class="s2">&quot;none&quot;</span><span class="p">:</span>
+      <span class="k">return</span> <span class="kc">False</span>
+   <span class="k">elif</span> <span class="n">peer</span><span class="o">.</span><span class="n">ignoreFailureMode</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span><span class="p">:</span>
+      <span class="k">return</span> <span class="kc">True</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">full</span> <span class="ow">or</span> <span class="n">isStartOfWeek</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">startingDay</span><span class="p">):</span>
+         <span class="k">return</span> <span class="n">peer</span><span class="o">.</span><span class="n">ignoreFailureMode</span> <span class="o">==</span> <span class="s2">&quot;weekly&quot;</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="k">return</span> <span class="n">peer</span><span class="o">.</span><span class="n">ignoreFailureMode</span> <span class="o">==</span> <span class="s2">&quot;daily&quot;</span>
+
+
+<span class="c1">##########################</span>
+<span class="c1"># _getDailyDir() function</span>
+<span class="c1">##########################</span>
+
+<span class="k">def</span> <span class="nf">_getDailyDir</span><span class="p">(</span><span class="n">config</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Gets the daily staging directory.</span>
+
+<span class="sd">   This is just a directory in the form ``staging/YYYY/MM/DD``, i.e.</span>
+<span class="sd">   ``staging/2000/10/07``, except it will be an absolute path based on</span>
+<span class="sd">   ``config.stage.targetDir``.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      config: Config object</span>
+
+<span class="sd">   Returns:</span>
+<span class="sd">       Path of daily staging directory</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="n">dailyDir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">stage</span><span class="o">.</span><span class="n">targetDir</span><span class="p">,</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="n">DIR_TIME_FORMAT</span><span class="p">))</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Daily staging directory is [</span><span class="si">%s</span><span class="s2">].&quot;</span><span class="p">,</span> <span class="n">dailyDir</span><span class="p">)</span>
+   <span class="k">return</span> <span class="n">dailyDir</span>
+
+
+<span class="c1">############################</span>
+<span class="c1"># _getLocalPeers() function</span>
+<span class="c1">############################</span>
+
+<span class="k">def</span> <span class="nf">_getLocalPeers</span><span class="p">(</span><span class="n">config</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Return a list of :any:`LocalPeer` objects based on configuration.</span>
+<span class="sd">   Args:</span>
+<span class="sd">      config: Config object</span>
+<span class="sd">   Returns:</span>
+<span class="sd">       List of :any:`LocalPeer` objects</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="n">localPeers</span> <span class="o">=</span> <span class="p">[]</span>
+   <span class="n">configPeers</span> <span class="o">=</span> <span class="kc">None</span>
+   <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">stage</span><span class="o">.</span><span class="n">hasPeers</span><span class="p">():</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Using list of local peers from stage configuration.&quot;</span><span class="p">)</span>
+      <span class="n">configPeers</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">stage</span><span class="o">.</span><span class="n">localPeers</span>
+   <span class="k">elif</span> <span class="n">config</span><span class="o">.</span><span class="n">peers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">config</span><span class="o">.</span><span class="n">peers</span><span class="o">.</span><span class="n">hasPeers</span><span class="p">():</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Using list of local peers from peers configuration.&quot;</span><span class="p">)</span>
+      <span class="n">configPeers</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">peers</span><span class="o">.</span><span class="n">localPeers</span>
+   <span class="k">if</span> <span class="n">configPeers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="k">for</span> <span class="n">peer</span> <span class="ow">in</span> <span class="n">configPeers</span><span class="p">:</span>
+         <span class="n">localPeer</span> <span class="o">=</span> <span class="n">LocalPeer</span><span class="p">(</span><span class="n">peer</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">peer</span><span class="o">.</span><span class="n">collectDir</span><span class="p">,</span> <span class="n">peer</span><span class="o">.</span><span class="n">ignoreFailureMode</span><span class="p">)</span>
+         <span class="n">localPeers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">localPeer</span><span class="p">)</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Found local peer: [</span><span class="si">%s</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">localPeer</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+   <span class="k">return</span> <span class="n">localPeers</span>
+
+
+<span class="c1">#############################</span>
+<span class="c1"># _getRemotePeers() function</span>
+<span class="c1">#############################</span>
+
+<span class="k">def</span> <span class="nf">_getRemotePeers</span><span class="p">(</span><span class="n">config</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Return a list of :any:`RemotePeer` objects based on configuration.</span>
+<span class="sd">   Args:</span>
+<span class="sd">      config: Config object</span>
+<span class="sd">   Returns:</span>
+<span class="sd">       List of :any:`RemotePeer` objects</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="n">remotePeers</span> <span class="o">=</span> <span class="p">[]</span>
+   <span class="n">configPeers</span> <span class="o">=</span> <span class="kc">None</span>
+   <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">stage</span><span class="o">.</span><span class="n">hasPeers</span><span class="p">():</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Using list of remote peers from stage configuration.&quot;</span><span class="p">)</span>
+      <span class="n">configPeers</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">stage</span><span class="o">.</span><span class="n">remotePeers</span>
+   <span class="k">elif</span> <span class="n">config</span><span class="o">.</span><span class="n">peers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">config</span><span class="o">.</span><span class="n">peers</span><span class="o">.</span><span class="n">hasPeers</span><span class="p">():</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Using list of remote peers from peers configuration.&quot;</span><span class="p">)</span>
+      <span class="n">configPeers</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">peers</span><span class="o">.</span><span class="n">remotePeers</span>
+   <span class="k">if</span> <span class="n">configPeers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="k">for</span> <span class="n">peer</span> <span class="ow">in</span> <span class="n">configPeers</span><span class="p">:</span>
+         <span class="n">remoteUser</span> <span class="o">=</span> <span class="n">_getRemoteUser</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">peer</span><span class="p">)</span>
+         <span class="n">localUser</span> <span class="o">=</span> <span class="n">_getLocalUser</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+         <span class="n">rcpCommand</span> <span class="o">=</span> <span class="n">_getRcpCommand</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">peer</span><span class="p">)</span>
+         <span class="n">remotePeer</span> <span class="o">=</span> <span class="n">RemotePeer</span><span class="p">(</span><span class="n">peer</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">peer</span><span class="o">.</span><span class="n">collectDir</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">workingDir</span><span class="p">,</span>
+                                 <span class="n">remoteUser</span><span class="p">,</span> <span class="n">rcpCommand</span><span class="p">,</span> <span class="n">localUser</span><span class="p">,</span>
+                                 <span class="n">ignoreFailureMode</span><span class="o">=</span><span class="n">peer</span><span class="o">.</span><span class="n">ignoreFailureMode</span><span class="p">)</span>
+         <span class="n">remotePeers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">remotePeer</span><span class="p">)</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Found remote peer: [</span><span class="si">%s</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">remotePeer</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+   <span class="k">return</span> <span class="n">remotePeers</span>
+
+
+<span class="c1">############################</span>
+<span class="c1"># _getRemoteUser() function</span>
+<span class="c1">############################</span>
+
+<span class="k">def</span> <span class="nf">_getRemoteUser</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">remotePeer</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Gets the remote user associated with a remote peer.</span>
+<span class="sd">   Use peer&#39;s if possible, otherwise take from options section.</span>
+<span class="sd">   Args:</span>
+<span class="sd">      config: Config object</span>
+<span class="sd">      remotePeer: Configuration-style remote peer object</span>
+<span class="sd">   Returns:</span>
+<span class="sd">       Name of remote user associated with remote peer</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="k">if</span> <span class="n">remotePeer</span><span class="o">.</span><span class="n">remoteUser</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="k">return</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupUser</span>
+   <span class="k">return</span> <span class="n">remotePeer</span><span class="o">.</span><span class="n">remoteUser</span>
+
+
+<span class="c1">###########################</span>
+<span class="c1"># _getLocalUser() function</span>
+<span class="c1">###########################</span>
+
+<span class="k">def</span> <span class="nf">_getLocalUser</span><span class="p">(</span><span class="n">config</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Gets the remote user associated with a remote peer.</span>
+<span class="sd">   Args:</span>
+<span class="sd">      config: Config object</span>
+<span class="sd">   Returns:</span>
+<span class="sd">       Name of local user that should be used</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="k">if</span> <span class="ow">not</span> <span class="n">isRunningAsRoot</span><span class="p">():</span>
+      <span class="k">return</span> <span class="kc">None</span>
+   <span class="k">return</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupUser</span>
+
+
+<span class="c1">############################</span>
+<span class="c1"># _getRcpCommand() function</span>
+<span class="c1">############################</span>
+
+<span class="k">def</span> <span class="nf">_getRcpCommand</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">remotePeer</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Gets the RCP command associated with a remote peer.</span>
+<span class="sd">   Use peer&#39;s if possible, otherwise take from options section.</span>
+<span class="sd">   Args:</span>
+<span class="sd">      config: Config object</span>
+<span class="sd">      remotePeer: Configuration-style remote peer object</span>
+<span class="sd">   Returns:</span>
+<span class="sd">       RCP command associated with remote peer</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="k">if</span> <span class="n">remotePeer</span><span class="o">.</span><span class="n">rcpCommand</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="k">return</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">rcpCommand</span>
+   <span class="k">return</span> <span class="n">remotePeer</span><span class="o">.</span><span class="n">rcpCommand</span>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Cedar Backup v3  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright .
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.9.
+    </div>
+  </body>
+</html>

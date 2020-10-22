@@ -1,0 +1,497 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>CedarBackup3.actions.store &#8212; Cedar Backup v3  documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="Cedar Backup v3  documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Cedar Backup v3  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for CedarBackup3.actions.store</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: iso-8859-1 -*-</span>
+<span class="c1"># vim: set ft=python ts=3 sw=3 expandtab:</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+<span class="c1">#</span>
+<span class="c1">#              C E D A R</span>
+<span class="c1">#          S O L U T I O N S       &quot;Software done right.&quot;</span>
+<span class="c1">#           S O F T W A R E</span>
+<span class="c1">#</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright (c) 2004-2007,2010,2015 Kenneth J. Pronovici.</span>
+<span class="c1"># All rights reserved.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is free software; you can redistribute it and/or</span>
+<span class="c1"># modify it under the terms of the GNU General Public License,</span>
+<span class="c1"># Version 2, as published by the Free Software Foundation.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</span>
+<span class="c1">#</span>
+<span class="c1"># Copies of the GNU General Public License are available from</span>
+<span class="c1"># the Free Software Foundation website, http://www.gnu.org/.</span>
+<span class="c1">#</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+<span class="c1">#</span>
+<span class="c1"># Author   : Kenneth J. Pronovici &lt;pronovic@ieee.org&gt;</span>
+<span class="c1"># Language : Python 3 (&gt;= 3.4)</span>
+<span class="c1"># Project  : Cedar Backup, release 3</span>
+<span class="c1"># Purpose  : Implements the standard &#39;store&#39; action.</span>
+<span class="c1">#</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Module documentation</span>
+<span class="c1">########################################################################</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Implements the standard &#39;store&#39; action.</span>
+<span class="sd">:author: Kenneth J. Pronovici &lt;pronovic@ieee.org&gt;</span>
+<span class="sd">:author: Dmitry Rutsky &lt;rutsky@inbox.ru&gt;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Imported modules</span>
+<span class="c1">########################################################################</span>
+
+<span class="c1"># System modules</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+
+<span class="c1"># Cedar Backup modules</span>
+<span class="kn">from</span> <span class="nn">CedarBackup3.filesystem</span> <span class="k">import</span> <span class="n">compareContents</span>
+<span class="kn">from</span> <span class="nn">CedarBackup3.util</span> <span class="k">import</span> <span class="n">isStartOfWeek</span>
+<span class="kn">from</span> <span class="nn">CedarBackup3.util</span> <span class="k">import</span> <span class="n">mount</span><span class="p">,</span> <span class="n">unmount</span><span class="p">,</span> <span class="n">displayBytes</span>
+<span class="kn">from</span> <span class="nn">CedarBackup3.actions.util</span> <span class="k">import</span> <span class="n">createWriter</span><span class="p">,</span> <span class="n">checkMediaState</span><span class="p">,</span> <span class="n">buildMediaLabel</span><span class="p">,</span> <span class="n">writeIndicatorFile</span>
+<span class="kn">from</span> <span class="nn">CedarBackup3.actions.constants</span> <span class="k">import</span> <span class="n">DIR_TIME_FORMAT</span><span class="p">,</span> <span class="n">STAGE_INDICATOR</span><span class="p">,</span> <span class="n">STORE_INDICATOR</span>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Module-wide constants and variables</span>
+<span class="c1">########################################################################</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;CedarBackup3.log.actions.store&quot;</span><span class="p">)</span>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Public functions</span>
+<span class="c1">########################################################################</span>
+
+<span class="c1">##########################</span>
+<span class="c1"># executeStore() function</span>
+<span class="c1">##########################</span>
+
+<span class="c1"># pylint: disable=W0613</span>
+<div class="viewcode-block" id="executeStore"><a class="viewcode-back" href="../../../CedarBackup3.actions.html#CedarBackup3.actions.store.executeStore">[docs]</a><span class="k">def</span> <span class="nf">executeStore</span><span class="p">(</span><span class="n">configPath</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Executes the store backup action.</span>
+
+<span class="sd">   *Note:* The rebuild action and the store action are very similar.  The</span>
+<span class="sd">   main difference is that while store only stores a single day&#39;s staging</span>
+<span class="sd">   directory, the rebuild action operates on multiple staging directories.</span>
+
+<span class="sd">   *Note:* When the store action is complete, we will write a store indicator to</span>
+<span class="sd">   the daily staging directory we used, so it&#39;s obvious that the store action</span>
+<span class="sd">   has completed.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      configPath (String representing a path on disk): Path to configuration file on disk</span>
+<span class="sd">      options (Options object): Program command-line options</span>
+<span class="sd">      config (Config object): Program configuration</span>
+<span class="sd">   Raises:</span>
+<span class="sd">      ValueError: Under many generic error conditions</span>
+<span class="sd">      IOError: If there are problems reading or writing files</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Executing the &#39;store&#39; action.&quot;</span><span class="p">)</span>
+   <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;darwin&quot;</span><span class="p">:</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Warning: the store action is not fully supported on Mac OS X.&quot;</span><span class="p">)</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;See the Cedar Backup software manual for further information.&quot;</span><span class="p">)</span>
+   <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">config</span><span class="o">.</span><span class="n">store</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Store configuration is not properly filled in.&quot;</span><span class="p">)</span>
+   <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">store</span><span class="o">.</span><span class="n">checkMedia</span><span class="p">:</span>
+      <span class="n">checkMediaState</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">store</span><span class="p">)</span>  <span class="c1"># raises exception if media is not initialized</span>
+   <span class="n">rebuildMedia</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">full</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Rebuild media flag [</span><span class="si">%s</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">rebuildMedia</span><span class="p">)</span>
+   <span class="n">todayIsStart</span> <span class="o">=</span> <span class="n">isStartOfWeek</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">startingDay</span><span class="p">)</span>
+   <span class="n">stagingDirs</span> <span class="o">=</span> <span class="n">_findCorrectDailyDir</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+   <span class="n">writeImageBlankSafe</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">rebuildMedia</span><span class="p">,</span> <span class="n">todayIsStart</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">store</span><span class="o">.</span><span class="n">blankBehavior</span><span class="p">,</span> <span class="n">stagingDirs</span><span class="p">)</span>
+   <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">store</span><span class="o">.</span><span class="n">checkData</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;darwin&quot;</span><span class="p">:</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Warning: consistency check cannot be run successfully on Mac OS X.&quot;</span><span class="p">)</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;See the Cedar Backup software manual for further information.&quot;</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Running consistency check of media.&quot;</span><span class="p">)</span>
+         <span class="n">consistencyCheck</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">stagingDirs</span><span class="p">)</span>
+   <span class="n">writeStoreIndicator</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">stagingDirs</span><span class="p">)</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Executed the &#39;store&#39; action successfully.&quot;</span><span class="p">)</span></div>
+
+
+<span class="c1">########################</span>
+<span class="c1"># writeImage() function</span>
+<span class="c1">########################</span>
+
+<div class="viewcode-block" id="writeImage"><a class="viewcode-back" href="../../../CedarBackup3.actions.html#CedarBackup3.actions.store.writeImage">[docs]</a><span class="k">def</span> <span class="nf">writeImage</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">newDisc</span><span class="p">,</span> <span class="n">stagingDirs</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Builds and writes an ISO image containing the indicated stage directories.</span>
+
+<span class="sd">   The generated image will contain each of the staging directories listed in</span>
+<span class="sd">   ``stagingDirs``.  The directories will be placed into the image at the root by</span>
+<span class="sd">   date, so staging directory ``/opt/stage/2005/02/10`` will be placed into the</span>
+<span class="sd">   disc at ``/2005/02/10``.</span>
+
+<span class="sd">   *Note:* This function is implemented in terms of :any:`writeImageBlankSafe`.  The</span>
+<span class="sd">   ``newDisc`` flag is passed in for both ``rebuildMedia`` and ``todayIsStart``.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      config: Config object</span>
+<span class="sd">      newDisc: Indicates whether the disc should be re-initialized</span>
+<span class="sd">      stagingDirs: Dictionary mapping directory path to date suffix</span>
+
+<span class="sd">   Raises:</span>
+<span class="sd">      ValueError: Under many generic error conditions</span>
+<span class="sd">      IOError: If there is a problem writing the image to disc</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="n">writeImageBlankSafe</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">newDisc</span><span class="p">,</span> <span class="n">newDisc</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">stagingDirs</span><span class="p">)</span></div>
+
+
+<span class="c1">#################################</span>
+<span class="c1"># writeImageBlankSafe() function</span>
+<span class="c1">#################################</span>
+
+<div class="viewcode-block" id="writeImageBlankSafe"><a class="viewcode-back" href="../../../CedarBackup3.actions.html#CedarBackup3.actions.store.writeImageBlankSafe">[docs]</a><span class="k">def</span> <span class="nf">writeImageBlankSafe</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">rebuildMedia</span><span class="p">,</span> <span class="n">todayIsStart</span><span class="p">,</span> <span class="n">blankBehavior</span><span class="p">,</span> <span class="n">stagingDirs</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Builds and writes an ISO image containing the indicated stage directories.</span>
+
+<span class="sd">   The generated image will contain each of the staging directories listed in</span>
+<span class="sd">   ``stagingDirs``.  The directories will be placed into the image at the root by</span>
+<span class="sd">   date, so staging directory ``/opt/stage/2005/02/10`` will be placed into the</span>
+<span class="sd">   disc at ``/2005/02/10``.  The media will always be written with a media</span>
+<span class="sd">   label specific to Cedar Backup.</span>
+
+<span class="sd">   This function is similar to :any:`writeImage`, but tries to implement a smarter</span>
+<span class="sd">   blanking strategy.</span>
+
+<span class="sd">   First, the media is always blanked if the ``rebuildMedia`` flag is true.</span>
+<span class="sd">   Then, if ``rebuildMedia`` is false, blanking behavior and ``todayIsStart``</span>
+<span class="sd">   come into effect::</span>
+
+<span class="sd">      If no blanking behavior is specified, and it is the start of the week,</span>
+<span class="sd">      the disc will be blanked</span>
+
+<span class="sd">      If blanking behavior is specified, and either the blank mode is &quot;daily&quot;</span>
+<span class="sd">      or the blank mode is &quot;weekly&quot; and it is the start of the week, then</span>
+<span class="sd">      the disc will be blanked if it looks like the weekly backup will not</span>
+<span class="sd">      fit onto the media.</span>
+
+<span class="sd">      Otherwise, the disc will not be blanked</span>
+
+<span class="sd">   How do we decide whether the weekly backup will fit onto the media?  That is</span>
+<span class="sd">   what the blanking factor is used for.  The following formula is used::</span>
+
+<span class="sd">      will backup fit? = (bytes available / (1 + bytes required) &lt;= blankFactor</span>
+
+<span class="sd">   The blanking factor will vary from setup to setup, and will probably</span>
+<span class="sd">   require some experimentation to get it right.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      config: Config object</span>
+<span class="sd">      rebuildMedia: Indicates whether media should be rebuilt</span>
+<span class="sd">      todayIsStart: Indicates whether today is the starting day of the week</span>
+<span class="sd">      blankBehavior: Blank behavior from configuration, or ``None`` to use default behavior</span>
+<span class="sd">      stagingDirs: Dictionary mapping directory path to date suffix</span>
+
+<span class="sd">   Raises:</span>
+<span class="sd">      ValueError: Under many generic error conditions</span>
+<span class="sd">      IOError: If there is a problem writing the image to disc</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="n">mediaLabel</span> <span class="o">=</span> <span class="n">buildMediaLabel</span><span class="p">()</span>
+   <span class="n">writer</span> <span class="o">=</span> <span class="n">createWriter</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+   <span class="n">writer</span><span class="o">.</span><span class="n">initializeImage</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">workingDir</span><span class="p">,</span> <span class="n">mediaLabel</span><span class="p">)</span>  <span class="c1"># default value for newDisc</span>
+   <span class="k">for</span> <span class="n">stageDir</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">stagingDirs</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Adding stage directory [</span><span class="si">%s</span><span class="s2">].&quot;</span><span class="p">,</span> <span class="n">stageDir</span><span class="p">)</span>
+      <span class="n">dateSuffix</span> <span class="o">=</span> <span class="n">stagingDirs</span><span class="p">[</span><span class="n">stageDir</span><span class="p">]</span>
+      <span class="n">writer</span><span class="o">.</span><span class="n">addImageEntry</span><span class="p">(</span><span class="n">stageDir</span><span class="p">,</span> <span class="n">dateSuffix</span><span class="p">)</span>
+   <span class="n">newDisc</span> <span class="o">=</span> <span class="n">_getNewDisc</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="n">rebuildMedia</span><span class="p">,</span> <span class="n">todayIsStart</span><span class="p">,</span> <span class="n">blankBehavior</span><span class="p">)</span>
+   <span class="n">writer</span><span class="o">.</span><span class="n">setImageNewDisc</span><span class="p">(</span><span class="n">newDisc</span><span class="p">)</span>
+   <span class="n">writer</span><span class="o">.</span><span class="n">writeImage</span><span class="p">()</span></div>
+
+<span class="k">def</span> <span class="nf">_getNewDisc</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="n">rebuildMedia</span><span class="p">,</span> <span class="n">todayIsStart</span><span class="p">,</span> <span class="n">blankBehavior</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Gets a value for the newDisc flag based on blanking factor rules.</span>
+
+<span class="sd">   The blanking factor rules are described above by :any:`writeImageBlankSafe`.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      writer: Previously configured image writer containing image entries</span>
+<span class="sd">      rebuildMedia: Indicates whether media should be rebuilt</span>
+<span class="sd">      todayIsStart: Indicates whether today is the starting day of the week</span>
+<span class="sd">      blankBehavior: Blank behavior from configuration, or ``None`` to use default behavior</span>
+
+<span class="sd">   Returns:</span>
+<span class="sd">       newDisc flag to be set on writer</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="n">newDisc</span> <span class="o">=</span> <span class="kc">False</span>
+   <span class="k">if</span> <span class="n">rebuildMedia</span><span class="p">:</span>
+      <span class="n">newDisc</span> <span class="o">=</span> <span class="kc">True</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Setting new disc flag based on rebuildMedia flag.&quot;</span><span class="p">)</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">blankBehavior</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Default media blanking behavior is in effect.&quot;</span><span class="p">)</span>
+         <span class="k">if</span> <span class="n">todayIsStart</span><span class="p">:</span>
+            <span class="n">newDisc</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Setting new disc flag based on todayIsStart.&quot;</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="c1"># note: validation says we can assume that behavior is fully filled in if it exists at all</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Optimized media blanking behavior is in effect based on configuration.&quot;</span><span class="p">)</span>
+         <span class="k">if</span> <span class="n">blankBehavior</span><span class="o">.</span><span class="n">blankMode</span> <span class="o">==</span> <span class="s2">&quot;daily&quot;</span> <span class="ow">or</span> <span class="p">(</span><span class="n">blankBehavior</span><span class="o">.</span><span class="n">blankMode</span> <span class="o">==</span> <span class="s2">&quot;weekly&quot;</span> <span class="ow">and</span> <span class="n">todayIsStart</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;New disc flag will be set based on blank factor calculation.&quot;</span><span class="p">)</span>
+            <span class="n">blankFactor</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">blankBehavior</span><span class="o">.</span><span class="n">blankFactor</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Configured blanking factor: </span><span class="si">%.2f</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">blankFactor</span><span class="p">)</span>
+            <span class="n">available</span> <span class="o">=</span> <span class="n">writer</span><span class="o">.</span><span class="n">retrieveCapacity</span><span class="p">()</span><span class="o">.</span><span class="n">bytesAvailable</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Bytes available: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">displayBytes</span><span class="p">(</span><span class="n">available</span><span class="p">))</span>
+            <span class="n">required</span> <span class="o">=</span> <span class="n">writer</span><span class="o">.</span><span class="n">getEstimatedImageSize</span><span class="p">()</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Bytes required: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">displayBytes</span><span class="p">(</span><span class="n">required</span><span class="p">))</span>
+            <span class="n">ratio</span> <span class="o">=</span> <span class="n">available</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">required</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Calculated ratio: </span><span class="si">%.2f</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">ratio</span><span class="p">)</span>
+            <span class="n">newDisc</span> <span class="o">=</span> <span class="p">(</span><span class="n">ratio</span> <span class="o">&lt;=</span> <span class="n">blankFactor</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%.2f</span><span class="s2"> &lt;= </span><span class="si">%.2f</span><span class="s2"> ? </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">ratio</span><span class="p">,</span> <span class="n">blankFactor</span><span class="p">,</span> <span class="n">newDisc</span><span class="p">)</span>
+         <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;No blank factor calculation is required based on configuration.&quot;</span><span class="p">)</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;New disc flag [</span><span class="si">%s</span><span class="s2">].&quot;</span><span class="p">,</span> <span class="n">newDisc</span><span class="p">)</span>
+   <span class="k">return</span> <span class="n">newDisc</span>
+
+
+<span class="c1">#################################</span>
+<span class="c1"># writeStoreIndicator() function</span>
+<span class="c1">#################################</span>
+
+<div class="viewcode-block" id="writeStoreIndicator"><a class="viewcode-back" href="../../../CedarBackup3.actions.html#CedarBackup3.actions.store.writeStoreIndicator">[docs]</a><span class="k">def</span> <span class="nf">writeStoreIndicator</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">stagingDirs</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Writes a store indicator file into staging directories.</span>
+
+<span class="sd">   The store indicator is written into each of the staging directories when</span>
+<span class="sd">   either a store or rebuild action has written the staging directory to disc.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      config: Config object</span>
+<span class="sd">      stagingDirs: Dictionary mapping directory path to date suffix</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="k">for</span> <span class="n">stagingDir</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">stagingDirs</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+      <span class="n">writeIndicatorFile</span><span class="p">(</span><span class="n">stagingDir</span><span class="p">,</span> <span class="n">STORE_INDICATOR</span><span class="p">,</span>
+                         <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupUser</span><span class="p">,</span>
+                         <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupGroup</span><span class="p">)</span></div>
+
+
+<span class="c1">##############################</span>
+<span class="c1"># consistencyCheck() function</span>
+<span class="c1">##############################</span>
+
+<div class="viewcode-block" id="consistencyCheck"><a class="viewcode-back" href="../../../CedarBackup3.actions.html#CedarBackup3.actions.store.consistencyCheck">[docs]</a><span class="k">def</span> <span class="nf">consistencyCheck</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">stagingDirs</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Runs a consistency check against media in the backup device.</span>
+
+<span class="sd">   It seems that sometimes, it&#39;s possible to create a corrupted multisession</span>
+<span class="sd">   disc (i.e. one that cannot be read) although no errors were encountered</span>
+<span class="sd">   while writing the disc.  This consistency check makes sure that the data</span>
+<span class="sd">   read from disc matches the data that was used to create the disc.</span>
+
+<span class="sd">   The function mounts the device at a temporary mount point in the working</span>
+<span class="sd">   directory, and then compares the indicated staging directories in the</span>
+<span class="sd">   staging directory and on the media.  The comparison is done via</span>
+<span class="sd">   functionality in ``filesystem.py``.</span>
+
+<span class="sd">   If no exceptions are thrown, there were no problems with the consistency</span>
+<span class="sd">   check.  A positive confirmation of &quot;no problems&quot; is also written to the log</span>
+<span class="sd">   with ``info`` priority.</span>
+
+<span class="sd">   @warning: The implementation of this function is very UNIX-specific.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      config: Config object</span>
+<span class="sd">      stagingDirs: Dictionary mapping directory path to date suffix</span>
+
+<span class="sd">   Raises:</span>
+<span class="sd">      ValueError: If the two directories are not equivalent</span>
+<span class="sd">      IOError: If there is a problem working with the media</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Running consistency check.&quot;</span><span class="p">)</span>
+   <span class="n">mountPoint</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">(</span><span class="nb">dir</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">workingDir</span><span class="p">)</span>
+   <span class="k">try</span><span class="p">:</span>
+      <span class="n">mount</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">store</span><span class="o">.</span><span class="n">devicePath</span><span class="p">,</span> <span class="n">mountPoint</span><span class="p">,</span> <span class="s2">&quot;iso9660&quot;</span><span class="p">)</span>
+      <span class="k">for</span> <span class="n">stagingDir</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">stagingDirs</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+         <span class="n">discDir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">mountPoint</span><span class="p">,</span> <span class="n">stagingDirs</span><span class="p">[</span><span class="n">stagingDir</span><span class="p">])</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Checking [</span><span class="si">%s</span><span class="s2">] vs. [</span><span class="si">%s</span><span class="s2">].&quot;</span><span class="p">,</span> <span class="n">stagingDir</span><span class="p">,</span> <span class="n">discDir</span><span class="p">)</span>
+         <span class="n">compareContents</span><span class="p">(</span><span class="n">stagingDir</span><span class="p">,</span> <span class="n">discDir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Consistency check completed for [</span><span class="si">%s</span><span class="s2">].  No problems found.&quot;</span><span class="p">,</span> <span class="n">stagingDir</span><span class="p">)</span>
+   <span class="k">finally</span><span class="p">:</span>
+      <span class="n">unmount</span><span class="p">(</span><span class="n">mountPoint</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># try 5 times, and remove mount point when done</span></div>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Private utility functions</span>
+<span class="c1">########################################################################</span>
+
+<span class="c1">#########################</span>
+<span class="c1"># _findCorrectDailyDir()</span>
+<span class="c1">#########################</span>
+
+<span class="k">def</span> <span class="nf">_findCorrectDailyDir</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Finds the correct daily staging directory to be written to disk.</span>
+
+<span class="sd">   In Cedar Backup v1.0, we assumed that the correct staging directory matched</span>
+<span class="sd">   the current date.  However, that has problems.  In particular, it breaks</span>
+<span class="sd">   down if collect is on one side of midnite and stage is on the other, or if</span>
+<span class="sd">   certain processes span midnite.</span>
+
+<span class="sd">   For v2.0, I&#39;m trying to be smarter.  I&#39;ll first check the current day.  If</span>
+<span class="sd">   that directory is found, it&#39;s good enough.  If it&#39;s not found, I&#39;ll look for</span>
+<span class="sd">   a valid directory from the day before or day after I{which has not yet been</span>
+<span class="sd">   staged, according to the stage indicator file}.  The first one I find, I&#39;ll</span>
+<span class="sd">   use.  If I use a directory other than for the current day *and*</span>
+<span class="sd">   ``config.store.warnMidnite`` is set, a warning will be put in the log.</span>
+
+<span class="sd">   There is one exception to this rule.  If the ``options.full`` flag is set,</span>
+<span class="sd">   then the special &quot;span midnite&quot; logic will be disabled and any existing</span>
+<span class="sd">   store indicator will be ignored.  I did this because I think that most users</span>
+<span class="sd">   who run ``cback3 --full store`` twice in a row expect the command to generate</span>
+<span class="sd">   two identical discs.  With the other rule in place, running that command</span>
+<span class="sd">   twice in a row could result in an error (&quot;no unstored directory exists&quot;) or</span>
+<span class="sd">   could even cause a completely unexpected directory to be written to disc (if</span>
+<span class="sd">   some previous day&#39;s contents had not yet been written).</span>
+
+<span class="sd">   *Note:* This code is probably longer and more verbose than it needs to be,</span>
+<span class="sd">   but at least it&#39;s straightforward.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      options: Options object</span>
+<span class="sd">      config: Config object</span>
+
+<span class="sd">   Returns:</span>
+<span class="sd">       Correct staging dir, as a dict mapping directory to date suffix</span>
+<span class="sd">   Raises:</span>
+<span class="sd">      IOError: If the staging directory cannot be found</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="n">oneDay</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+   <span class="n">today</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span>
+   <span class="n">yesterday</span> <span class="o">=</span> <span class="n">today</span> <span class="o">-</span> <span class="n">oneDay</span>
+   <span class="n">tomorrow</span> <span class="o">=</span> <span class="n">today</span> <span class="o">+</span> <span class="n">oneDay</span>
+   <span class="n">todayDate</span> <span class="o">=</span> <span class="n">today</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="n">DIR_TIME_FORMAT</span><span class="p">)</span>
+   <span class="n">yesterdayDate</span> <span class="o">=</span> <span class="n">yesterday</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="n">DIR_TIME_FORMAT</span><span class="p">)</span>
+   <span class="n">tomorrowDate</span> <span class="o">=</span> <span class="n">tomorrow</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="n">DIR_TIME_FORMAT</span><span class="p">)</span>
+   <span class="n">todayPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">stage</span><span class="o">.</span><span class="n">targetDir</span><span class="p">,</span> <span class="n">todayDate</span><span class="p">)</span>
+   <span class="n">yesterdayPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">stage</span><span class="o">.</span><span class="n">targetDir</span><span class="p">,</span> <span class="n">yesterdayDate</span><span class="p">)</span>
+   <span class="n">tomorrowPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">stage</span><span class="o">.</span><span class="n">targetDir</span><span class="p">,</span> <span class="n">tomorrowDate</span><span class="p">)</span>
+   <span class="n">todayStageInd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">todayPath</span><span class="p">,</span> <span class="n">STAGE_INDICATOR</span><span class="p">)</span>
+   <span class="n">yesterdayStageInd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">yesterdayPath</span><span class="p">,</span> <span class="n">STAGE_INDICATOR</span><span class="p">)</span>
+   <span class="n">tomorrowStageInd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tomorrowPath</span><span class="p">,</span> <span class="n">STAGE_INDICATOR</span><span class="p">)</span>
+   <span class="n">todayStoreInd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">todayPath</span><span class="p">,</span> <span class="n">STORE_INDICATOR</span><span class="p">)</span>
+   <span class="n">yesterdayStoreInd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">yesterdayPath</span><span class="p">,</span> <span class="n">STORE_INDICATOR</span><span class="p">)</span>
+   <span class="n">tomorrowStoreInd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tomorrowPath</span><span class="p">,</span> <span class="n">STORE_INDICATOR</span><span class="p">)</span>
+   <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">full</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">todayPath</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">todayStageInd</span><span class="p">):</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Store process will use current day&#39;s stage directory [</span><span class="si">%s</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">todayPath</span><span class="p">)</span>
+         <span class="k">return</span> <span class="p">{</span> <span class="n">todayPath</span><span class="p">:</span><span class="n">todayDate</span> <span class="p">}</span>
+      <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Unable to find staging directory to store (only tried today due to full option).&quot;</span><span class="p">)</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">todayPath</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">todayStageInd</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">todayStoreInd</span><span class="p">):</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Store process will use current day&#39;s stage directory [</span><span class="si">%s</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">todayPath</span><span class="p">)</span>
+         <span class="k">return</span> <span class="p">{</span> <span class="n">todayPath</span><span class="p">:</span><span class="n">todayDate</span> <span class="p">}</span>
+      <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">yesterdayPath</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">yesterdayStageInd</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">yesterdayStoreInd</span><span class="p">):</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Store process will use previous day&#39;s stage directory [</span><span class="si">%s</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">yesterdayPath</span><span class="p">)</span>
+         <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">store</span><span class="o">.</span><span class="n">warnMidnite</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Warning: store process crossed midnite boundary to find data.&quot;</span><span class="p">)</span>
+         <span class="k">return</span> <span class="p">{</span> <span class="n">yesterdayPath</span><span class="p">:</span><span class="n">yesterdayDate</span> <span class="p">}</span>
+      <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">tomorrowPath</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">tomorrowStageInd</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">tomorrowStoreInd</span><span class="p">):</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Store process will use next day&#39;s stage directory [</span><span class="si">%s</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">tomorrowPath</span><span class="p">)</span>
+         <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">store</span><span class="o">.</span><span class="n">warnMidnite</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Warning: store process crossed midnite boundary to find data.&quot;</span><span class="p">)</span>
+         <span class="k">return</span> <span class="p">{</span> <span class="n">tomorrowPath</span><span class="p">:</span><span class="n">tomorrowDate</span> <span class="p">}</span>
+      <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Unable to find unused staging directory to store (tried today, yesterday, tomorrow).&quot;</span><span class="p">)</span>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Cedar Backup v3  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright .
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.9.
+    </div>
+  </body>
+</html>

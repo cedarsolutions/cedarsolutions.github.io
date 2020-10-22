@@ -1,0 +1,435 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>CedarBackup3.knapsack &#8212; Cedar Backup v3  documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="Cedar Backup v3  documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Cedar Backup v3  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for CedarBackup3.knapsack</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: iso-8859-1 -*-</span>
+<span class="c1"># vim: set ft=python ts=3 sw=3 expandtab:</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+<span class="c1">#</span>
+<span class="c1">#              C E D A R</span>
+<span class="c1">#          S O L U T I O N S       &quot;Software done right.&quot;</span>
+<span class="c1">#           S O F T W A R E</span>
+<span class="c1">#</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright (c) 2004-2005,2010,2015 Kenneth J. Pronovici.</span>
+<span class="c1"># All rights reserved.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is free software; you can redistribute it and/or</span>
+<span class="c1"># modify it under the terms of the GNU General Public License,</span>
+<span class="c1"># Version 2, as published by the Free Software Foundation.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</span>
+<span class="c1">#</span>
+<span class="c1"># Copies of the GNU General Public License are available from</span>
+<span class="c1"># the Free Software Foundation website, http://www.gnu.org/.</span>
+<span class="c1">#</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+<span class="c1">#</span>
+<span class="c1"># Author   : Kenneth J. Pronovici &lt;pronovic@ieee.org&gt;</span>
+<span class="c1"># Language : Python 3 (&gt;= 3.4)</span>
+<span class="c1"># Project  : Cedar Backup, release 3</span>
+<span class="c1"># Purpose  : Provides knapsack algorithms used for &quot;fit&quot; decisions</span>
+<span class="c1">#</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+
+<span class="c1">########</span>
+<span class="c1"># Notes</span>
+<span class="c1">########</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Provides the implementation for various knapsack algorithms.</span>
+
+<span class="sd">Knapsack algorithms are &quot;fit&quot; algorithms, used to take a set of &quot;things&quot; and</span>
+<span class="sd">decide on the optimal way to fit them into some container.  The focus of this</span>
+<span class="sd">code is to fit files onto a disc, although the interface (in terms of item,</span>
+<span class="sd">item size and capacity size, with no units) is generic enough that it can</span>
+<span class="sd">be applied to items other than files.</span>
+
+<span class="sd">All of the algorithms implemented below assume that &quot;optimal&quot; means &quot;use up as</span>
+<span class="sd">much of the disc&#39;s capacity as possible&quot;, but each produces slightly different</span>
+<span class="sd">results.  For instance, the best fit and first fit algorithms tend to include</span>
+<span class="sd">fewer files than the worst fit and alternate fit algorithms, even if they use</span>
+<span class="sd">the disc space more efficiently.</span>
+
+<span class="sd">Usually, for a given set of circumstances, it will be obvious to a human which</span>
+<span class="sd">algorithm is the right one to use, based on trade-offs between number of files</span>
+<span class="sd">included and ideal space utilization.  It&#39;s a little more difficult to do this</span>
+<span class="sd">programmatically.  For Cedar Backup&#39;s purposes (i.e. trying to fit a small</span>
+<span class="sd">number of collect-directory tarfiles onto a disc), worst-fit is probably the</span>
+<span class="sd">best choice if the goal is to include as many of the collect directories as</span>
+<span class="sd">possible.</span>
+
+<span class="sd">:author: Kenneth J. Pronovici &lt;pronovic@ieee.org&gt;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1">#######################################################################</span>
+<span class="c1"># Public functions</span>
+<span class="c1">#######################################################################</span>
+
+<span class="c1">######################</span>
+<span class="c1"># firstFit() function</span>
+<span class="c1">######################</span>
+
+<div class="viewcode-block" id="firstFit"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.knapsack.firstFit">[docs]</a><span class="k">def</span> <span class="nf">firstFit</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">capacity</span><span class="p">):</span>
+
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Implements the first-fit knapsack algorithm.</span>
+
+<span class="sd">   The first-fit algorithm proceeds through an unsorted list of items until</span>
+<span class="sd">   running out of items or meeting capacity exactly.  If capacity is exceeded,</span>
+<span class="sd">   the item that caused capacity to be exceeded is thrown away and the next one</span>
+<span class="sd">   is tried.  This algorithm generally performs more poorly than the other</span>
+<span class="sd">   algorithms both in terms of capacity utilization and item utilization, but</span>
+<span class="sd">   can be as much as an order of magnitude faster on large lists of items</span>
+<span class="sd">   because it doesn&#39;t require any sorting.</span>
+
+<span class="sd">   The &quot;size&quot; values in the items and capacity arguments must be comparable,</span>
+<span class="sd">   but they are unitless from the perspective of this function.  Zero-sized</span>
+<span class="sd">   items and capacity are considered degenerate cases.  If capacity is zero,</span>
+<span class="sd">   no items fit, period, even if the items list contains zero-sized items.</span>
+
+<span class="sd">   The dictionary is indexed by its key, and then includes its key.  This</span>
+<span class="sd">   seems kind of strange on first glance.  It works this way to facilitate</span>
+<span class="sd">   easy sorting of the list on key if needed.</span>
+
+<span class="sd">   The function assumes that the list of items may be used destructively, if</span>
+<span class="sd">   needed.  This avoids the overhead of having the function make a copy of the</span>
+<span class="sd">   list, if this is not required.  Callers should pass ``items.copy()`` if they</span>
+<span class="sd">   do not want their version of the list modified.</span>
+
+<span class="sd">   The function returns a list of chosen items and the unitless amount of</span>
+<span class="sd">   capacity used by the items.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      items (dictionary, keyed on item, of ``item, size`` tuples, item as string and size as integer): Items to operate on</span>
+<span class="sd">      capacity (integer): Capacity of container to fit to</span>
+<span class="sd">   Returns:</span>
+<span class="sd">       Tuple ``(items, used)`` as described above</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+
+   <span class="c1"># Use dict since insert into dict is faster than list append</span>
+   <span class="n">included</span> <span class="o">=</span> <span class="p">{</span> <span class="p">}</span>
+
+   <span class="c1"># Search the list as it stands (arbitrary order)</span>
+   <span class="n">used</span> <span class="o">=</span> <span class="mi">0</span>
+   <span class="n">remaining</span> <span class="o">=</span> <span class="n">capacity</span>
+   <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">items</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+      <span class="k">if</span> <span class="n">remaining</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+         <span class="k">break</span>
+      <span class="k">if</span> <span class="n">remaining</span> <span class="o">-</span> <span class="n">items</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+         <span class="n">included</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+         <span class="n">used</span> <span class="o">+=</span> <span class="n">items</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+         <span class="n">remaining</span> <span class="o">-=</span> <span class="n">items</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+
+   <span class="c1"># Return results</span>
+   <span class="k">return</span> <span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">included</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">used</span><span class="p">)</span></div>
+
+
+<span class="c1">#####################</span>
+<span class="c1"># bestFit() function</span>
+<span class="c1">#####################</span>
+
+<div class="viewcode-block" id="bestFit"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.knapsack.bestFit">[docs]</a><span class="k">def</span> <span class="nf">bestFit</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">capacity</span><span class="p">):</span>
+
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Implements the best-fit knapsack algorithm.</span>
+
+<span class="sd">   The best-fit algorithm proceeds through a sorted list of items (sorted from</span>
+<span class="sd">   largest to smallest) until running out of items or meeting capacity exactly.</span>
+<span class="sd">   If capacity is exceeded, the item that caused capacity to be exceeded is</span>
+<span class="sd">   thrown away and the next one is tried.  The algorithm effectively includes</span>
+<span class="sd">   the minimum number of items possible in its search for optimal capacity</span>
+<span class="sd">   utilization.  For large lists of mixed-size items, it&#39;s not ususual to see</span>
+<span class="sd">   the algorithm achieve 100% capacity utilization by including fewer than 1%</span>
+<span class="sd">   of the items.  Probably because it often has to look at fewer of the items</span>
+<span class="sd">   before completing, it tends to be a little faster than the worst-fit or</span>
+<span class="sd">   alternate-fit algorithms.</span>
+
+<span class="sd">   The &quot;size&quot; values in the items and capacity arguments must be comparable,</span>
+<span class="sd">   but they are unitless from the perspective of this function.  Zero-sized</span>
+<span class="sd">   items and capacity are considered degenerate cases.  If capacity is zero,</span>
+<span class="sd">   no items fit, period, even if the items list contains zero-sized items.</span>
+
+<span class="sd">   The dictionary is indexed by its key, and then includes its key.  This</span>
+<span class="sd">   seems kind of strange on first glance.  It works this way to facilitate</span>
+<span class="sd">   easy sorting of the list on key if needed.</span>
+
+<span class="sd">   The function assumes that the list of items may be used destructively, if</span>
+<span class="sd">   needed.  This avoids the overhead of having the function make a copy of the</span>
+<span class="sd">   list, if this is not required.  Callers should pass ``items.copy()`` if they</span>
+<span class="sd">   do not want their version of the list modified.</span>
+
+<span class="sd">   The function returns a list of chosen items and the unitless amount of</span>
+<span class="sd">   capacity used by the items.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      items (dictionary, keyed on item, of ``item, size`` tuples, item as string and size as integer): Items to operate on</span>
+<span class="sd">      capacity (integer): Capacity of container to fit to</span>
+<span class="sd">   Returns:</span>
+<span class="sd">       Tuple ``(items, used)`` as described above</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+
+   <span class="c1"># Use dict since insert into dict is faster than list append</span>
+   <span class="n">included</span> <span class="o">=</span> <span class="p">{</span> <span class="p">}</span>
+
+   <span class="c1"># Sort the list from largest to smallest</span>
+   <span class="n">itemlist</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">items</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+   <span class="n">itemlist</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>    <span class="c1"># sort descending</span>
+   <span class="n">keys</span> <span class="o">=</span> <span class="p">[]</span>
+   <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">itemlist</span><span class="p">:</span>
+      <span class="n">keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+   <span class="c1"># Search the list</span>
+   <span class="n">used</span> <span class="o">=</span> <span class="mi">0</span>
+   <span class="n">remaining</span> <span class="o">=</span> <span class="n">capacity</span>
+   <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">remaining</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+         <span class="k">break</span>
+      <span class="k">if</span> <span class="n">remaining</span> <span class="o">-</span> <span class="n">items</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+         <span class="n">included</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+         <span class="n">used</span> <span class="o">+=</span> <span class="n">items</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+         <span class="n">remaining</span> <span class="o">-=</span> <span class="n">items</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+
+   <span class="c1"># Return the results</span>
+   <span class="k">return</span> <span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">included</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">used</span><span class="p">)</span></div>
+
+
+<span class="c1">######################</span>
+<span class="c1"># worstFit() function</span>
+<span class="c1">######################</span>
+
+<div class="viewcode-block" id="worstFit"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.knapsack.worstFit">[docs]</a><span class="k">def</span> <span class="nf">worstFit</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">capacity</span><span class="p">):</span>
+
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Implements the worst-fit knapsack algorithm.</span>
+
+<span class="sd">   The worst-fit algorithm proceeds through an a sorted list of items (sorted</span>
+<span class="sd">   from smallest to largest) until running out of items or meeting capacity</span>
+<span class="sd">   exactly.  If capacity is exceeded, the item that caused capacity to be</span>
+<span class="sd">   exceeded is thrown away and the next one is tried.  The algorithm</span>
+<span class="sd">   effectively includes the maximum number of items possible in its search for</span>
+<span class="sd">   optimal capacity utilization.  It tends to be somewhat slower than either</span>
+<span class="sd">   the best-fit or alternate-fit algorithm, probably because on average it has</span>
+<span class="sd">   to look at more items before completing.</span>
+
+<span class="sd">   The &quot;size&quot; values in the items and capacity arguments must be comparable,</span>
+<span class="sd">   but they are unitless from the perspective of this function.  Zero-sized</span>
+<span class="sd">   items and capacity are considered degenerate cases.  If capacity is zero,</span>
+<span class="sd">   no items fit, period, even if the items list contains zero-sized items.</span>
+
+<span class="sd">   The dictionary is indexed by its key, and then includes its key.  This</span>
+<span class="sd">   seems kind of strange on first glance.  It works this way to facilitate</span>
+<span class="sd">   easy sorting of the list on key if needed.</span>
+
+<span class="sd">   The function assumes that the list of items may be used destructively, if</span>
+<span class="sd">   needed.  This avoids the overhead of having the function make a copy of the</span>
+<span class="sd">   list, if this is not required.  Callers should pass ``items.copy()`` if they</span>
+<span class="sd">   do not want their version of the list modified.</span>
+
+<span class="sd">   The function returns a list of chosen items and the unitless amount of</span>
+<span class="sd">   capacity used by the items.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      items (dictionary, keyed on item, of ``item, size`` tuples, item as string and size as integer): Items to operate on</span>
+<span class="sd">      capacity (integer): Capacity of container to fit to</span>
+<span class="sd">   Returns:</span>
+<span class="sd">       Tuple ``(items, used)`` as described above</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+
+   <span class="c1"># Use dict since insert into dict is faster than list append</span>
+   <span class="n">included</span> <span class="o">=</span> <span class="p">{</span> <span class="p">}</span>
+
+   <span class="c1"># Sort the list from smallest to largest</span>
+   <span class="n">itemlist</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">items</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+   <span class="n">itemlist</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>    <span class="c1"># sort ascending</span>
+   <span class="n">keys</span> <span class="o">=</span> <span class="p">[]</span>
+   <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">itemlist</span><span class="p">:</span>
+      <span class="n">keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+   <span class="c1"># Search the list</span>
+   <span class="n">used</span> <span class="o">=</span> <span class="mi">0</span>
+   <span class="n">remaining</span> <span class="o">=</span> <span class="n">capacity</span>
+   <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">remaining</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+         <span class="k">break</span>
+      <span class="k">if</span> <span class="n">remaining</span> <span class="o">-</span> <span class="n">items</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+         <span class="n">included</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+         <span class="n">used</span> <span class="o">+=</span> <span class="n">items</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+         <span class="n">remaining</span> <span class="o">-=</span> <span class="n">items</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+
+   <span class="c1"># Return results</span>
+   <span class="k">return</span> <span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">included</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">used</span><span class="p">)</span></div>
+
+
+<span class="c1">##########################</span>
+<span class="c1"># alternateFit() function</span>
+<span class="c1">##########################</span>
+
+<div class="viewcode-block" id="alternateFit"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.knapsack.alternateFit">[docs]</a><span class="k">def</span> <span class="nf">alternateFit</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">capacity</span><span class="p">):</span>
+
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Implements the alternate-fit knapsack algorithm.</span>
+
+<span class="sd">   This algorithm (which I&#39;m calling &quot;alternate-fit&quot; as in &quot;alternate from one</span>
+<span class="sd">   to the other&quot;) tries to balance small and large items to achieve better</span>
+<span class="sd">   end-of-disk performance.  Instead of just working one direction through a</span>
+<span class="sd">   list, it alternately works from the start and end of a sorted list (sorted</span>
+<span class="sd">   from smallest to largest), throwing away any item which causes capacity to</span>
+<span class="sd">   be exceeded.  The algorithm tends to be slower than the best-fit and</span>
+<span class="sd">   first-fit algorithms, and slightly faster than the worst-fit algorithm,</span>
+<span class="sd">   probably because of the number of items it considers on average before</span>
+<span class="sd">   completing.  It often achieves slightly better capacity utilization than the</span>
+<span class="sd">   worst-fit algorithm, while including slighly fewer items.</span>
+
+<span class="sd">   The &quot;size&quot; values in the items and capacity arguments must be comparable,</span>
+<span class="sd">   but they are unitless from the perspective of this function.  Zero-sized</span>
+<span class="sd">   items and capacity are considered degenerate cases.  If capacity is zero,</span>
+<span class="sd">   no items fit, period, even if the items list contains zero-sized items.</span>
+
+<span class="sd">   The dictionary is indexed by its key, and then includes its key.  This</span>
+<span class="sd">   seems kind of strange on first glance.  It works this way to facilitate</span>
+<span class="sd">   easy sorting of the list on key if needed.</span>
+
+<span class="sd">   The function assumes that the list of items may be used destructively, if</span>
+<span class="sd">   needed.  This avoids the overhead of having the function make a copy of the</span>
+<span class="sd">   list, if this is not required.  Callers should pass ``items.copy()`` if they</span>
+<span class="sd">   do not want their version of the list modified.</span>
+
+<span class="sd">   The function returns a list of chosen items and the unitless amount of</span>
+<span class="sd">   capacity used by the items.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      items (dictionary, keyed on item, of ``item, size`` tuples, item as string and size as integer): Items to operate on</span>
+<span class="sd">      capacity (integer): Capacity of container to fit to</span>
+<span class="sd">   Returns:</span>
+<span class="sd">       Tuple ``(items, used)`` as described above</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+
+   <span class="c1"># Use dict since insert into dict is faster than list append</span>
+   <span class="n">included</span> <span class="o">=</span> <span class="p">{</span> <span class="p">}</span>
+
+   <span class="c1"># Sort the list from smallest to largest</span>
+   <span class="n">itemlist</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">items</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+   <span class="n">itemlist</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>    <span class="c1"># sort ascending</span>
+   <span class="n">keys</span> <span class="o">=</span> <span class="p">[]</span>
+   <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">itemlist</span><span class="p">:</span>
+      <span class="n">keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+   <span class="c1"># Search the list</span>
+   <span class="n">used</span> <span class="o">=</span> <span class="mi">0</span>
+   <span class="n">remaining</span> <span class="o">=</span> <span class="n">capacity</span>
+
+   <span class="n">front</span> <span class="o">=</span> <span class="n">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span><span class="o">//</span><span class="mi">2</span><span class="p">]</span>
+   <span class="n">back</span> <span class="o">=</span> <span class="n">keys</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span><span class="o">//</span><span class="mi">2</span><span class="p">:</span><span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">)]</span>
+   <span class="n">back</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+
+   <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+   <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span>
+
+   <span class="k">while</span> <span class="n">remaining</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="p">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">front</span><span class="p">)</span> <span class="ow">or</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">back</span><span class="p">)):</span>
+      <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">front</span><span class="p">):</span>
+         <span class="k">if</span> <span class="n">remaining</span> <span class="o">-</span> <span class="n">items</span><span class="p">[</span><span class="n">front</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">included</span><span class="p">[</span><span class="n">front</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">used</span> <span class="o">+=</span> <span class="n">items</span><span class="p">[</span><span class="n">front</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">remaining</span> <span class="o">-=</span> <span class="n">items</span><span class="p">[</span><span class="n">front</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="mi">1</span><span class="p">]</span>
+         <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+      <span class="k">if</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
+         <span class="k">if</span> <span class="n">remaining</span> <span class="o">-</span> <span class="n">items</span><span class="p">[</span><span class="n">back</span><span class="p">[</span><span class="n">j</span><span class="p">]][</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">included</span><span class="p">[</span><span class="n">back</span><span class="p">[</span><span class="n">j</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">used</span> <span class="o">+=</span> <span class="n">items</span><span class="p">[</span><span class="n">back</span><span class="p">[</span><span class="n">j</span><span class="p">]][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">remaining</span> <span class="o">-=</span> <span class="n">items</span><span class="p">[</span><span class="n">back</span><span class="p">[</span><span class="n">j</span><span class="p">]][</span><span class="mi">1</span><span class="p">]</span>
+         <span class="n">j</span> <span class="o">+=</span> <span class="mi">1</span>
+
+   <span class="c1"># Return results</span>
+   <span class="k">return</span> <span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">included</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">used</span><span class="p">)</span></div>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Cedar Backup v3  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright .
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.9.
+    </div>
+  </body>
+</html>

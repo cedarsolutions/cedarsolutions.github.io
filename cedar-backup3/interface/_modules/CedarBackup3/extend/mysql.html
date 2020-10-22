@@ -1,0 +1,809 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>CedarBackup3.extend.mysql &#8212; Cedar Backup v3  documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="Cedar Backup v3  documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Cedar Backup v3  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for CedarBackup3.extend.mysql</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: iso-8859-1 -*-</span>
+<span class="c1"># vim: set ft=python ts=3 sw=3 expandtab:</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+<span class="c1">#</span>
+<span class="c1">#              C E D A R</span>
+<span class="c1">#          S O L U T I O N S       &quot;Software done right.&quot;</span>
+<span class="c1">#           S O F T W A R E</span>
+<span class="c1">#</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright (c) 2005,2010,2015 Kenneth J. Pronovici.</span>
+<span class="c1"># All rights reserved.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is free software; you can redistribute it and/or</span>
+<span class="c1"># modify it under the terms of the GNU General Public License,</span>
+<span class="c1"># Version 2, as published by the Free Software Foundation.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</span>
+<span class="c1">#</span>
+<span class="c1"># Copies of the GNU General Public License are available from</span>
+<span class="c1"># the Free Software Foundation website, http://www.gnu.org/.</span>
+<span class="c1">#</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+<span class="c1">#</span>
+<span class="c1"># Author   : Kenneth J. Pronovici &lt;pronovic@ieee.org&gt;</span>
+<span class="c1"># Language : Python 3 (&gt;= 3.4)</span>
+<span class="c1"># Project  : Official Cedar Backup Extensions</span>
+<span class="c1"># Purpose  : Provides an extension to back up MySQL databases.</span>
+<span class="c1">#</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Module documentation</span>
+<span class="c1">########################################################################</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Provides an extension to back up MySQL databases.</span>
+
+<span class="sd">This is a Cedar Backup extension used to back up MySQL databases via the Cedar</span>
+<span class="sd">Backup command line.  It requires a new configuration section &lt;mysql&gt; and is</span>
+<span class="sd">intended to be run either immediately before or immediately after the standard</span>
+<span class="sd">collect action.  Aside from its own configuration, it requires the options and</span>
+<span class="sd">collect configuration sections in the standard Cedar Backup configuration file.</span>
+
+<span class="sd">The backup is done via the ``mysqldump`` command included with the MySQL</span>
+<span class="sd">product.  Output can be compressed using ``gzip`` or ``bzip2``.  Administrators</span>
+<span class="sd">can configure the extension either to back up all databases or to back up only</span>
+<span class="sd">specific databases.  Note that this code always produces a full backup.  There</span>
+<span class="sd">is currently no facility for making incremental backups.  If/when someone has a</span>
+<span class="sd">need for this and can describe how to do it, I&#39;ll update this extension or</span>
+<span class="sd">provide another.</span>
+
+<span class="sd">The extension assumes that all configured databases can be backed up by a</span>
+<span class="sd">single user.  Often, the &quot;root&quot; database user will be used.  An alternative is</span>
+<span class="sd">to create a separate MySQL &quot;backup&quot; user and grant that user rights to read</span>
+<span class="sd">(but not write) various databases as needed.  This second option is probably</span>
+<span class="sd">the best choice.</span>
+
+<span class="sd">The extension accepts a username and password in configuration.  However, you</span>
+<span class="sd">probably do not want to provide those values in Cedar Backup configuration.</span>
+<span class="sd">This is because Cedar Backup will provide these values to ``mysqldump`` via the</span>
+<span class="sd">command-line ``--user`` and ``--password`` switches, which will be visible to</span>
+<span class="sd">other users in the process listing.</span>
+
+<span class="sd">Instead, you should configure the username and password in one of MySQL&#39;s</span>
+<span class="sd">configuration files.  Typically, that would be done by putting a stanza like</span>
+<span class="sd">this in ``/root/.my.cnf``::</span>
+
+<span class="sd">   [mysqldump]</span>
+<span class="sd">   user     = root</span>
+<span class="sd">   password = &lt;secret&gt;</span>
+
+<span class="sd">Regardless of whether you are using ``~/.my.cnf`` or ``/etc/cback3.conf`` to store</span>
+<span class="sd">database login and password information, you should be careful about who is</span>
+<span class="sd">allowed to view that information.  Typically, this means locking down</span>
+<span class="sd">permissions so that only the file owner can read the file contents (i.e. use</span>
+<span class="sd">mode ``0600``).</span>
+
+<span class="sd">:author: Kenneth J. Pronovici &lt;pronovic@ieee.org&gt;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Imported modules</span>
+<span class="c1">########################################################################</span>
+
+<span class="c1"># System modules</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">gzip</span> <span class="k">import</span> <span class="n">GzipFile</span>
+<span class="kn">from</span> <span class="nn">bz2</span> <span class="k">import</span> <span class="n">BZ2File</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">total_ordering</span>
+
+<span class="c1"># Cedar Backup modules</span>
+<span class="kn">from</span> <span class="nn">CedarBackup3.xmlutil</span> <span class="k">import</span> <span class="n">createInputDom</span><span class="p">,</span> <span class="n">addContainerNode</span><span class="p">,</span> <span class="n">addStringNode</span><span class="p">,</span> <span class="n">addBooleanNode</span>
+<span class="kn">from</span> <span class="nn">CedarBackup3.xmlutil</span> <span class="k">import</span> <span class="n">readFirstChild</span><span class="p">,</span> <span class="n">readString</span><span class="p">,</span> <span class="n">readStringList</span><span class="p">,</span> <span class="n">readBoolean</span>
+<span class="kn">from</span> <span class="nn">CedarBackup3.config</span> <span class="k">import</span> <span class="n">VALID_COMPRESS_MODES</span>
+<span class="kn">from</span> <span class="nn">CedarBackup3.util</span> <span class="k">import</span> <span class="n">resolveCommand</span><span class="p">,</span> <span class="n">executeCommand</span>
+<span class="kn">from</span> <span class="nn">CedarBackup3.util</span> <span class="k">import</span> <span class="n">ObjectTypeList</span><span class="p">,</span> <span class="n">changeOwnership</span>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Module-wide constants and variables</span>
+<span class="c1">########################################################################</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;CedarBackup3.log.extend.mysql&quot;</span><span class="p">)</span>
+<span class="n">MYSQLDUMP_COMMAND</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">&quot;mysqldump&quot;</span><span class="p">,</span> <span class="p">]</span>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># MysqlConfig class definition</span>
+<span class="c1">########################################################################</span>
+
+<span class="nd">@total_ordering</span>
+<div class="viewcode-block" id="MysqlConfig"><a class="viewcode-back" href="../../../CedarBackup3.extend.html#CedarBackup3.extend.mysql.MysqlConfig">[docs]</a><span class="k">class</span> <span class="nc">MysqlConfig</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Class representing MySQL configuration.</span>
+
+<span class="sd">   The MySQL configuration information is used for backing up MySQL databases.</span>
+
+<span class="sd">   The following restrictions exist on data in this class:</span>
+
+<span class="sd">      - The compress mode must be one of the values in :any:`VALID_COMPRESS_MODES`.</span>
+<span class="sd">      - The &#39;all&#39; flag must be &#39;Y&#39; if no databases are defined.</span>
+<span class="sd">      - The &#39;all&#39; flag must be &#39;N&#39; if any databases are defined.</span>
+<span class="sd">      - Any values in the databases list must be strings.</span>
+
+<span class="sd">   &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="MysqlConfig.__init__"><a class="viewcode-back" href="../../../CedarBackup3.extend.html#CedarBackup3.extend.mysql.MysqlConfig.__init__">[docs]</a>   <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">compressMode</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">all</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">databases</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># pylint: disable=W0622</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Constructor for the ``MysqlConfig`` class.</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         user: User to execute backup as</span>
+<span class="sd">         password: Password associated with user</span>
+<span class="sd">         compressMode: Compress mode for backed-up files</span>
+<span class="sd">         all: Indicates whether to back up all databases</span>
+<span class="sd">         databases: List of databases to back up</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_user</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_password</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_compressMode</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_all</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_databases</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">user</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">password</span> <span class="o">=</span> <span class="n">password</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">compressMode</span> <span class="o">=</span> <span class="n">compressMode</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">all</span> <span class="o">=</span> <span class="nb">all</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">databases</span> <span class="o">=</span> <span class="n">databases</span></div>
+
+   <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Official string representation for class instance.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="s2">&quot;MysqlConfig(</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">password</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">all</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">databases</span><span class="p">)</span>
+
+   <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Informal string representation for class instance.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
+
+   <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;Equals operator, iplemented in terms of original Python 2 compare operator.&quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cmp__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+
+   <span class="k">def</span> <span class="nf">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;Less-than operator, iplemented in terms of original Python 2 compare operator.&quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cmp__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span>
+
+   <span class="k">def</span> <span class="nf">__gt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;Greater-than operator, iplemented in terms of original Python 2 compare operator.&quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cmp__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+
+   <span class="k">def</span> <span class="nf">__cmp__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Original Python 2 comparison operator.</span>
+<span class="sd">      Args:</span>
+<span class="sd">         other: Other object to compare to</span>
+<span class="sd">      Returns:</span>
+<span class="sd">          -1/0/1 depending on whether self is ``&lt;``, ``=`` or ``&gt;`` other</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="n">other</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">return</span> <span class="mi">1</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">user</span><span class="p">:</span>
+         <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">str</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">user</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+         <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">1</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">password</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">password</span><span class="p">:</span>
+         <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">password</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">str</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">password</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+         <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">1</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">compressMode</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">compressMode</span><span class="p">:</span>
+         <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">compressMode</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">str</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">compressMode</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+         <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">1</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">all</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">all</span><span class="p">:</span>
+         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">all</span> <span class="o">&lt;</span> <span class="n">other</span><span class="o">.</span><span class="n">all</span><span class="p">:</span>
+            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+         <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">1</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">databases</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">databases</span><span class="p">:</span>
+         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">databases</span> <span class="o">&lt;</span> <span class="n">other</span><span class="o">.</span><span class="n">databases</span><span class="p">:</span>
+            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+         <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">1</span>
+      <span class="k">return</span> <span class="mi">0</span>
+
+   <span class="k">def</span> <span class="nf">_setUser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to set the user value.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;User must be non-empty string.&quot;</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_user</span> <span class="o">=</span> <span class="n">value</span>
+
+   <span class="k">def</span> <span class="nf">_getUser</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to get the user value.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user</span>
+
+   <span class="k">def</span> <span class="nf">_setPassword</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to set the password value.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Password must be non-empty string.&quot;</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_password</span> <span class="o">=</span> <span class="n">value</span>
+
+   <span class="k">def</span> <span class="nf">_getPassword</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to get the password value.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_password</span>
+
+   <span class="k">def</span> <span class="nf">_setCompressMode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to set the compress mode.</span>
+<span class="sd">      If not ``None``, the mode must be one of the values in :any:`VALID_COMPRESS_MODES`.</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If the value is not valid</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">if</span> <span class="n">value</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">VALID_COMPRESS_MODES</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Compress mode must be one of </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">VALID_COMPRESS_MODES</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_compressMode</span> <span class="o">=</span> <span class="n">value</span>
+
+   <span class="k">def</span> <span class="nf">_getCompressMode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to get the compress mode.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compressMode</span>
+
+   <span class="k">def</span> <span class="nf">_setAll</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to set the &#39;all&#39; flag.</span>
+<span class="sd">      No validations, but we normalize the value to ``True`` or ``False``.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">_all</span> <span class="o">=</span> <span class="kc">True</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">_all</span> <span class="o">=</span> <span class="kc">False</span>
+
+   <span class="k">def</span> <span class="nf">_getAll</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to get the &#39;all&#39; flag.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_all</span>
+
+   <span class="k">def</span> <span class="nf">_setDatabases</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to set the databases list.</span>
+<span class="sd">      Either the value must be ``None`` or each element must be a string.</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If the value is not a string</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">_databases</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="k">for</span> <span class="n">database</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">database</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+               <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Each database must be a non-empty string.&quot;</span><span class="p">)</span>
+         <span class="k">try</span><span class="p">:</span>
+            <span class="n">saved</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_databases</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_databases</span> <span class="o">=</span> <span class="n">ObjectTypeList</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;string&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_databases</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_databases</span> <span class="o">=</span> <span class="n">saved</span>
+            <span class="k">raise</span> <span class="n">e</span>
+
+   <span class="k">def</span> <span class="nf">_getDatabases</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to get the databases list.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_databases</span>
+
+   <span class="n">user</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_getUser</span><span class="p">,</span> <span class="n">_setUser</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;User to execute backup as.&quot;</span><span class="p">)</span>
+   <span class="n">password</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_getPassword</span><span class="p">,</span> <span class="n">_setPassword</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Password associated with user.&quot;</span><span class="p">)</span>
+   <span class="n">compressMode</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_getCompressMode</span><span class="p">,</span> <span class="n">_setCompressMode</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Compress mode to be used for backed-up files.&quot;</span><span class="p">)</span>
+   <span class="nb">all</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_getAll</span><span class="p">,</span> <span class="n">_setAll</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Indicates whether to back up all databases.&quot;</span><span class="p">)</span>
+   <span class="n">databases</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_getDatabases</span><span class="p">,</span> <span class="n">_setDatabases</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;List of databases to back up.&quot;</span><span class="p">)</span></div>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># LocalConfig class definition</span>
+<span class="c1">########################################################################</span>
+
+<span class="nd">@total_ordering</span>
+<div class="viewcode-block" id="LocalConfig"><a class="viewcode-back" href="../../../CedarBackup3.extend.html#CedarBackup3.extend.mysql.LocalConfig">[docs]</a><span class="k">class</span> <span class="nc">LocalConfig</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Class representing this extension&#39;s configuration document.</span>
+
+<span class="sd">   This is not a general-purpose configuration object like the main Cedar</span>
+<span class="sd">   Backup configuration object.  Instead, it just knows how to parse and emit</span>
+<span class="sd">   MySQL-specific configuration values.  Third parties who need to read and</span>
+<span class="sd">   write configuration related to this extension should access it through the</span>
+<span class="sd">   constructor, ``validate`` and ``addConfig`` methods.</span>
+
+<span class="sd">   *Note:* Lists within this class are &quot;unordered&quot; for equality comparisons.</span>
+
+<span class="sd">   &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="LocalConfig.__init__"><a class="viewcode-back" href="../../../CedarBackup3.extend.html#CedarBackup3.extend.mysql.LocalConfig.__init__">[docs]</a>   <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xmlData</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xmlPath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">validate</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Initializes a configuration object.</span>
+
+<span class="sd">      If you initialize the object without passing either ``xmlData`` or</span>
+<span class="sd">      ``xmlPath`` then configuration will be empty and will be invalid until it</span>
+<span class="sd">      is filled in properly.</span>
+
+<span class="sd">      No reference to the original XML data or original path is saved off by</span>
+<span class="sd">      this class.  Once the data has been parsed (successfully or not) this</span>
+<span class="sd">      original information is discarded.</span>
+
+<span class="sd">      Unless the ``validate`` argument is ``False``, the :any:`LocalConfig.validate`</span>
+<span class="sd">      method will be called (with its default arguments) against configuration</span>
+<span class="sd">      after successfully parsing any passed-in XML.  Keep in mind that even if</span>
+<span class="sd">      ``validate`` is ``False``, it might not be possible to parse the passed-in</span>
+<span class="sd">      XML document if lower-level validations fail.</span>
+
+<span class="sd">      *Note:* It is strongly suggested that the ``validate`` option always be set</span>
+<span class="sd">      to ``True`` (the default) unless there is a specific need to read in</span>
+<span class="sd">      invalid configuration from disk.</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         xmlData (String data): XML data representing configuration</span>
+<span class="sd">         xmlPath (Absolute path to a file on disk): Path to an XML file on disk</span>
+<span class="sd">         validate (Boolean true/false): Validate the document after parsing it</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If both ``xmlData`` and ``xmlPath`` are passed-in</span>
+<span class="sd">         ValueError: If the XML data in ``xmlData`` or ``xmlPath`` cannot be parsed</span>
+<span class="sd">         ValueError: If the parsed configuration document is not valid</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_mysql</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">mysql</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="k">if</span> <span class="n">xmlData</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">xmlPath</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Use either xmlData or xmlPath, but not both.&quot;</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">xmlData</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">_parseXmlData</span><span class="p">(</span><span class="n">xmlData</span><span class="p">)</span>
+         <span class="k">if</span> <span class="n">validate</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+      <span class="k">elif</span> <span class="n">xmlPath</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">xmlPath</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">xmlData</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">_parseXmlData</span><span class="p">(</span><span class="n">xmlData</span><span class="p">)</span>
+         <span class="k">if</span> <span class="n">validate</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span></div>
+
+   <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Official string representation for class instance.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="s2">&quot;LocalConfig(</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mysql</span><span class="p">)</span>
+
+   <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Informal string representation for class instance.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
+
+   <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;Equals operator, iplemented in terms of original Python 2 compare operator.&quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cmp__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+
+   <span class="k">def</span> <span class="nf">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;Less-than operator, iplemented in terms of original Python 2 compare operator.&quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cmp__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span>
+
+   <span class="k">def</span> <span class="nf">__gt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;Greater-than operator, iplemented in terms of original Python 2 compare operator.&quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cmp__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+
+   <span class="k">def</span> <span class="nf">__cmp__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Original Python 2 comparison operator.</span>
+<span class="sd">      Lists within this class are &quot;unordered&quot; for equality comparisons.</span>
+<span class="sd">      Args:</span>
+<span class="sd">         other: Other object to compare to</span>
+<span class="sd">      Returns:</span>
+<span class="sd">          -1/0/1 depending on whether self is ``&lt;``, ``=`` or ``&gt;`` other</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="n">other</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">return</span> <span class="mi">1</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mysql</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">mysql</span><span class="p">:</span>
+         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mysql</span> <span class="o">&lt;</span> <span class="n">other</span><span class="o">.</span><span class="n">mysql</span><span class="p">:</span>
+            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+         <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">1</span>
+      <span class="k">return</span> <span class="mi">0</span>
+
+   <span class="k">def</span> <span class="nf">_setMysql</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to set the mysql configuration value.</span>
+<span class="sd">      If not ``None``, the value must be a ``MysqlConfig`` object.</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If the value is not a ``MysqlConfig``</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">_mysql</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">MysqlConfig</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Value must be a ``MysqlConfig`` object.&quot;</span><span class="p">)</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">_mysql</span> <span class="o">=</span> <span class="n">value</span>
+
+   <span class="k">def</span> <span class="nf">_getMysql</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to get the mysql configuration value.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mysql</span>
+
+   <span class="n">mysql</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_getMysql</span><span class="p">,</span> <span class="n">_setMysql</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Mysql configuration in terms of a ``MysqlConfig`` object.&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="LocalConfig.validate"><a class="viewcode-back" href="../../../CedarBackup3.extend.html#CedarBackup3.extend.mysql.LocalConfig.validate">[docs]</a>   <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Validates configuration represented by the object.</span>
+
+<span class="sd">      The compress mode must be filled in.  Then, if the &#39;all&#39; flag *is* set,</span>
+<span class="sd">      no databases are allowed, and if the &#39;all&#39; flag is *not* set, at least</span>
+<span class="sd">      one database is required.</span>
+
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If one of the validations fails</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mysql</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Mysql section is required.&quot;</span><span class="p">)</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mysql</span><span class="o">.</span><span class="n">compressMode</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Compress mode value is required.&quot;</span><span class="p">)</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mysql</span><span class="o">.</span><span class="n">all</span><span class="p">:</span>
+         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mysql</span><span class="o">.</span><span class="n">databases</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">mysql</span><span class="o">.</span><span class="n">databases</span> <span class="o">!=</span> <span class="p">[]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Databases cannot be specified if &#39;all&#39; flag is set.&quot;</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mysql</span><span class="o">.</span><span class="n">databases</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mysql</span><span class="o">.</span><span class="n">databases</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;At least one MySQL database must be indicated if &#39;all&#39; flag is not set.&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LocalConfig.addConfig"><a class="viewcode-back" href="../../../CedarBackup3.extend.html#CedarBackup3.extend.mysql.LocalConfig.addConfig">[docs]</a>   <span class="k">def</span> <span class="nf">addConfig</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xmlDom</span><span class="p">,</span> <span class="n">parentNode</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Adds a &lt;mysql&gt; configuration section as the next child of a parent.</span>
+
+<span class="sd">      Third parties should use this function to write configuration related to</span>
+<span class="sd">      this extension.</span>
+
+<span class="sd">      We add the following fields to the document::</span>
+
+<span class="sd">         user           //cb_config/mysql/user</span>
+<span class="sd">         password       //cb_config/mysql/password</span>
+<span class="sd">         compressMode   //cb_config/mysql/compress_mode</span>
+<span class="sd">         all            //cb_config/mysql/all</span>
+
+<span class="sd">      We also add groups of the following items, one list element per</span>
+<span class="sd">      item::</span>
+
+<span class="sd">         database       //cb_config/mysql/database</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         xmlDom: DOM tree as from ``impl.createDocument()``</span>
+<span class="sd">         parentNode: Parent that the section should be appended to</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mysql</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="n">sectionNode</span> <span class="o">=</span> <span class="n">addContainerNode</span><span class="p">(</span><span class="n">xmlDom</span><span class="p">,</span> <span class="n">parentNode</span><span class="p">,</span> <span class="s2">&quot;mysql&quot;</span><span class="p">)</span>
+         <span class="n">addStringNode</span><span class="p">(</span><span class="n">xmlDom</span><span class="p">,</span> <span class="n">sectionNode</span><span class="p">,</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mysql</span><span class="o">.</span><span class="n">user</span><span class="p">)</span>
+         <span class="n">addStringNode</span><span class="p">(</span><span class="n">xmlDom</span><span class="p">,</span> <span class="n">sectionNode</span><span class="p">,</span> <span class="s2">&quot;password&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mysql</span><span class="o">.</span><span class="n">password</span><span class="p">)</span>
+         <span class="n">addStringNode</span><span class="p">(</span><span class="n">xmlDom</span><span class="p">,</span> <span class="n">sectionNode</span><span class="p">,</span> <span class="s2">&quot;compress_mode&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mysql</span><span class="o">.</span><span class="n">compressMode</span><span class="p">)</span>
+         <span class="n">addBooleanNode</span><span class="p">(</span><span class="n">xmlDom</span><span class="p">,</span> <span class="n">sectionNode</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mysql</span><span class="o">.</span><span class="n">all</span><span class="p">)</span>
+         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mysql</span><span class="o">.</span><span class="n">databases</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">database</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mysql</span><span class="o">.</span><span class="n">databases</span><span class="p">:</span>
+               <span class="n">addStringNode</span><span class="p">(</span><span class="n">xmlDom</span><span class="p">,</span> <span class="n">sectionNode</span><span class="p">,</span> <span class="s2">&quot;database&quot;</span><span class="p">,</span> <span class="n">database</span><span class="p">)</span></div>
+
+   <span class="k">def</span> <span class="nf">_parseXmlData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xmlData</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Internal method to parse an XML string into the object.</span>
+
+<span class="sd">      This method parses the XML document into a DOM tree (``xmlDom``) and then</span>
+<span class="sd">      calls a static method to parse the mysql configuration section.</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         xmlData (String data): XML data to be parsed</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If the XML cannot be successfully parsed</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="p">(</span><span class="n">xmlDom</span><span class="p">,</span> <span class="n">parentNode</span><span class="p">)</span> <span class="o">=</span> <span class="n">createInputDom</span><span class="p">(</span><span class="n">xmlData</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_mysql</span> <span class="o">=</span> <span class="n">LocalConfig</span><span class="o">.</span><span class="n">_parseMysql</span><span class="p">(</span><span class="n">parentNode</span><span class="p">)</span>
+
+   <span class="nd">@staticmethod</span>
+   <span class="k">def</span> <span class="nf">_parseMysql</span><span class="p">(</span><span class="n">parentNode</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Parses a mysql configuration section.</span>
+
+<span class="sd">      We read the following fields::</span>
+
+<span class="sd">         user           //cb_config/mysql/user</span>
+<span class="sd">         password       //cb_config/mysql/password</span>
+<span class="sd">         compressMode   //cb_config/mysql/compress_mode</span>
+<span class="sd">         all            //cb_config/mysql/all</span>
+
+<span class="sd">      We also read groups of the following item, one list element per</span>
+<span class="sd">      item::</span>
+
+<span class="sd">         databases      //cb_config/mysql/database</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         parentNode: Parent node to search beneath</span>
+
+<span class="sd">      Returns:</span>
+<span class="sd">          ``MysqlConfig`` object or ``None`` if the section does not exist</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If some filled-in value is invalid</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="n">mysql</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="n">section</span> <span class="o">=</span> <span class="n">readFirstChild</span><span class="p">(</span><span class="n">parentNode</span><span class="p">,</span> <span class="s2">&quot;mysql&quot;</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">section</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="n">mysql</span> <span class="o">=</span> <span class="n">MysqlConfig</span><span class="p">()</span>
+         <span class="n">mysql</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">readString</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s2">&quot;user&quot;</span><span class="p">)</span>
+         <span class="n">mysql</span><span class="o">.</span><span class="n">password</span> <span class="o">=</span> <span class="n">readString</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s2">&quot;password&quot;</span><span class="p">)</span>
+         <span class="n">mysql</span><span class="o">.</span><span class="n">compressMode</span> <span class="o">=</span> <span class="n">readString</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s2">&quot;compress_mode&quot;</span><span class="p">)</span>
+         <span class="n">mysql</span><span class="o">.</span><span class="n">all</span> <span class="o">=</span> <span class="n">readBoolean</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">)</span>
+         <span class="n">mysql</span><span class="o">.</span><span class="n">databases</span> <span class="o">=</span> <span class="n">readStringList</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s2">&quot;database&quot;</span><span class="p">)</span>
+      <span class="k">return</span> <span class="n">mysql</span></div>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Public functions</span>
+<span class="c1">########################################################################</span>
+
+<span class="c1">###########################</span>
+<span class="c1"># executeAction() function</span>
+<span class="c1">###########################</span>
+
+<span class="c1"># pylint: disable=W0613</span>
+<div class="viewcode-block" id="executeAction"><a class="viewcode-back" href="../../../CedarBackup3.extend.html#CedarBackup3.extend.mysql.executeAction">[docs]</a><span class="k">def</span> <span class="nf">executeAction</span><span class="p">(</span><span class="n">configPath</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Executes the MySQL backup action.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      configPath (String representing a path on disk): Path to configuration file on disk</span>
+<span class="sd">      options (Options object): Program command-line options</span>
+<span class="sd">      config (Config object): Program configuration</span>
+<span class="sd">   Raises:</span>
+<span class="sd">      ValueError: Under many generic error conditions</span>
+<span class="sd">      IOError: If a backup could not be written for some reason</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Executing MySQL extended action.&quot;</span><span class="p">)</span>
+   <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">config</span><span class="o">.</span><span class="n">collect</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cedar Backup configuration is not properly filled in.&quot;</span><span class="p">)</span>
+   <span class="n">local</span> <span class="o">=</span> <span class="n">LocalConfig</span><span class="p">(</span><span class="n">xmlPath</span><span class="o">=</span><span class="n">configPath</span><span class="p">)</span>
+   <span class="k">if</span> <span class="n">local</span><span class="o">.</span><span class="n">mysql</span><span class="o">.</span><span class="n">all</span><span class="p">:</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Backing up all databases.&quot;</span><span class="p">)</span>
+      <span class="n">_backupDatabase</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">targetDir</span><span class="p">,</span> <span class="n">local</span><span class="o">.</span><span class="n">mysql</span><span class="o">.</span><span class="n">compressMode</span><span class="p">,</span> <span class="n">local</span><span class="o">.</span><span class="n">mysql</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="n">local</span><span class="o">.</span><span class="n">mysql</span><span class="o">.</span><span class="n">password</span><span class="p">,</span>
+                      <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupUser</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupGroup</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Backing up </span><span class="si">%d</span><span class="s2"> individual databases.&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">local</span><span class="o">.</span><span class="n">mysql</span><span class="o">.</span><span class="n">databases</span><span class="p">))</span>
+      <span class="k">for</span> <span class="n">database</span> <span class="ow">in</span> <span class="n">local</span><span class="o">.</span><span class="n">mysql</span><span class="o">.</span><span class="n">databases</span><span class="p">:</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Backing up database [</span><span class="si">%s</span><span class="s2">].&quot;</span><span class="p">,</span> <span class="n">database</span><span class="p">)</span>
+         <span class="n">_backupDatabase</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">targetDir</span><span class="p">,</span> <span class="n">local</span><span class="o">.</span><span class="n">mysql</span><span class="o">.</span><span class="n">compressMode</span><span class="p">,</span> <span class="n">local</span><span class="o">.</span><span class="n">mysql</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="n">local</span><span class="o">.</span><span class="n">mysql</span><span class="o">.</span><span class="n">password</span><span class="p">,</span>
+                         <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupUser</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupGroup</span><span class="p">,</span> <span class="n">database</span><span class="p">)</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Executed the MySQL extended action successfully.&quot;</span><span class="p">)</span></div>
+
+<span class="k">def</span> <span class="nf">_backupDatabase</span><span class="p">(</span><span class="n">targetDir</span><span class="p">,</span> <span class="n">compressMode</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">password</span><span class="p">,</span> <span class="n">backupUser</span><span class="p">,</span> <span class="n">backupGroup</span><span class="p">,</span> <span class="n">database</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Backs up an individual MySQL database, or all databases.</span>
+
+<span class="sd">   This internal method wraps the public method and adds some functionality,</span>
+<span class="sd">   like figuring out a filename, etc.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      targetDir:  Directory into which backups should be written</span>
+<span class="sd">      compressMode: Compress mode to be used for backed-up files</span>
+<span class="sd">      user: User to use for connecting to the database (if any)</span>
+<span class="sd">      password: Password associated with user (if any)</span>
+<span class="sd">      backupUser: User to own resulting file</span>
+<span class="sd">      backupGroup: Group to own resulting file</span>
+<span class="sd">      database: Name of database, or ``None`` for all databases</span>
+
+<span class="sd">   Returns:</span>
+<span class="sd">       Name of the generated backup file</span>
+
+<span class="sd">   Raises:</span>
+<span class="sd">      ValueError: If some value is missing or invalid</span>
+<span class="sd">      IOError: If there is a problem executing the MySQL dump</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="p">(</span><span class="n">outputFile</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span> <span class="o">=</span> <span class="n">_getOutputFile</span><span class="p">(</span><span class="n">targetDir</span><span class="p">,</span> <span class="n">database</span><span class="p">,</span> <span class="n">compressMode</span><span class="p">)</span>
+   <span class="k">with</span> <span class="n">outputFile</span><span class="p">:</span>
+      <span class="n">backupDatabase</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">password</span><span class="p">,</span> <span class="n">outputFile</span><span class="p">,</span> <span class="n">database</span><span class="p">)</span>
+   <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+      <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Dump file [</span><span class="si">%s</span><span class="s2">] does not seem to exist after backup completed.&quot;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
+   <span class="n">changeOwnership</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">backupUser</span><span class="p">,</span> <span class="n">backupGroup</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">_getOutputFile</span><span class="p">(</span><span class="n">targetDir</span><span class="p">,</span> <span class="n">database</span><span class="p">,</span> <span class="n">compressMode</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Opens the output file used for saving the MySQL dump.</span>
+
+<span class="sd">   The filename is either ``&quot;mysqldump.txt&quot;`` or ``&quot;mysqldump-&lt;database&gt;.txt&quot;``.  The</span>
+<span class="sd">   ``&quot;.bz2&quot;`` extension is added if ``compress`` is ``True``.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      targetDir: Target directory to write file in</span>
+<span class="sd">      database: Name of the database (if any)</span>
+<span class="sd">      compressMode: Compress mode to be used for backed-up files</span>
+
+<span class="sd">   Returns:</span>
+<span class="sd">       Tuple of (Output file object, filename), file opened in binary mode for use with executeCommand()</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="k">if</span> <span class="n">database</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">targetDir</span><span class="p">,</span> <span class="s2">&quot;mysqldump.txt&quot;</span><span class="p">)</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">targetDir</span><span class="p">,</span> <span class="s2">&quot;mysqldump-</span><span class="si">%s</span><span class="s2">.txt&quot;</span> <span class="o">%</span> <span class="n">database</span><span class="p">)</span>
+   <span class="k">if</span> <span class="n">compressMode</span> <span class="o">==</span> <span class="s2">&quot;gzip&quot;</span><span class="p">:</span>
+      <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.gz&quot;</span> <span class="o">%</span> <span class="n">filename</span>
+      <span class="n">outputFile</span> <span class="o">=</span> <span class="n">GzipFile</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span>
+   <span class="k">elif</span> <span class="n">compressMode</span> <span class="o">==</span> <span class="s2">&quot;bzip2&quot;</span><span class="p">:</span>
+      <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.bz2&quot;</span> <span class="o">%</span> <span class="n">filename</span>
+      <span class="n">outputFile</span> <span class="o">=</span> <span class="n">BZ2File</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="n">outputFile</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;MySQL dump file will be [</span><span class="si">%s</span><span class="s2">].&quot;</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+   <span class="k">return</span> <span class="p">(</span><span class="n">outputFile</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+
+
+<span class="c1">############################</span>
+<span class="c1"># backupDatabase() function</span>
+<span class="c1">############################</span>
+
+<div class="viewcode-block" id="backupDatabase"><a class="viewcode-back" href="../../../CedarBackup3.extend.html#CedarBackup3.extend.mysql.backupDatabase">[docs]</a><span class="k">def</span> <span class="nf">backupDatabase</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">password</span><span class="p">,</span> <span class="n">backupFile</span><span class="p">,</span> <span class="n">database</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Backs up an individual MySQL database, or all databases.</span>
+
+<span class="sd">   This function backs up either a named local MySQL database or all local</span>
+<span class="sd">   MySQL databases, using the passed-in user and password (if provided) for</span>
+<span class="sd">   connectivity.  This function call *always* results a full backup.  There is</span>
+<span class="sd">   no facility for incremental backups.</span>
+
+<span class="sd">   The backup data will be written into the passed-in backup file.  Normally,</span>
+<span class="sd">   this would be an object as returned from ``open``, but it is possible to</span>
+<span class="sd">   use something like a ``GzipFile`` to write compressed output.  The caller is</span>
+<span class="sd">   responsible for closing the passed-in backup file.</span>
+
+<span class="sd">   Often, the &quot;root&quot; database user will be used when backing up all databases.</span>
+<span class="sd">   An alternative is to create a separate MySQL &quot;backup&quot; user and grant that</span>
+<span class="sd">   user rights to read (but not write) all of the databases that will be backed</span>
+<span class="sd">   up.</span>
+
+<span class="sd">   This function accepts a username and password.  However, you probably do not</span>
+<span class="sd">   want to pass those values in.  This is because they will be provided to</span>
+<span class="sd">   ``mysqldump`` via the command-line ``--user`` and ``--password`` switches,</span>
+<span class="sd">   which will be visible to other users in the process listing.</span>
+
+<span class="sd">   Instead, you should configure the username and password in one of MySQL&#39;s</span>
+<span class="sd">   configuration files.  Typically, this would be done by putting a stanza like</span>
+<span class="sd">   this in ``/root/.my.cnf``, to provide ``mysqldump`` with the root database</span>
+<span class="sd">   username and its password::</span>
+
+<span class="sd">      [mysqldump]</span>
+<span class="sd">      user     = root</span>
+<span class="sd">      password = &lt;secret&gt;</span>
+
+<span class="sd">   If you are executing this function as some system user other than root, then</span>
+<span class="sd">   the ``.my.cnf`` file would be placed in the home directory of that user.  In</span>
+<span class="sd">   either case, make sure to set restrictive permissions (typically, mode</span>
+<span class="sd">   ``0600``) on ``.my.cnf`` to make sure that other users cannot read the file.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      user (String representing MySQL username, or ``None``): User to use for connecting to the database (if any)</span>
+<span class="sd">      password (String representing MySQL password, or ``None``): Password associated with user (if any)</span>
+<span class="sd">      backupFile (Python file object as from ``open`` or ``file``): File use for writing backup</span>
+<span class="sd">      database (String representing database name, or ``None`` for all databases): Name of the database to be backed up</span>
+<span class="sd">   Raises:</span>
+<span class="sd">      ValueError: If some value is missing or invalid</span>
+<span class="sd">      IOError: If there is a problem executing the MySQL dump</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="n">args</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">&quot;-all&quot;</span><span class="p">,</span> <span class="s2">&quot;--flush-logs&quot;</span><span class="p">,</span> <span class="s2">&quot;--opt&quot;</span><span class="p">,</span> <span class="p">]</span>
+   <span class="k">if</span> <span class="n">user</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Warning: MySQL username will be visible in process listing (consider using ~/.my.cnf).&quot;</span><span class="p">)</span>
+      <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;--user=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">user</span><span class="p">)</span>
+   <span class="k">if</span> <span class="n">password</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Warning: MySQL password will be visible in process listing (consider using ~/.my.cnf).&quot;</span><span class="p">)</span>
+      <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;--password=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">password</span><span class="p">)</span>
+   <span class="k">if</span> <span class="n">database</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">args</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;--all-databases&quot;</span><span class="p">)</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="n">args</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;--databases&quot;</span><span class="p">)</span>
+      <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">database</span><span class="p">)</span>
+   <span class="n">command</span> <span class="o">=</span> <span class="n">resolveCommand</span><span class="p">(</span><span class="n">MYSQLDUMP_COMMAND</span><span class="p">)</span>
+   <span class="n">result</span> <span class="o">=</span> <span class="n">executeCommand</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">returnOutput</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ignoreStderr</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">doNotLog</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">outputFile</span><span class="o">=</span><span class="n">backupFile</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+   <span class="k">if</span> <span class="n">result</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">database</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Error [</span><span class="si">%d</span><span class="s2">] executing MySQL database dump for all databases.&quot;</span> <span class="o">%</span> <span class="n">result</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Error [</span><span class="si">%d</span><span class="s2">] executing MySQL database dump for database [</span><span class="si">%s</span><span class="s2">].&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">database</span><span class="p">))</span></div>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Cedar Backup v3  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright .
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.9.
+    </div>
+  </body>
+</html>

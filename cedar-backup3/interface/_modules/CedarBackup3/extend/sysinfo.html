@@ -1,0 +1,306 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>CedarBackup3.extend.sysinfo &#8212; Cedar Backup v3  documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="Cedar Backup v3  documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Cedar Backup v3  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for CedarBackup3.extend.sysinfo</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: iso-8859-1 -*-</span>
+<span class="c1"># vim: set ft=python ts=3 sw=3 expandtab:</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+<span class="c1">#</span>
+<span class="c1">#              C E D A R</span>
+<span class="c1">#          S O L U T I O N S       &quot;Software done right.&quot;</span>
+<span class="c1">#           S O F T W A R E</span>
+<span class="c1">#</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright (c) 2005,2010,2015 Kenneth J. Pronovici.</span>
+<span class="c1"># All rights reserved.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is free software; you can redistribute it and/or</span>
+<span class="c1"># modify it under the terms of the GNU General Public License,</span>
+<span class="c1"># Version 2, as published by the Free Software Foundation.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</span>
+<span class="c1">#</span>
+<span class="c1"># Copies of the GNU General Public License are available from</span>
+<span class="c1"># the Free Software Foundation website, http://www.gnu.org/.</span>
+<span class="c1">#</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+<span class="c1">#</span>
+<span class="c1"># Author   : Kenneth J. Pronovici &lt;pronovic@ieee.org&gt;</span>
+<span class="c1"># Language : Python 3 (&gt;= 3.4)</span>
+<span class="c1"># Project  : Official Cedar Backup Extensions</span>
+<span class="c1"># Purpose  : Provides an extension to save off important system recovery information.</span>
+<span class="c1">#</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Module documentation</span>
+<span class="c1">########################################################################</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Provides an extension to save off important system recovery information.</span>
+
+<span class="sd">This is a simple Cedar Backup extension used to save off important system</span>
+<span class="sd">recovery information.  It saves off three types of information:</span>
+
+<span class="sd">   - Currently-installed Debian packages via ``dpkg --get-selections``</span>
+<span class="sd">   - Disk partition information via ``fdisk -l``</span>
+<span class="sd">   - System-wide mounted filesystem contents, via ``ls -laR``</span>
+
+<span class="sd">The saved-off information is placed into the collect directory and is</span>
+<span class="sd">compressed using ``bzip2`` to save space.</span>
+
+<span class="sd">This extension relies on the options and collect configurations in the standard</span>
+<span class="sd">Cedar Backup configuration file, but requires no new configuration of its own.</span>
+<span class="sd">No public functions other than the action are exposed since all of this is</span>
+<span class="sd">pretty simple.</span>
+
+<span class="sd">*Note:* If the ``dpkg`` or ``fdisk`` commands cannot be found in their normal</span>
+<span class="sd">locations or executed by the current user, those steps will be skipped and a</span>
+<span class="sd">note will be logged at the INFO level.</span>
+
+<span class="sd">:author: Kenneth J. Pronovici &lt;pronovic@ieee.org&gt;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Imported modules</span>
+<span class="c1">########################################################################</span>
+
+<span class="c1"># System modules</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">bz2</span> <span class="k">import</span> <span class="n">BZ2File</span>
+
+<span class="c1"># Cedar Backup modules</span>
+<span class="kn">from</span> <span class="nn">CedarBackup3.util</span> <span class="k">import</span> <span class="n">resolveCommand</span><span class="p">,</span> <span class="n">executeCommand</span><span class="p">,</span> <span class="n">changeOwnership</span>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Module-wide constants and variables</span>
+<span class="c1">########################################################################</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;CedarBackup3.log.extend.sysinfo&quot;</span><span class="p">)</span>
+
+<span class="n">DPKG_PATH</span>      <span class="o">=</span> <span class="s2">&quot;/usr/bin/dpkg&quot;</span>
+<span class="n">FDISK_PATH</span>     <span class="o">=</span> <span class="s2">&quot;/sbin/fdisk&quot;</span>
+
+<span class="n">DPKG_COMMAND</span>   <span class="o">=</span> <span class="p">[</span> <span class="n">DPKG_PATH</span><span class="p">,</span> <span class="s2">&quot;--get-selections&quot;</span><span class="p">,</span> <span class="p">]</span>
+<span class="n">FDISK_COMMAND</span>  <span class="o">=</span> <span class="p">[</span> <span class="n">FDISK_PATH</span><span class="p">,</span> <span class="s2">&quot;-l&quot;</span><span class="p">,</span> <span class="p">]</span>
+<span class="n">LS_COMMAND</span>     <span class="o">=</span> <span class="p">[</span> <span class="s2">&quot;ls&quot;</span><span class="p">,</span> <span class="s2">&quot;-laR&quot;</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="p">]</span>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Public functions</span>
+<span class="c1">########################################################################</span>
+
+<span class="c1">###########################</span>
+<span class="c1"># executeAction() function</span>
+<span class="c1">###########################</span>
+
+<span class="c1"># pylint: disable=W0613</span>
+<div class="viewcode-block" id="executeAction"><a class="viewcode-back" href="../../../CedarBackup3.extend.html#CedarBackup3.extend.sysinfo.executeAction">[docs]</a><span class="k">def</span> <span class="nf">executeAction</span><span class="p">(</span><span class="n">configPath</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Executes the sysinfo backup action.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      configPath (String representing a path on disk): Path to configuration file on disk</span>
+<span class="sd">      options (Options object): Program command-line options</span>
+<span class="sd">      config (Config object): Program configuration</span>
+<span class="sd">   Raises:</span>
+<span class="sd">      ValueError: Under many generic error conditions</span>
+<span class="sd">      IOError: If the backup process fails for some reason</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Executing sysinfo extended action.&quot;</span><span class="p">)</span>
+   <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">config</span><span class="o">.</span><span class="n">collect</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cedar Backup configuration is not properly filled in.&quot;</span><span class="p">)</span>
+   <span class="n">_dumpDebianPackages</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">targetDir</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupUser</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupGroup</span><span class="p">)</span>
+   <span class="n">_dumpPartitionTable</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">targetDir</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupUser</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupGroup</span><span class="p">)</span>
+   <span class="n">_dumpFilesystemContents</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">targetDir</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupUser</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupGroup</span><span class="p">)</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Executed the sysinfo extended action successfully.&quot;</span><span class="p">)</span></div>
+
+<span class="k">def</span> <span class="nf">_dumpDebianPackages</span><span class="p">(</span><span class="n">targetDir</span><span class="p">,</span> <span class="n">backupUser</span><span class="p">,</span> <span class="n">backupGroup</span><span class="p">,</span> <span class="n">compress</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Dumps a list of currently installed Debian packages via ``dpkg``.</span>
+<span class="sd">   Args:</span>
+<span class="sd">      targetDir: Directory to write output file into</span>
+<span class="sd">      backupUser: User which should own the resulting file</span>
+<span class="sd">      backupGroup: Group which should own the resulting file</span>
+<span class="sd">      compress: Indicates whether to compress the output file</span>
+<span class="sd">   Raises:</span>
+<span class="sd">      IOError: If the dump fails for some reason</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">DPKG_PATH</span><span class="p">):</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Not executing Debian package dump since </span><span class="si">%s</span><span class="s2"> doesn&#39;t seem to exist.&quot;</span><span class="p">,</span> <span class="n">DPKG_PATH</span><span class="p">)</span>
+   <span class="k">elif</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">access</span><span class="p">(</span><span class="n">DPKG_PATH</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">X_OK</span><span class="p">):</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Not executing Debian package dump since </span><span class="si">%s</span><span class="s2"> cannot be executed.&quot;</span><span class="p">,</span> <span class="n">DPKG_PATH</span><span class="p">)</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="p">(</span><span class="n">outputFile</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span> <span class="o">=</span> <span class="n">_getOutputFile</span><span class="p">(</span><span class="n">targetDir</span><span class="p">,</span> <span class="s2">&quot;dpkg-selections&quot;</span><span class="p">,</span> <span class="n">compress</span><span class="p">)</span>
+      <span class="k">with</span> <span class="n">outputFile</span><span class="p">:</span>
+         <span class="n">command</span> <span class="o">=</span> <span class="n">resolveCommand</span><span class="p">(</span><span class="n">DPKG_COMMAND</span><span class="p">)</span>
+         <span class="n">result</span> <span class="o">=</span> <span class="n">executeCommand</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="p">[],</span> <span class="n">returnOutput</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ignoreStderr</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">doNotLog</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">outputFile</span><span class="o">=</span><span class="n">outputFile</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+         <span class="k">if</span> <span class="n">result</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Error [</span><span class="si">%d</span><span class="s2">] executing Debian package dump.&quot;</span> <span class="o">%</span> <span class="n">result</span><span class="p">)</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+         <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;File [</span><span class="si">%s</span><span class="s2">] does not seem to exist after Debian package dump finished.&quot;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
+      <span class="n">changeOwnership</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">backupUser</span><span class="p">,</span> <span class="n">backupGroup</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">_dumpPartitionTable</span><span class="p">(</span><span class="n">targetDir</span><span class="p">,</span> <span class="n">backupUser</span><span class="p">,</span> <span class="n">backupGroup</span><span class="p">,</span> <span class="n">compress</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Dumps information about the partition table via ``fdisk``.</span>
+<span class="sd">   Args:</span>
+<span class="sd">      targetDir: Directory to write output file into</span>
+<span class="sd">      backupUser: User which should own the resulting file</span>
+<span class="sd">      backupGroup: Group which should own the resulting file</span>
+<span class="sd">      compress: Indicates whether to compress the output file</span>
+<span class="sd">   Raises:</span>
+<span class="sd">      IOError: If the dump fails for some reason</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">FDISK_PATH</span><span class="p">):</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Not executing partition table dump since </span><span class="si">%s</span><span class="s2"> doesn&#39;t seem to exist.&quot;</span><span class="p">,</span> <span class="n">FDISK_PATH</span><span class="p">)</span>
+   <span class="k">elif</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">access</span><span class="p">(</span><span class="n">FDISK_PATH</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">X_OK</span><span class="p">):</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Not executing partition table dump since </span><span class="si">%s</span><span class="s2"> cannot be executed.&quot;</span><span class="p">,</span> <span class="n">FDISK_PATH</span><span class="p">)</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="p">(</span><span class="n">outputFile</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span> <span class="o">=</span> <span class="n">_getOutputFile</span><span class="p">(</span><span class="n">targetDir</span><span class="p">,</span> <span class="s2">&quot;fdisk-l&quot;</span><span class="p">,</span> <span class="n">compress</span><span class="p">)</span>
+      <span class="k">with</span> <span class="n">outputFile</span><span class="p">:</span>
+         <span class="n">command</span> <span class="o">=</span> <span class="n">resolveCommand</span><span class="p">(</span><span class="n">FDISK_COMMAND</span><span class="p">)</span>
+         <span class="n">result</span> <span class="o">=</span> <span class="n">executeCommand</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="p">[],</span> <span class="n">returnOutput</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ignoreStderr</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">outputFile</span><span class="o">=</span><span class="n">outputFile</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+         <span class="k">if</span> <span class="n">result</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Error [</span><span class="si">%d</span><span class="s2">] executing partition table dump.&quot;</span> <span class="o">%</span> <span class="n">result</span><span class="p">)</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+         <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;File [</span><span class="si">%s</span><span class="s2">] does not seem to exist after partition table dump finished.&quot;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
+      <span class="n">changeOwnership</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">backupUser</span><span class="p">,</span> <span class="n">backupGroup</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">_dumpFilesystemContents</span><span class="p">(</span><span class="n">targetDir</span><span class="p">,</span> <span class="n">backupUser</span><span class="p">,</span> <span class="n">backupGroup</span><span class="p">,</span> <span class="n">compress</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Dumps complete listing of filesystem contents via ``ls -laR``.</span>
+<span class="sd">   Args:</span>
+<span class="sd">      targetDir: Directory to write output file into</span>
+<span class="sd">      backupUser: User which should own the resulting file</span>
+<span class="sd">      backupGroup: Group which should own the resulting file</span>
+<span class="sd">      compress: Indicates whether to compress the output file</span>
+<span class="sd">   Raises:</span>
+<span class="sd">      IOError: If the dump fails for some reason</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="p">(</span><span class="n">outputFile</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span> <span class="o">=</span> <span class="n">_getOutputFile</span><span class="p">(</span><span class="n">targetDir</span><span class="p">,</span> <span class="s2">&quot;ls-laR&quot;</span><span class="p">,</span> <span class="n">compress</span><span class="p">)</span>
+   <span class="k">with</span> <span class="n">outputFile</span><span class="p">:</span>
+      <span class="c1"># Note: can&#39;t count on return status from &#39;ls&#39;, so we don&#39;t check it.</span>
+      <span class="n">command</span> <span class="o">=</span> <span class="n">resolveCommand</span><span class="p">(</span><span class="n">LS_COMMAND</span><span class="p">)</span>
+      <span class="n">executeCommand</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="p">[],</span> <span class="n">returnOutput</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ignoreStderr</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">doNotLog</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">outputFile</span><span class="o">=</span><span class="n">outputFile</span><span class="p">)</span>
+   <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+      <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;File [</span><span class="si">%s</span><span class="s2">] does not seem to exist after filesystem contents dump finished.&quot;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
+   <span class="n">changeOwnership</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">backupUser</span><span class="p">,</span> <span class="n">backupGroup</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">_getOutputFile</span><span class="p">(</span><span class="n">targetDir</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">compress</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Opens the output file used for saving a dump to the filesystem.</span>
+
+<span class="sd">   The filename will be ``name.txt`` (or ``name.txt.bz2`` if ``compress`` is</span>
+<span class="sd">   ``True``), written in the target directory.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      targetDir: Target directory to write file in</span>
+<span class="sd">      name: Name of the file to create</span>
+<span class="sd">      compress: Indicates whether to write compressed output</span>
+
+<span class="sd">   Returns:</span>
+<span class="sd">       Tuple of (Output file object, filename), file opened in binary mode for use with executeCommand()</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">targetDir</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.txt&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">)</span>
+   <span class="k">if</span> <span class="n">compress</span><span class="p">:</span>
+      <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.bz2&quot;</span> <span class="o">%</span> <span class="n">filename</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Dump file will be [</span><span class="si">%s</span><span class="s2">].&quot;</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+   <span class="k">if</span> <span class="n">compress</span><span class="p">:</span>
+      <span class="n">outputFile</span> <span class="o">=</span> <span class="n">BZ2File</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="n">outputFile</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span>
+   <span class="k">return</span> <span class="p">(</span><span class="n">outputFile</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Cedar Backup v3  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright .
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.9.
+    </div>
+  </body>
+</html>

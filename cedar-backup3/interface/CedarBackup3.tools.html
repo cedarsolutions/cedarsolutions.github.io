@@ -1,0 +1,532 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>CedarBackup3.tools package &#8212; Cedar Backup v3  documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="Cedar Backup v3  documentation" href="index.html" />
+    <link rel="up" title="CedarBackup3 package" href="CedarBackup3.html" />
+    <link rel="next" title="CedarBackup3.writers package" href="CedarBackup3.writers.html" />
+    <link rel="prev" title="CedarBackup3.extend package" href="CedarBackup3.extend.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="CedarBackup3.writers.html" title="CedarBackup3.writers package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="CedarBackup3.extend.html" title="CedarBackup3.extend package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Cedar Backup v3  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="CedarBackup3.html" accesskey="U">CedarBackup3 package</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-CedarBackup3.tools">
+<span id="cedarbackup3-tools-package"></span><h1>CedarBackup3.tools package<a class="headerlink" href="#module-CedarBackup3.tools" title="Permalink to this headline">¶</a></h1>
+<p>Official Cedar Backup Tools</p>
+<p>This package provides official Cedar Backup tools.  Tools are things that feel
+a little like extensions, but don&#8217;t fit the normal mold of extensions.  For
+instance, they might not be intended to run from cron, or might need to interact
+dynamically with the user (i.e. accept user input).</p>
+<p>Tools are usually scripts that are run directly from the command line, just
+like the main <code class="docutils literal"><span class="pre">cback3</span></code> script.  Like the <code class="docutils literal"><span class="pre">cback3</span></code> script, the majority of a
+tool is implemented in a .py module, and then the script just invokes the
+module&#8217;s <code class="docutils literal"><span class="pre">cli()</span></code> function.  The actual scripts for tools are distributed in
+the util/ directory.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">author:</th><td class="field-body">Kenneth J. Pronovici &lt;<a class="reference external" href="mailto:pronovic&#37;&#52;&#48;ieee&#46;org">pronovic<span>&#64;</span>ieee<span>&#46;</span>org</a>&gt;</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-CedarBackup3.tools.amazons3">
+<span id="cedarbackup3-tools-amazons3-module"></span><h2>CedarBackup3.tools.amazons3 module<a class="headerlink" href="#module-CedarBackup3.tools.amazons3" title="Permalink to this headline">¶</a></h2>
+<p>Synchonizes a local directory with an Amazon S3 bucket.</p>
+<p>No configuration is required; all necessary information is taken from the
+command-line.  The only thing configuration would help with is the path
+resolver interface, and it doesn&#8217;t seem worth it to require configuration just
+to get that.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">author:</th><td class="field-body">Kenneth J. Pronovici &lt;<a class="reference external" href="mailto:pronovic&#37;&#52;&#48;ieee&#46;org">pronovic<span>&#64;</span>ieee<span>&#46;</span>org</a>&gt;</td>
+</tr>
+</tbody>
+</table>
+<dl class="class">
+<dt id="CedarBackup3.tools.amazons3.Options">
+<em class="property">class </em><code class="descclassname">CedarBackup3.tools.amazons3.</code><code class="descname">Options</code><span class="sig-paren">(</span><em>argumentList=None</em>, <em>argumentString=None</em>, <em>validate=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/tools/amazons3.html#Options"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.tools.amazons3.Options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Class representing command-line options for the cback3-amazons3-sync script.</p>
+<p>The <code class="docutils literal"><span class="pre">Options</span></code> class is a Python object representation of the command-line
+options of the cback3-amazons3-sync script.</p>
+<p>The object representation is two-way: a command line string or a list of
+command line arguments can be used to create an <code class="docutils literal"><span class="pre">Options</span></code> object, and then
+changes to the object can be propogated back to a list of command-line
+arguments or to a command-line string.  An <code class="docutils literal"><span class="pre">Options</span></code> object can even be
+created from scratch programmatically (if you have a need for that).</p>
+<p>There are two main levels of validation in the <code class="docutils literal"><span class="pre">Options</span></code> class.  The first
+is field-level validation.  Field-level validation comes into play when a
+given field in an object is assigned to or updated.  We use Python&#8217;s
+<code class="docutils literal"><span class="pre">property</span></code> functionality to enforce specific validations on field values,
+and in some places we even use customized list classes to enforce
+validations on list members.  You should expect to catch a <code class="docutils literal"><span class="pre">ValueError</span></code>
+exception when making assignments to fields if you are programmatically
+filling an object.</p>
+<p>The second level of validation is post-completion validation.  Certain
+validations don&#8217;t make sense until an object representation of options is
+fully &#8220;complete&#8221;.  We don&#8217;t want these validations to apply all of the time,
+because it would make building up a valid object from scratch a real pain.
+For instance, we might have to do things in the right order to keep from
+throwing exceptions, etc.</p>
+<p>All of these post-completion validations are encapsulated in the
+<a class="reference internal" href="#CedarBackup3.tools.amazons3.Options.validate" title="CedarBackup3.tools.amazons3.Options.validate"><code class="xref any py py-meth docutils literal"><span class="pre">Options.validate</span></code></a> method.  This method can be called at any time by a
+client, and will always be called immediately after creating a <code class="docutils literal"><span class="pre">Options</span></code>
+object from a command line and before exporting a <code class="docutils literal"><span class="pre">Options</span></code> object back to
+a command line.  This way, we get acceptable ease-of-use but we also don&#8217;t
+accept or emit invalid command lines.</p>
+<p><em>Note:</em> Lists within this class are &#8220;unordered&#8221; for equality comparisons.</p>
+<dl class="method">
+<dt id="CedarBackup3.tools.amazons3.Options.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>argumentList=None</em>, <em>argumentString=None</em>, <em>validate=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/tools/amazons3.html#Options.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.tools.amazons3.Options.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes an options object.</p>
+<p>If you initialize the object without passing either <code class="docutils literal"><span class="pre">argumentList</span></code> or
+<code class="docutils literal"><span class="pre">argumentString</span></code>, the object will be empty and will be invalid until it
+is filled in properly.</p>
+<p>No reference to the original arguments is saved off by this class.  Once
+the data has been parsed (successfully or not) this original information
+is discarded.</p>
+<p>The argument list is assumed to be a list of arguments, not including the
+name of the command, something like <code class="docutils literal"><span class="pre">sys.argv[1:]</span></code>.  If you pass
+<code class="docutils literal"><span class="pre">sys.argv</span></code> instead, things are not going to work.</p>
+<p>The argument string will be parsed into an argument list by the
+<a class="reference internal" href="CedarBackup3.html#CedarBackup3.util.splitCommandLine" title="CedarBackup3.util.splitCommandLine"><code class="xref any py py-func docutils literal"><span class="pre">util.splitCommandLine</span></code></a> function (see the documentation for that
+function for some important notes about its limitations).  There is an
+assumption that the resulting list will be equivalent to <code class="docutils literal"><span class="pre">sys.argv[1:]</span></code>,
+just like <code class="docutils literal"><span class="pre">argumentList</span></code>.</p>
+<p>Unless the <code class="docutils literal"><span class="pre">validate</span></code> argument is <code class="docutils literal"><span class="pre">False</span></code>, the <a class="reference internal" href="#CedarBackup3.tools.amazons3.Options.validate" title="CedarBackup3.tools.amazons3.Options.validate"><code class="xref any py py-meth docutils literal"><span class="pre">Options.validate</span></code></a>
+method will be called (with its default arguments) after successfully
+parsing any passed-in command line.  This validation ensures that
+appropriate actions, etc. have been specified.  Keep in mind that even if
+<code class="docutils literal"><span class="pre">validate</span></code> is <code class="docutils literal"><span class="pre">False</span></code>, it might not be possible to parse the passed-in
+command line, so an exception might still be raised.</p>
+<p><em>Note:</em> The command line format is specified by the <code class="docutils literal"><span class="pre">_usage</span></code> function.
+Call <code class="docutils literal"><span class="pre">_usage</span></code> to see a usage statement for the cback3-amazons3-sync script.</p>
+<p><em>Note:</em> It is strongly suggested that the <code class="docutils literal"><span class="pre">validate</span></code> option always be set
+to <code class="docutils literal"><span class="pre">True</span></code> (the default) unless there is a specific need to read in
+invalid command line arguments.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>argumentList</strong> (List of arguments, i.e. <code class="docutils literal"><span class="pre">sys.argv</span></code>) &#8211; Command line for a program</li>
+<li><strong>argumentString</strong> (<em>String, i.e. &quot;cback3-amazons3-sync --verbose stage store&quot;</em>) &#8211; Command line for a program</li>
+<li><strong>validate</strong> (<em>Boolean true/false</em>) &#8211; Validate the command line after parsing it</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><code class="xref py py-exc docutils literal"><span class="pre">getopt.GetoptError</span></code> &#8211; If the command-line arguments could not be parsed</li>
+<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If the command-line arguments are invalid</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="CedarBackup3.tools.amazons3.Options.buildArgumentList">
+<code class="descname">buildArgumentList</code><span class="sig-paren">(</span><em>validate=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/tools/amazons3.html#Options.buildArgumentList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.tools.amazons3.Options.buildArgumentList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts options into a list of command line arguments.</p>
+<p>The original order of the various arguments (if, indeed, the object was
+initialized with a command-line) is not preserved in this generated
+argument list.   Besides that, the argument list is normalized to use the
+long option names (i.e. &#8211;version rather than -V).  The resulting list
+will be suitable for passing back to the constructor in the
+<code class="docutils literal"><span class="pre">argumentList</span></code> parameter.  Unlike <a class="reference internal" href="#CedarBackup3.tools.amazons3.Options.buildArgumentString" title="CedarBackup3.tools.amazons3.Options.buildArgumentString"><code class="xref any py py-meth docutils literal"><span class="pre">buildArgumentString</span></code></a>, string
+arguments are not quoted here, because there is no need for it.</p>
+<p>Unless the <code class="docutils literal"><span class="pre">validate</span></code> parameter is <code class="docutils literal"><span class="pre">False</span></code>, the <a class="reference internal" href="#CedarBackup3.tools.amazons3.Options.validate" title="CedarBackup3.tools.amazons3.Options.validate"><code class="xref any py py-meth docutils literal"><span class="pre">Options.validate</span></code></a>
+method will be called (with its default arguments) against the
+options before extracting the command line.  If the options are not valid,
+then an argument list will not be extracted.</p>
+<p><em>Note:</em> It is strongly suggested that the <code class="docutils literal"><span class="pre">validate</span></code> option always be set
+to <code class="docutils literal"><span class="pre">True</span></code> (the default) unless there is a specific need to extract an
+invalid command line.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>validate</strong> (<em>Boolean true/false</em>) &#8211; Validate the options before extracting the command line</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List representation of command-line arguments</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If options within the object are invalid</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="CedarBackup3.tools.amazons3.Options.buildArgumentString">
+<code class="descname">buildArgumentString</code><span class="sig-paren">(</span><em>validate=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/tools/amazons3.html#Options.buildArgumentString"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.tools.amazons3.Options.buildArgumentString" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts options into a string of command-line arguments.</p>
+<p>The original order of the various arguments (if, indeed, the object was
+initialized with a command-line) is not preserved in this generated
+argument string.   Besides that, the argument string is normalized to use
+the long option names (i.e. &#8211;version rather than -V) and to quote all
+string arguments with double quotes (<code class="docutils literal"><span class="pre">&quot;</span></code>).  The resulting string will be
+suitable for passing back to the constructor in the <code class="docutils literal"><span class="pre">argumentString</span></code>
+parameter.</p>
+<p>Unless the <code class="docutils literal"><span class="pre">validate</span></code> parameter is <code class="docutils literal"><span class="pre">False</span></code>, the <a class="reference internal" href="#CedarBackup3.tools.amazons3.Options.validate" title="CedarBackup3.tools.amazons3.Options.validate"><code class="xref any py py-meth docutils literal"><span class="pre">Options.validate</span></code></a>
+method will be called (with its default arguments) against the options
+before extracting the command line.  If the options are not valid, then
+an argument string will not be extracted.</p>
+<p><em>Note:</em> It is strongly suggested that the <code class="docutils literal"><span class="pre">validate</span></code> option always be set
+to <code class="docutils literal"><span class="pre">True</span></code> (the default) unless there is a specific need to extract an
+invalid command line.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>validate</strong> (<em>Boolean true/false</em>) &#8211; Validate the options before extracting the command line</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">String representation of command-line arguments</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If options within the object are invalid</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.tools.amazons3.Options.debug">
+<code class="descname">debug</code><a class="headerlink" href="#CedarBackup3.tools.amazons3.Options.debug" title="Permalink to this definition">¶</a></dt>
+<dd><p>Command-line debug (<code class="docutils literal"><span class="pre">-d,--debug</span></code>) flag.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.tools.amazons3.Options.diagnostics">
+<code class="descname">diagnostics</code><a class="headerlink" href="#CedarBackup3.tools.amazons3.Options.diagnostics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Command-line diagnostics (<code class="docutils literal"><span class="pre">-D,--diagnostics</span></code>) flag.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.tools.amazons3.Options.help">
+<code class="descname">help</code><a class="headerlink" href="#CedarBackup3.tools.amazons3.Options.help" title="Permalink to this definition">¶</a></dt>
+<dd><p>Command-line help (<code class="docutils literal"><span class="pre">-h,--help</span></code>) flag.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.tools.amazons3.Options.ignoreWarnings">
+<code class="descname">ignoreWarnings</code><a class="headerlink" href="#CedarBackup3.tools.amazons3.Options.ignoreWarnings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Command-line ignoreWarnings (<code class="docutils literal"><span class="pre">-w,--ignoreWarnings</span></code>) flag</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.tools.amazons3.Options.logfile">
+<code class="descname">logfile</code><a class="headerlink" href="#CedarBackup3.tools.amazons3.Options.logfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Command-line logfile (<code class="docutils literal"><span class="pre">-l,--logfile</span></code>) parameter.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.tools.amazons3.Options.mode">
+<code class="descname">mode</code><a class="headerlink" href="#CedarBackup3.tools.amazons3.Options.mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Command-line mode (<code class="docutils literal"><span class="pre">-m,--mode</span></code>) parameter.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.tools.amazons3.Options.output">
+<code class="descname">output</code><a class="headerlink" href="#CedarBackup3.tools.amazons3.Options.output" title="Permalink to this definition">¶</a></dt>
+<dd><p>Command-line output (<code class="docutils literal"><span class="pre">-O,--output</span></code>) flag.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.tools.amazons3.Options.owner">
+<code class="descname">owner</code><a class="headerlink" href="#CedarBackup3.tools.amazons3.Options.owner" title="Permalink to this definition">¶</a></dt>
+<dd><p>Command-line owner (<code class="docutils literal"><span class="pre">-o,--owner</span></code>) parameter, as tuple <code class="docutils literal"><span class="pre">(user,group)</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.tools.amazons3.Options.quiet">
+<code class="descname">quiet</code><a class="headerlink" href="#CedarBackup3.tools.amazons3.Options.quiet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Command-line quiet (<code class="docutils literal"><span class="pre">-q,--quiet</span></code>) flag.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.tools.amazons3.Options.s3BucketUrl">
+<code class="descname">s3BucketUrl</code><a class="headerlink" href="#CedarBackup3.tools.amazons3.Options.s3BucketUrl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Command-line s3BucketUrl, target of sync.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.tools.amazons3.Options.sourceDir">
+<code class="descname">sourceDir</code><a class="headerlink" href="#CedarBackup3.tools.amazons3.Options.sourceDir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Command-line sourceDir, source of sync.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.tools.amazons3.Options.stacktrace">
+<code class="descname">stacktrace</code><a class="headerlink" href="#CedarBackup3.tools.amazons3.Options.stacktrace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Command-line stacktrace (<code class="docutils literal"><span class="pre">-s,--stack</span></code>) flag.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CedarBackup3.tools.amazons3.Options.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/tools/amazons3.html#Options.validate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.tools.amazons3.Options.validate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validates command-line options represented by the object.</p>
+<p>Unless <code class="docutils literal"><span class="pre">--help</span></code> or <code class="docutils literal"><span class="pre">--version</span></code> are supplied, at least one action must
+be specified.  Other validations (as for allowed values for particular
+options) will be taken care of at assignment time by the properties
+functionality.</p>
+<p><em>Note:</em> The command line format is specified by the <code class="docutils literal"><span class="pre">_usage</span></code> function.
+Call <code class="docutils literal"><span class="pre">_usage</span></code> to see a usage statement for the cback3-amazons3-sync script.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If one of the validations fails</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.tools.amazons3.Options.verbose">
+<code class="descname">verbose</code><a class="headerlink" href="#CedarBackup3.tools.amazons3.Options.verbose" title="Permalink to this definition">¶</a></dt>
+<dd><p>Command-line verbose (<code class="docutils literal"><span class="pre">-b,--verbose</span></code>) flag.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.tools.amazons3.Options.verifyOnly">
+<code class="descname">verifyOnly</code><a class="headerlink" href="#CedarBackup3.tools.amazons3.Options.verifyOnly" title="Permalink to this definition">¶</a></dt>
+<dd><p>Command-line verifyOnly (<code class="docutils literal"><span class="pre">-v,--verifyOnly</span></code>) flag.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.tools.amazons3.Options.version">
+<code class="descname">version</code><a class="headerlink" href="#CedarBackup3.tools.amazons3.Options.version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Command-line version (<code class="docutils literal"><span class="pre">-V,--version</span></code>) flag.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="CedarBackup3.tools.amazons3.cli">
+<code class="descclassname">CedarBackup3.tools.amazons3.</code><code class="descname">cli</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/tools/amazons3.html#cli"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.tools.amazons3.cli" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the command-line interface for the <code class="docutils literal"><span class="pre">cback3-amazons3-sync</span></code> script.</p>
+<p>Essentially, this is the &#8220;main routine&#8221; for the cback3-amazons3-sync script.  It does
+all of the argument processing for the script, and then also implements the
+tool functionality.</p>
+<p>This function looks pretty similiar to <code class="docutils literal"><span class="pre">CedarBackup3.cli.cli()</span></code>.  It&#8217;s not
+easy to refactor this code to make it reusable and also readable, so I&#8217;ve
+decided to just live with the duplication.</p>
+<p>A different error code is returned for each type of failure:</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal"><span class="pre">1</span></code>: The Python interpreter version is &lt; 3.4</li>
+<li><code class="docutils literal"><span class="pre">2</span></code>: Error processing command-line arguments</li>
+<li><code class="docutils literal"><span class="pre">3</span></code>: Error configuring logging</li>
+<li><code class="docutils literal"><span class="pre">5</span></code>: Backup was interrupted with a CTRL-C or similar</li>
+<li><code class="docutils literal"><span class="pre">6</span></code>: Error executing other parts of the script</li>
+</ul>
+</div></blockquote>
+<p><em>Note:</em> This script uses print rather than logging to the INFO level, because
+it is interactive.  Underlying Cedar Backup functionality uses the logging
+mechanism exclusively.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Error code as described above</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-CedarBackup3.tools.span">
+<span id="cedarbackup3-tools-span-module"></span><h2>CedarBackup3.tools.span module<a class="headerlink" href="#module-CedarBackup3.tools.span" title="Permalink to this headline">¶</a></h2>
+<p>Spans staged data among multiple discs</p>
+<p>This is the Cedar Backup span tool.  It is intended for use by people who stage
+more data than can fit on a single disc.  It allows a user to split staged data
+among more than one disc.  It can&#8217;t be an extension because it requires user
+input when switching media.</p>
+<p>Most configuration is taken from the Cedar Backup configuration file,
+specifically the store section.  A few pieces of configuration are taken
+directly from the user.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">author:</th><td class="field-body">Kenneth J. Pronovici &lt;<a class="reference external" href="mailto:pronovic&#37;&#52;&#48;ieee&#46;org">pronovic<span>&#64;</span>ieee<span>&#46;</span>org</a>&gt;</td>
+</tr>
+</tbody>
+</table>
+<dl class="class">
+<dt id="CedarBackup3.tools.span.SpanOptions">
+<em class="property">class </em><code class="descclassname">CedarBackup3.tools.span.</code><code class="descname">SpanOptions</code><span class="sig-paren">(</span><em>argumentList=None</em>, <em>argumentString=None</em>, <em>validate=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/tools/span.html#SpanOptions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.tools.span.SpanOptions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="CedarBackup3.html#CedarBackup3.cli.Options" title="CedarBackup3.cli.Options"><code class="xref py py-class docutils literal"><span class="pre">CedarBackup3.cli.Options</span></code></a></p>
+<p>Tool-specific command-line options.</p>
+<p>Most of the cback3 command-line options are exactly what we need here &#8211;
+logfile path, permissions, verbosity, etc.  However, we need to make a few
+tweaks since we don&#8217;t accept any actions.</p>
+<p>Also, a few extra command line options that we accept are really ignored
+underneath.  I just don&#8217;t care about that for a tool like this.</p>
+<dl class="method">
+<dt id="CedarBackup3.tools.span.SpanOptions.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/tools/span.html#SpanOptions.validate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.tools.span.SpanOptions.validate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validates command-line options represented by the object.
+There are no validations here, because we don&#8217;t use any actions.
+:raises: <code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If one of the validations fails</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="CedarBackup3.tools.span.cli">
+<code class="descclassname">CedarBackup3.tools.span.</code><code class="descname">cli</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/tools/span.html#cli"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.tools.span.cli" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the command-line interface for the <code class="docutils literal"><span class="pre">cback3-span</span></code> script.</p>
+<p>Essentially, this is the &#8220;main routine&#8221; for the cback3-span script.  It does
+all of the argument processing for the script, and then also implements the
+tool functionality.</p>
+<p>This function looks pretty similiar to <code class="docutils literal"><span class="pre">CedarBackup3.cli.cli()</span></code>.  It&#8217;s not
+easy to refactor this code to make it reusable and also readable, so I&#8217;ve
+decided to just live with the duplication.</p>
+<p>A different error code is returned for each type of failure:</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal"><span class="pre">1</span></code>: The Python interpreter version is &lt; 3.4</li>
+<li><code class="docutils literal"><span class="pre">2</span></code>: Error processing command-line arguments</li>
+<li><code class="docutils literal"><span class="pre">3</span></code>: Error configuring logging</li>
+<li><code class="docutils literal"><span class="pre">4</span></code>: Error parsing indicated configuration file</li>
+<li><code class="docutils literal"><span class="pre">5</span></code>: Backup was interrupted with a CTRL-C or similar</li>
+<li><code class="docutils literal"><span class="pre">6</span></code>: Error executing other parts of the script</li>
+</ul>
+</div></blockquote>
+<p><em>Note:</em> This script uses print rather than logging to the INFO level, because
+it is interactive.  Underlying Cedar Backup functionality uses the logging
+mechanism exclusively.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Error code as described above</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">CedarBackup3.tools package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-CedarBackup3.tools.amazons3">CedarBackup3.tools.amazons3 module</a></li>
+<li><a class="reference internal" href="#module-CedarBackup3.tools.span">CedarBackup3.tools.span module</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="CedarBackup3.extend.html"
+                        title="previous chapter">CedarBackup3.extend package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="CedarBackup3.writers.html"
+                        title="next chapter">CedarBackup3.writers package</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/CedarBackup3.tools.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="CedarBackup3.writers.html" title="CedarBackup3.writers package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="CedarBackup3.extend.html" title="CedarBackup3.extend package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Cedar Backup v3  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="CedarBackup3.html" >CedarBackup3 package</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright .
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.9.
+    </div>
+  </body>
+</html>

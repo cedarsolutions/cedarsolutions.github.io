@@ -1,0 +1,1260 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>CedarBackup3.peer &#8212; Cedar Backup v3  documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="Cedar Backup v3  documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Cedar Backup v3  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for CedarBackup3.peer</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: iso-8859-1 -*-</span>
+<span class="c1"># vim: set ft=python ts=3 sw=3 expandtab:</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+<span class="c1">#</span>
+<span class="c1">#              C E D A R</span>
+<span class="c1">#          S O L U T I O N S       &quot;Software done right.&quot;</span>
+<span class="c1">#           S O F T W A R E</span>
+<span class="c1">#</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright (c) 2004-2008,2010,2015 Kenneth J. Pronovici.</span>
+<span class="c1"># All rights reserved.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is free software; you can redistribute it and/or</span>
+<span class="c1"># modify it under the terms of the GNU General Public License,</span>
+<span class="c1"># Version 2, as published by the Free Software Foundation.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</span>
+<span class="c1">#</span>
+<span class="c1"># Copies of the GNU General Public License are available from</span>
+<span class="c1"># the Free Software Foundation website, http://www.gnu.org/.</span>
+<span class="c1">#</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+<span class="c1">#</span>
+<span class="c1"># Author   : Kenneth J. Pronovici &lt;pronovic@ieee.org&gt;</span>
+<span class="c1"># Language : Python 3 (&gt;= 3.4)</span>
+<span class="c1"># Project  : Cedar Backup, release 3</span>
+<span class="c1"># Purpose  : Provides backup peer-related objects.</span>
+<span class="c1">#</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Module documentation</span>
+<span class="c1">########################################################################</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Provides backup peer-related objects and utility functions.</span>
+
+<span class="sd">Module Attributes</span>
+<span class="sd">=================</span>
+
+<span class="sd">Attributes:</span>
+<span class="sd">   DEF_COLLECT_INDICATOR: Name of the default collect indicator file</span>
+<span class="sd">   DEF_STAGE_INDICATOR: Name of the default stage indicator file</span>
+
+<span class="sd">:author: Kenneth J. Pronovici &lt;pronovic@ieee.org&gt;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Imported modules</span>
+<span class="c1">########################################################################</span>
+
+<span class="c1"># System modules</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+
+<span class="c1"># Cedar Backup modules</span>
+<span class="kn">from</span> <span class="nn">CedarBackup3.filesystem</span> <span class="k">import</span> <span class="n">FilesystemList</span>
+<span class="kn">from</span> <span class="nn">CedarBackup3.util</span> <span class="k">import</span> <span class="n">resolveCommand</span><span class="p">,</span> <span class="n">executeCommand</span><span class="p">,</span> <span class="n">isRunningAsRoot</span>
+<span class="kn">from</span> <span class="nn">CedarBackup3.util</span> <span class="k">import</span> <span class="n">splitCommandLine</span><span class="p">,</span> <span class="n">encodePath</span>
+<span class="kn">from</span> <span class="nn">CedarBackup3.config</span> <span class="k">import</span> <span class="n">VALID_FAILURE_MODES</span>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Module-wide constants and variables</span>
+<span class="c1">########################################################################</span>
+
+<span class="n">logger</span>                  <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;CedarBackup3.log.peer&quot;</span><span class="p">)</span>
+
+<span class="n">DEF_RCP_COMMAND</span>         <span class="o">=</span> <span class="p">[</span> <span class="s2">&quot;/usr/bin/scp&quot;</span><span class="p">,</span> <span class="s2">&quot;-B&quot;</span><span class="p">,</span> <span class="s2">&quot;-q&quot;</span><span class="p">,</span> <span class="s2">&quot;-C&quot;</span> <span class="p">]</span>
+<span class="n">DEF_RSH_COMMAND</span>         <span class="o">=</span> <span class="p">[</span> <span class="s2">&quot;/usr/bin/ssh&quot;</span><span class="p">,</span> <span class="p">]</span>
+<span class="n">DEF_CBACK_COMMAND</span>       <span class="o">=</span> <span class="s2">&quot;/usr/bin/cback3&quot;</span>
+
+<span class="n">DEF_COLLECT_INDICATOR</span>   <span class="o">=</span> <span class="s2">&quot;cback.collect&quot;</span>
+<span class="n">DEF_STAGE_INDICATOR</span>     <span class="o">=</span> <span class="s2">&quot;cback.stage&quot;</span>
+
+<span class="n">SU_COMMAND</span>              <span class="o">=</span> <span class="p">[</span> <span class="s2">&quot;su&quot;</span> <span class="p">]</span>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># LocalPeer class definition</span>
+<span class="c1">########################################################################</span>
+
+<div class="viewcode-block" id="LocalPeer"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.peer.LocalPeer">[docs]</a><span class="k">class</span> <span class="nc">LocalPeer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+   <span class="c1">######################</span>
+   <span class="c1"># Class documentation</span>
+   <span class="c1">######################</span>
+
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Backup peer representing a local peer in a backup pool.</span>
+
+<span class="sd">   This is a class representing a local (non-network) peer in a backup pool.</span>
+<span class="sd">   Local peers are backed up by simple filesystem copy operations.  A local</span>
+<span class="sd">   peer has associated with it a name (typically, but not necessarily, a</span>
+<span class="sd">   hostname) and a collect directory.</span>
+
+<span class="sd">   The public methods other than the constructor are part of a &quot;backup peer&quot;</span>
+<span class="sd">   interface shared with the ``RemotePeer`` class.</span>
+
+<span class="sd">   &quot;&quot;&quot;</span>
+
+   <span class="c1">##############</span>
+   <span class="c1"># Constructor</span>
+   <span class="c1">##############</span>
+
+<div class="viewcode-block" id="LocalPeer.__init__"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.peer.LocalPeer.__init__">[docs]</a>   <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">collectDir</span><span class="p">,</span> <span class="n">ignoreFailureMode</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Initializes a local backup peer.</span>
+
+<span class="sd">      Note that the collect directory must be an absolute path, but does not</span>
+<span class="sd">      have to exist when the object is instantiated.  We do a lazy validation</span>
+<span class="sd">      on this value since we could (potentially) be creating peer objects</span>
+<span class="sd">      before an ongoing backup completed.</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         name: Name of the backup peer</span>
+<span class="sd">         collectDir: Path to the peer&#39;s collect directory</span>
+<span class="sd">         ignoreFailureMode: Ignore failure mode for this peer, one of ``VALID_FAILURE_MODES``</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If the name is empty</span>
+<span class="sd">         ValueError: If collect directory is not an absolute path</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_collectDir</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_ignoreFailureMode</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">collectDir</span> <span class="o">=</span> <span class="n">collectDir</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">ignoreFailureMode</span> <span class="o">=</span> <span class="n">ignoreFailureMode</span></div>
+
+
+   <span class="c1">#############</span>
+   <span class="c1"># Properties</span>
+   <span class="c1">#############</span>
+
+   <span class="k">def</span> <span class="nf">_setName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to set the peer name.</span>
+<span class="sd">      The value must be a non-empty string and cannot be ``None``.</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If the value is an empty string or ``None``</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Peer name must be a non-empty string.&quot;</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">value</span>
+
+   <span class="k">def</span> <span class="nf">_getName</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to get the peer name.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>
+
+   <span class="k">def</span> <span class="nf">_setCollectDir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to set the collect directory.</span>
+<span class="sd">      The value must be an absolute path and cannot be ``None``.</span>
+<span class="sd">      It does not have to exist on disk at the time of assignment.</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If the value is ``None`` or is not an absolute path</span>
+<span class="sd">         ValueError: If a path cannot be encoded properly</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isabs</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Collect directory must be an absolute path.&quot;</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_collectDir</span> <span class="o">=</span> <span class="n">encodePath</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+   <span class="k">def</span> <span class="nf">_getCollectDir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to get the collect directory.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_collectDir</span>
+
+   <span class="k">def</span> <span class="nf">_setIgnoreFailureMode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to set the ignoreFailure mode.</span>
+<span class="sd">      If not ``None``, the mode must be one of the values in :any:`VALID_FAILURE_MODES`.</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If the value is not valid</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">if</span> <span class="n">value</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">VALID_FAILURE_MODES</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Ignore failure mode must be one of </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">VALID_FAILURE_MODES</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_ignoreFailureMode</span> <span class="o">=</span> <span class="n">value</span>
+
+   <span class="k">def</span> <span class="nf">_getIgnoreFailureMode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to get the ignoreFailure mode.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ignoreFailureMode</span>
+
+   <span class="n">name</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_getName</span><span class="p">,</span> <span class="n">_setName</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Name of the peer.&quot;</span><span class="p">)</span>
+   <span class="n">collectDir</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_getCollectDir</span><span class="p">,</span> <span class="n">_setCollectDir</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Path to the peer&#39;s collect directory (an absolute local path).&quot;</span><span class="p">)</span>
+   <span class="n">ignoreFailureMode</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_getIgnoreFailureMode</span><span class="p">,</span> <span class="n">_setIgnoreFailureMode</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Ignore failure mode for peer.&quot;</span><span class="p">)</span>
+
+
+   <span class="c1">#################</span>
+   <span class="c1"># Public methods</span>
+   <span class="c1">#################</span>
+
+<div class="viewcode-block" id="LocalPeer.stagePeer"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.peer.LocalPeer.stagePeer">[docs]</a>   <span class="k">def</span> <span class="nf">stagePeer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">targetDir</span><span class="p">,</span> <span class="n">ownership</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Stages data from the peer into the indicated local target directory.</span>
+
+<span class="sd">      The collect and target directories must both already exist before this</span>
+<span class="sd">      method is called.  If passed in, ownership and permissions will be</span>
+<span class="sd">      applied to the files that are copied.</span>
+
+<span class="sd">      *Note:* The caller is responsible for checking that the indicator exists,</span>
+<span class="sd">      if they care.  This function only stages the files within the directory.</span>
+
+<span class="sd">      *Note:* If you have user/group as strings, call the :any:`util.getUidGid` function</span>
+<span class="sd">      to get the associated uid/gid as an ownership tuple.</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         targetDir: Target directory to write data into</span>
+<span class="sd">         ownership: Owner and group that files should have, tuple of numeric ``(uid, gid)``</span>
+<span class="sd">         permissions: Unix permissions mode that the staged files should have, in octal like ``0640``</span>
+<span class="sd">      Returns:</span>
+<span class="sd">          Number of files copied from the source directory to the target directory</span>
+
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If collect directory is not a directory or does not exist</span>
+<span class="sd">         ValueError: If target directory is not a directory, does not exist or is not absolute</span>
+<span class="sd">         ValueError: If a path cannot be encoded properly</span>
+<span class="sd">         IOError: If there were no files to stage (i.e. the directory was empty)</span>
+<span class="sd">         IOError: If there is an IO error copying a file</span>
+<span class="sd">         OSError: If there is an OS error copying or changing permissions on a file</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="n">targetDir</span> <span class="o">=</span> <span class="n">encodePath</span><span class="p">(</span><span class="n">targetDir</span><span class="p">)</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isabs</span><span class="p">(</span><span class="n">targetDir</span><span class="p">):</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Target directory [</span><span class="si">%s</span><span class="s2">] not an absolute path.&quot;</span><span class="p">,</span> <span class="n">targetDir</span><span class="p">)</span>
+         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Target directory must be an absolute path.&quot;</span><span class="p">)</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">collectDir</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">collectDir</span><span class="p">):</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Collect directory [</span><span class="si">%s</span><span class="s2">] is not a directory or does not exist on disk.&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">collectDir</span><span class="p">)</span>
+         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Collect directory is not a directory or does not exist on disk.&quot;</span><span class="p">)</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">targetDir</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">targetDir</span><span class="p">):</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Target directory [</span><span class="si">%s</span><span class="s2">] is not a directory or does not exist on disk.&quot;</span><span class="p">,</span> <span class="n">targetDir</span><span class="p">)</span>
+         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Target directory is not a directory or does not exist on disk.&quot;</span><span class="p">)</span>
+      <span class="n">count</span> <span class="o">=</span> <span class="n">LocalPeer</span><span class="o">.</span><span class="n">_copyLocalDir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">collectDir</span><span class="p">,</span> <span class="n">targetDir</span><span class="p">,</span> <span class="n">ownership</span><span class="p">,</span> <span class="n">permissions</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+         <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Did not copy any files from local peer.&quot;</span><span class="p">)</span>
+      <span class="k">return</span> <span class="n">count</span></div>
+
+<div class="viewcode-block" id="LocalPeer.checkCollectIndicator"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.peer.LocalPeer.checkCollectIndicator">[docs]</a>   <span class="k">def</span> <span class="nf">checkCollectIndicator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">collectIndicator</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Checks the collect indicator in the peer&#39;s staging directory.</span>
+
+<span class="sd">      When a peer has completed collecting its backup files, it will write an</span>
+<span class="sd">      empty indicator file into its collect directory.  This method checks to</span>
+<span class="sd">      see whether that indicator has been written.  We&#39;re &quot;stupid&quot; here - if</span>
+<span class="sd">      the collect directory doesn&#39;t exist, you&#39;ll naturally get back ``False``.</span>
+
+<span class="sd">      If you need to, you can override the name of the collect indicator file</span>
+<span class="sd">      by passing in a different name.</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         collectIndicator: Name of the collect indicator file to check</span>
+<span class="sd">      Returns:</span>
+<span class="sd">          Boolean true/false depending on whether the indicator exists</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If a path cannot be encoded properly</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="n">collectIndicator</span> <span class="o">=</span> <span class="n">encodePath</span><span class="p">(</span><span class="n">collectIndicator</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">collectIndicator</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">collectDir</span><span class="p">,</span> <span class="n">DEF_COLLECT_INDICATOR</span><span class="p">))</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">collectDir</span><span class="p">,</span> <span class="n">collectIndicator</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="LocalPeer.writeStageIndicator"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.peer.LocalPeer.writeStageIndicator">[docs]</a>   <span class="k">def</span> <span class="nf">writeStageIndicator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stageIndicator</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ownership</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Writes the stage indicator in the peer&#39;s staging directory.</span>
+
+<span class="sd">      When the master has completed collecting its backup files, it will write</span>
+<span class="sd">      an empty indicator file into the peer&#39;s collect directory.  The presence</span>
+<span class="sd">      of this file implies that the staging process is complete.</span>
+
+<span class="sd">      If you need to, you can override the name of the stage indicator file by</span>
+<span class="sd">      passing in a different name.</span>
+
+<span class="sd">      *Note:* If you have user/group as strings, call the :any:`util.getUidGid`</span>
+<span class="sd">      function to get the associated uid/gid as an ownership tuple.</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         stageIndicator: Name of the indicator file to write</span>
+<span class="sd">         ownership: Owner and group that files should have, tuple of numeric ``(uid, gid)``</span>
+<span class="sd">         permissions: Unix permissions mode that the staged files should have, in octal like ``0640``</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If collect directory is not a directory or does not exist</span>
+<span class="sd">         ValueError: If a path cannot be encoded properly</span>
+<span class="sd">         IOError: If there is an IO error creating the file</span>
+<span class="sd">         OSError: If there is an OS error creating or changing permissions on the file</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="n">stageIndicator</span> <span class="o">=</span> <span class="n">encodePath</span><span class="p">(</span><span class="n">stageIndicator</span><span class="p">)</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">collectDir</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">collectDir</span><span class="p">):</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Collect directory [</span><span class="si">%s</span><span class="s2">] is not a directory or does not exist on disk.&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">collectDir</span><span class="p">)</span>
+         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Collect directory is not a directory or does not exist on disk.&quot;</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">stageIndicator</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="n">fileName</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">collectDir</span><span class="p">,</span> <span class="n">DEF_STAGE_INDICATOR</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="n">fileName</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">collectDir</span><span class="p">,</span> <span class="n">stageIndicator</span><span class="p">)</span>
+      <span class="n">LocalPeer</span><span class="o">.</span><span class="n">_copyLocalFile</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">fileName</span><span class="p">,</span> <span class="n">ownership</span><span class="p">,</span> <span class="n">permissions</span><span class="p">)</span>    <span class="c1"># None for sourceFile results in an empty target</span></div>
+
+
+   <span class="c1">##################</span>
+   <span class="c1"># Private methods</span>
+   <span class="c1">##################</span>
+
+   <span class="nd">@staticmethod</span>
+   <span class="k">def</span> <span class="nf">_copyLocalDir</span><span class="p">(</span><span class="n">sourceDir</span><span class="p">,</span> <span class="n">targetDir</span><span class="p">,</span> <span class="n">ownership</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Copies files from the source directory to the target directory.</span>
+
+<span class="sd">      This function is not recursive.  Only the files in the directory will be</span>
+<span class="sd">      copied.   Ownership and permissions will be left at their default values</span>
+<span class="sd">      if new values are not specified.  The source and target directories are</span>
+<span class="sd">      allowed to be soft links to a directory, but besides that soft links are</span>
+<span class="sd">      ignored.</span>
+
+<span class="sd">      *Note:* If you have user/group as strings, call the :any:`util.getUidGid`</span>
+<span class="sd">      function to get the associated uid/gid as an ownership tuple.</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         sourceDir: Source directory</span>
+<span class="sd">         targetDir: Target directory</span>
+<span class="sd">         ownership: Owner and group that files should have, tuple of numeric ``(uid, gid)``</span>
+<span class="sd">         permissions: Unix permissions mode that the staged files should have, in octal like ``0640``</span>
+<span class="sd">      Returns:</span>
+<span class="sd">          Number of files copied from the source directory to the target directory</span>
+
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If source or target is not a directory or does not exist</span>
+<span class="sd">         ValueError: If a path cannot be encoded properly</span>
+<span class="sd">         IOError: If there is an IO error copying the files</span>
+<span class="sd">         OSError: If there is an OS error copying or changing permissions on a files</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="n">filesCopied</span> <span class="o">=</span> <span class="mi">0</span>
+      <span class="n">sourceDir</span> <span class="o">=</span> <span class="n">encodePath</span><span class="p">(</span><span class="n">sourceDir</span><span class="p">)</span>
+      <span class="n">targetDir</span> <span class="o">=</span> <span class="n">encodePath</span><span class="p">(</span><span class="n">targetDir</span><span class="p">)</span>
+      <span class="k">for</span> <span class="n">fileName</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">sourceDir</span><span class="p">):</span>
+         <span class="n">sourceFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sourceDir</span><span class="p">,</span> <span class="n">fileName</span><span class="p">)</span>
+         <span class="n">targetFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">targetDir</span><span class="p">,</span> <span class="n">fileName</span><span class="p">)</span>
+         <span class="n">LocalPeer</span><span class="o">.</span><span class="n">_copyLocalFile</span><span class="p">(</span><span class="n">sourceFile</span><span class="p">,</span> <span class="n">targetFile</span><span class="p">,</span> <span class="n">ownership</span><span class="p">,</span> <span class="n">permissions</span><span class="p">)</span>
+         <span class="n">filesCopied</span> <span class="o">+=</span> <span class="mi">1</span>
+      <span class="k">return</span> <span class="n">filesCopied</span>
+
+   <span class="nd">@staticmethod</span>
+   <span class="k">def</span> <span class="nf">_copyLocalFile</span><span class="p">(</span><span class="n">sourceFile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">targetFile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ownership</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Copies a source file to a target file.</span>
+
+<span class="sd">      If the source file is ``None`` then the target file will be created or</span>
+<span class="sd">      overwritten as an empty file.  If the target file is ``None``, this method</span>
+<span class="sd">      is a no-op.  Attempting to copy a soft link or a directory will result in</span>
+<span class="sd">      an exception.</span>
+
+<span class="sd">      *Note:* If you have user/group as strings, call the :any:`util.getUidGid`</span>
+<span class="sd">      function to get the associated uid/gid as an ownership tuple.</span>
+
+<span class="sd">      *Note:* We will not overwrite a target file that exists when this method</span>
+<span class="sd">      is invoked.  If the target already exists, we&#39;ll raise an exception.</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         sourceFile: Source file to copy</span>
+<span class="sd">         targetFile: Target file to create</span>
+<span class="sd">         ownership: Owner and group that files should have, tuple of numeric ``(uid, gid)``</span>
+<span class="sd">         permissions: Unix permissions mode that the staged files should have, in octal like ``0640``</span>
+<span class="sd">         overwrite: Indicates whether it&#39;s OK to overwrite the target file</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If the passed-in source file is not a regular file</span>
+<span class="sd">         ValueError: If a path cannot be encoded properly</span>
+<span class="sd">         IOError: If the target file already exists</span>
+<span class="sd">         IOError: If there is an IO error copying the file</span>
+<span class="sd">         OSError: If there is an OS error copying or changing permissions on a file</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="n">targetFile</span> <span class="o">=</span> <span class="n">encodePath</span><span class="p">(</span><span class="n">targetFile</span><span class="p">)</span>
+      <span class="n">sourceFile</span> <span class="o">=</span> <span class="n">encodePath</span><span class="p">(</span><span class="n">sourceFile</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">targetFile</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">return</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="n">overwrite</span><span class="p">:</span>
+         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">targetFile</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Target file [</span><span class="si">%s</span><span class="s2">] already exists.&quot;</span> <span class="o">%</span> <span class="n">targetFile</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">sourceFile</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">targetFile</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">sourceFile</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">islink</span><span class="p">(</span><span class="n">sourceFile</span><span class="p">):</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">sourceFile</span><span class="p">,</span> <span class="n">targetFile</span><span class="p">)</span>
+         <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Source [</span><span class="si">%s</span><span class="s2">] is not a regular file.&quot;</span><span class="p">,</span> <span class="n">sourceFile</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Source is not a regular file.&quot;</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">ownership</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="n">os</span><span class="o">.</span><span class="n">chown</span><span class="p">(</span><span class="n">targetFile</span><span class="p">,</span> <span class="n">ownership</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ownership</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+      <span class="k">if</span> <span class="n">permissions</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">targetFile</span><span class="p">,</span> <span class="n">permissions</span><span class="p">)</span></div>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># RemotePeer class definition</span>
+<span class="c1">########################################################################</span>
+
+<div class="viewcode-block" id="RemotePeer"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.peer.RemotePeer">[docs]</a><span class="k">class</span> <span class="nc">RemotePeer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+   <span class="c1">######################</span>
+   <span class="c1"># Class documentation</span>
+   <span class="c1">######################</span>
+
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Backup peer representing a remote peer in a backup pool.</span>
+
+<span class="sd">   This is a class representing a remote (networked) peer in a backup pool.</span>
+<span class="sd">   Remote peers are backed up using an rcp-compatible copy command.  A remote</span>
+<span class="sd">   peer has associated with it a name (which must be a valid hostname), a</span>
+<span class="sd">   collect directory, a working directory and a copy method (an rcp-compatible</span>
+<span class="sd">   command).</span>
+
+<span class="sd">   You can also set an optional local user value.  This username will be used</span>
+<span class="sd">   as the local user for any remote copies that are required.  It can only be</span>
+<span class="sd">   used if the root user is executing the backup.  The root user will ``su`` to</span>
+<span class="sd">   the local user and execute the remote copies as that user.</span>
+
+<span class="sd">   The copy method is associated with the peer and not with the actual request</span>
+<span class="sd">   to copy, because we can envision that each remote host might have a</span>
+<span class="sd">   different connect method.</span>
+
+<span class="sd">   The public methods other than the constructor are part of a &quot;backup peer&quot;</span>
+<span class="sd">   interface shared with the ``LocalPeer`` class.</span>
+
+<span class="sd">   &quot;&quot;&quot;</span>
+
+   <span class="c1">##############</span>
+   <span class="c1"># Constructor</span>
+   <span class="c1">##############</span>
+
+<div class="viewcode-block" id="RemotePeer.__init__"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.peer.RemotePeer.__init__">[docs]</a>   <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">collectDir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workingDir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">remoteUser</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">rcpCommand</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">localUser</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rshCommand</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cbackCommand</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">ignoreFailureMode</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Initializes a remote backup peer.</span>
+
+<span class="sd">      *Note:* If provided, each command will eventually be parsed into a list of</span>
+<span class="sd">      strings suitable for passing to ``util.executeCommand`` in order to avoid</span>
+<span class="sd">      security holes related to shell interpolation.   This parsing will be</span>
+<span class="sd">      done by the :any:`util.splitCommandLine` function.  See the documentation for</span>
+<span class="sd">      that function for some important notes about its limitations.</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         name: Name of the backup peer, a valid DNS name</span>
+<span class="sd">         collectDir: Path to the peer&#39;s collect directory, absolute path</span>
+<span class="sd">         workingDir: Working directory that can be used to create temporary files, etc, an absolute path</span>
+<span class="sd">         remoteUser: Name of the Cedar Backup user on the remote peer</span>
+<span class="sd">         localUser: Name of the Cedar Backup user on the current host</span>
+<span class="sd">         rcpCommand: An rcp-compatible copy command to use for copying files from the peer</span>
+<span class="sd">         rshCommand: An rsh-compatible copy command to use for remote shells to the peer</span>
+<span class="sd">         cbackCommand: A chack-compatible command to use for executing managed actions</span>
+<span class="sd">         ignoreFailureMode: Ignore failure mode for this peer, one of ``VALID_FAILURE_MODES``</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If collect directory is not an absolute path</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_collectDir</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_workingDir</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_remoteUser</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_localUser</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_rcpCommand</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_rcpCommandList</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_rshCommand</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_rshCommandList</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_cbackCommand</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_ignoreFailureMode</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">collectDir</span> <span class="o">=</span> <span class="n">collectDir</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">workingDir</span> <span class="o">=</span> <span class="n">workingDir</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">remoteUser</span> <span class="o">=</span> <span class="n">remoteUser</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">localUser</span> <span class="o">=</span> <span class="n">localUser</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">rcpCommand</span> <span class="o">=</span> <span class="n">rcpCommand</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">rshCommand</span> <span class="o">=</span> <span class="n">rshCommand</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">cbackCommand</span> <span class="o">=</span> <span class="n">cbackCommand</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">ignoreFailureMode</span> <span class="o">=</span> <span class="n">ignoreFailureMode</span></div>
+
+
+   <span class="c1">#############</span>
+   <span class="c1"># Properties</span>
+   <span class="c1">#############</span>
+
+   <span class="k">def</span> <span class="nf">_setName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to set the peer name.</span>
+<span class="sd">      The value must be a non-empty string and cannot be ``None``.</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If the value is an empty string or ``None``</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Peer name must be a non-empty string.&quot;</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">value</span>
+
+   <span class="k">def</span> <span class="nf">_getName</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to get the peer name.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>
+
+   <span class="k">def</span> <span class="nf">_setCollectDir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to set the collect directory.</span>
+<span class="sd">      The value must be an absolute path and cannot be ``None``.</span>
+<span class="sd">      It does not have to exist on disk at the time of assignment.</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If the value is ``None`` or is not an absolute path</span>
+<span class="sd">         ValueError: If the value cannot be encoded properly</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isabs</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Collect directory must be an absolute path.&quot;</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_collectDir</span> <span class="o">=</span> <span class="n">encodePath</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+   <span class="k">def</span> <span class="nf">_getCollectDir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to get the collect directory.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_collectDir</span>
+
+   <span class="k">def</span> <span class="nf">_setWorkingDir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to set the working directory.</span>
+<span class="sd">      The value must be an absolute path and cannot be ``None``.</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If the value is ``None`` or is not an absolute path</span>
+<span class="sd">         ValueError: If the value cannot be encoded properly</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isabs</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Working directory must be an absolute path.&quot;</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_workingDir</span> <span class="o">=</span> <span class="n">encodePath</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+   <span class="k">def</span> <span class="nf">_getWorkingDir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to get the working directory.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_workingDir</span>
+
+   <span class="k">def</span> <span class="nf">_setRemoteUser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to set the remote user.</span>
+<span class="sd">      The value must be a non-empty string and cannot be ``None``.</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If the value is an empty string or ``None``</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Peer remote user must be a non-empty string.&quot;</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_remoteUser</span> <span class="o">=</span> <span class="n">value</span>
+
+   <span class="k">def</span> <span class="nf">_getRemoteUser</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to get the remote user.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_remoteUser</span>
+
+   <span class="k">def</span> <span class="nf">_setLocalUser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to set the local user.</span>
+<span class="sd">      The value must be a non-empty string if it is not ``None``.</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If the value is an empty string</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Peer local user must be a non-empty string.&quot;</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_localUser</span> <span class="o">=</span> <span class="n">value</span>
+
+   <span class="k">def</span> <span class="nf">_getLocalUser</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to get the local user.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_localUser</span>
+
+   <span class="k">def</span> <span class="nf">_setRcpCommand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target to set the rcp command.</span>
+
+<span class="sd">      The value must be a non-empty string or ``None``.  Its value is stored in</span>
+<span class="sd">      the two forms: &quot;raw&quot; as provided by the client, and &quot;parsed&quot; into a list</span>
+<span class="sd">      suitable for being passed to :any:`util.executeCommand` via</span>
+<span class="sd">      :any:`util.splitCommandLine`.</span>
+
+<span class="sd">      However, all the caller will ever see via the property is the actual</span>
+<span class="sd">      value they set (which includes seeing ``None``, even if we translate that</span>
+<span class="sd">      internally to ``DEF_RCP_COMMAND``).  Internally, we should always use</span>
+<span class="sd">      ``self._rcpCommandList`` if we want the actual command list.</span>
+
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If the value is an empty string</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">_rcpCommand</span> <span class="o">=</span> <span class="kc">None</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">_rcpCommandList</span> <span class="o">=</span> <span class="n">DEF_RCP_COMMAND</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_rcpCommand</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_rcpCommandList</span> <span class="o">=</span> <span class="n">splitCommandLine</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rcpCommand</span><span class="p">)</span>
+         <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The rcp command must be a non-empty string.&quot;</span><span class="p">)</span>
+
+   <span class="k">def</span> <span class="nf">_getRcpCommand</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to get the rcp command.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rcpCommand</span>
+
+   <span class="k">def</span> <span class="nf">_setRshCommand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target to set the rsh command.</span>
+
+<span class="sd">      The value must be a non-empty string or ``None``.  Its value is stored in</span>
+<span class="sd">      the two forms: &quot;raw&quot; as provided by the client, and &quot;parsed&quot; into a list</span>
+<span class="sd">      suitable for being passed to :any:`util.executeCommand` via</span>
+<span class="sd">      :any:`util.splitCommandLine`.</span>
+
+<span class="sd">      However, all the caller will ever see via the property is the actual</span>
+<span class="sd">      value they set (which includes seeing ``None``, even if we translate that</span>
+<span class="sd">      internally to ``DEF_RSH_COMMAND``).  Internally, we should always use</span>
+<span class="sd">      ``self._rshCommandList`` if we want the actual command list.</span>
+
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If the value is an empty string</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">_rshCommand</span> <span class="o">=</span> <span class="kc">None</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">_rshCommandList</span> <span class="o">=</span> <span class="n">DEF_RSH_COMMAND</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_rshCommand</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_rshCommandList</span> <span class="o">=</span> <span class="n">splitCommandLine</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rshCommand</span><span class="p">)</span>
+         <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The rsh command must be a non-empty string.&quot;</span><span class="p">)</span>
+
+   <span class="k">def</span> <span class="nf">_getRshCommand</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to get the rsh command.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rshCommand</span>
+
+   <span class="k">def</span> <span class="nf">_setCbackCommand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target to set the cback command.</span>
+
+<span class="sd">      The value must be a non-empty string or ``None``.  Unlike the other</span>
+<span class="sd">      command, this value is only stored in the &quot;raw&quot; form provided by the</span>
+<span class="sd">      client.</span>
+
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If the value is an empty string</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">_cbackCommand</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cbackCommand</span> <span class="o">=</span> <span class="n">value</span>
+         <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The cback command must be a non-empty string.&quot;</span><span class="p">)</span>
+
+   <span class="k">def</span> <span class="nf">_getCbackCommand</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to get the cback command.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cbackCommand</span>
+
+   <span class="k">def</span> <span class="nf">_setIgnoreFailureMode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to set the ignoreFailure mode.</span>
+<span class="sd">      If not ``None``, the mode must be one of the values in :any:`VALID_FAILURE_MODES`.</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If the value is not valid</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">if</span> <span class="n">value</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">VALID_FAILURE_MODES</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Ignore failure mode must be one of </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">VALID_FAILURE_MODES</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_ignoreFailureMode</span> <span class="o">=</span> <span class="n">value</span>
+
+   <span class="k">def</span> <span class="nf">_getIgnoreFailureMode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to get the ignoreFailure mode.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ignoreFailureMode</span>
+
+   <span class="n">name</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_getName</span><span class="p">,</span> <span class="n">_setName</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Name of the peer (a valid DNS hostname).&quot;</span><span class="p">)</span>
+   <span class="n">collectDir</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_getCollectDir</span><span class="p">,</span> <span class="n">_setCollectDir</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Path to the peer&#39;s collect directory (an absolute local path).&quot;</span><span class="p">)</span>
+   <span class="n">workingDir</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_getWorkingDir</span><span class="p">,</span> <span class="n">_setWorkingDir</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Path to the peer&#39;s working directory (an absolute local path).&quot;</span><span class="p">)</span>
+   <span class="n">remoteUser</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_getRemoteUser</span><span class="p">,</span> <span class="n">_setRemoteUser</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Name of the Cedar Backup user on the remote peer.&quot;</span><span class="p">)</span>
+   <span class="n">localUser</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_getLocalUser</span><span class="p">,</span> <span class="n">_setLocalUser</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Name of the Cedar Backup user on the current host.&quot;</span><span class="p">)</span>
+   <span class="n">rcpCommand</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_getRcpCommand</span><span class="p">,</span> <span class="n">_setRcpCommand</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;An rcp-compatible copy command to use for copying files.&quot;</span><span class="p">)</span>
+   <span class="n">rshCommand</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_getRshCommand</span><span class="p">,</span> <span class="n">_setRshCommand</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;An rsh-compatible command to use for remote shells to the peer.&quot;</span><span class="p">)</span>
+   <span class="n">cbackCommand</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_getCbackCommand</span><span class="p">,</span> <span class="n">_setCbackCommand</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;A chack-compatible command to use for executing managed actions.&quot;</span><span class="p">)</span>
+   <span class="n">ignoreFailureMode</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_getIgnoreFailureMode</span><span class="p">,</span> <span class="n">_setIgnoreFailureMode</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Ignore failure mode for peer.&quot;</span><span class="p">)</span>
+
+
+   <span class="c1">#################</span>
+   <span class="c1"># Public methods</span>
+   <span class="c1">#################</span>
+
+<div class="viewcode-block" id="RemotePeer.stagePeer"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.peer.RemotePeer.stagePeer">[docs]</a>   <span class="k">def</span> <span class="nf">stagePeer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">targetDir</span><span class="p">,</span> <span class="n">ownership</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Stages data from the peer into the indicated local target directory.</span>
+
+<span class="sd">      The target directory must already exist before this method is called.  If</span>
+<span class="sd">      passed in, ownership and permissions will be applied to the files that</span>
+<span class="sd">      are copied.</span>
+
+<span class="sd">      *Note:* The returned count of copied files might be inaccurate if some of</span>
+<span class="sd">      the copied files already existed in the staging directory prior to the</span>
+<span class="sd">      copy taking place.  We don&#39;t clear the staging directory first, because</span>
+<span class="sd">      some extension might also be using it.</span>
+
+<span class="sd">      *Note:* If you have user/group as strings, call the :any:`util.getUidGid` function</span>
+<span class="sd">      to get the associated uid/gid as an ownership tuple.</span>
+
+<span class="sd">      *Note:* Unlike the local peer version of this method, an I/O error might</span>
+<span class="sd">      or might not be raised if the directory is empty.  Since we&#39;re using a</span>
+<span class="sd">      remote copy method, we just don&#39;t have the fine-grained control over our</span>
+<span class="sd">      exceptions that&#39;s available when we can look directly at the filesystem,</span>
+<span class="sd">      and we can&#39;t control whether the remote copy method thinks an empty</span>
+<span class="sd">      directory is an error.</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         targetDir: Target directory to write data into</span>
+<span class="sd">         ownership: Owner and group that files should have, tuple of numeric ``(uid, gid)``</span>
+<span class="sd">         permissions: Unix permissions mode that the staged files should have, in octal like ``0640``</span>
+<span class="sd">      Returns:</span>
+<span class="sd">          Number of files copied from the source directory to the target directory</span>
+
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If target directory is not a directory, does not exist or is not absolute</span>
+<span class="sd">         ValueError: If a path cannot be encoded properly</span>
+<span class="sd">         IOError: If there were no files to stage (i.e. the directory was empty)</span>
+<span class="sd">         IOError: If there is an IO error copying a file</span>
+<span class="sd">         OSError: If there is an OS error copying or changing permissions on a file</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="n">targetDir</span> <span class="o">=</span> <span class="n">encodePath</span><span class="p">(</span><span class="n">targetDir</span><span class="p">)</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isabs</span><span class="p">(</span><span class="n">targetDir</span><span class="p">):</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Target directory [</span><span class="si">%s</span><span class="s2">] not an absolute path.&quot;</span><span class="p">,</span> <span class="n">targetDir</span><span class="p">)</span>
+         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Target directory must be an absolute path.&quot;</span><span class="p">)</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">targetDir</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">targetDir</span><span class="p">):</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Target directory [</span><span class="si">%s</span><span class="s2">] is not a directory or does not exist on disk.&quot;</span><span class="p">,</span> <span class="n">targetDir</span><span class="p">)</span>
+         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Target directory is not a directory or does not exist on disk.&quot;</span><span class="p">)</span>
+      <span class="n">count</span> <span class="o">=</span> <span class="n">RemotePeer</span><span class="o">.</span><span class="n">_copyRemoteDir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">remoteUser</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">localUser</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">_rcpCommand</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rcpCommandList</span><span class="p">,</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">collectDir</span><span class="p">,</span> <span class="n">targetDir</span><span class="p">,</span>
+                                        <span class="n">ownership</span><span class="p">,</span> <span class="n">permissions</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+         <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Did not copy any files from local peer.&quot;</span><span class="p">)</span>
+      <span class="k">return</span> <span class="n">count</span></div>
+
+<div class="viewcode-block" id="RemotePeer.checkCollectIndicator"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.peer.RemotePeer.checkCollectIndicator">[docs]</a>   <span class="k">def</span> <span class="nf">checkCollectIndicator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">collectIndicator</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Checks the collect indicator in the peer&#39;s staging directory.</span>
+
+<span class="sd">      When a peer has completed collecting its backup files, it will write an</span>
+<span class="sd">      empty indicator file into its collect directory.  This method checks to</span>
+<span class="sd">      see whether that indicator has been written.  If the remote copy command</span>
+<span class="sd">      fails, we return ``False`` as if the file weren&#39;t there.</span>
+
+<span class="sd">      If you need to, you can override the name of the collect indicator file</span>
+<span class="sd">      by passing in a different name.</span>
+
+<span class="sd">      *Note:* Apparently, we can&#39;t count on all rcp-compatible implementations</span>
+<span class="sd">      to return sensible errors for some error conditions.  As an example, the</span>
+<span class="sd">      ``scp`` command in Debian &#39;woody&#39; returns a zero (normal) status even when</span>
+<span class="sd">      it can&#39;t find a host or if the login or path is invalid.  Because of</span>
+<span class="sd">      this, the implementation of this method is rather convoluted.</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         collectIndicator: Name of the collect indicator file to check</span>
+<span class="sd">      Returns:</span>
+<span class="sd">          Boolean true/false depending on whether the indicator exists</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If a path cannot be encoded properly</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">try</span><span class="p">:</span>
+         <span class="k">if</span> <span class="n">collectIndicator</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sourceFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">collectDir</span><span class="p">,</span> <span class="n">DEF_COLLECT_INDICATOR</span><span class="p">)</span>
+            <span class="n">targetFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">workingDir</span><span class="p">,</span> <span class="n">DEF_COLLECT_INDICATOR</span><span class="p">)</span>
+         <span class="k">else</span><span class="p">:</span>
+            <span class="n">collectIndicator</span> <span class="o">=</span> <span class="n">encodePath</span><span class="p">(</span><span class="n">collectIndicator</span><span class="p">)</span>
+            <span class="n">sourceFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">collectDir</span><span class="p">,</span> <span class="n">collectIndicator</span><span class="p">)</span>
+            <span class="n">targetFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">workingDir</span><span class="p">,</span> <span class="n">collectIndicator</span><span class="p">)</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Fetch remote [</span><span class="si">%s</span><span class="s2">] into [</span><span class="si">%s</span><span class="s2">].&quot;</span><span class="p">,</span> <span class="n">sourceFile</span><span class="p">,</span> <span class="n">targetFile</span><span class="p">)</span>
+         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">targetFile</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+               <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">targetFile</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+               <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Error: collect indicator [</span><span class="si">%s</span><span class="s2">] already exists!&quot;</span> <span class="o">%</span> <span class="n">targetFile</span><span class="p">)</span>
+         <span class="k">try</span><span class="p">:</span>
+            <span class="n">RemotePeer</span><span class="o">.</span><span class="n">_copyRemoteFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">remoteUser</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">localUser</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">_rcpCommand</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rcpCommandList</span><span class="p">,</span>
+                                       <span class="n">sourceFile</span><span class="p">,</span> <span class="n">targetFile</span><span class="p">,</span>
+                                       <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">targetFile</span><span class="p">):</span>
+               <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+               <span class="k">return</span> <span class="kc">False</span>
+         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Failed looking for collect indicator: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+      <span class="k">finally</span><span class="p">:</span>
+         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">targetFile</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+               <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">targetFile</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span> <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="RemotePeer.writeStageIndicator"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.peer.RemotePeer.writeStageIndicator">[docs]</a>   <span class="k">def</span> <span class="nf">writeStageIndicator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stageIndicator</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Writes the stage indicator in the peer&#39;s staging directory.</span>
+
+<span class="sd">      When the master has completed collecting its backup files, it will write</span>
+<span class="sd">      an empty indicator file into the peer&#39;s collect directory.  The presence</span>
+<span class="sd">      of this file implies that the staging process is complete.</span>
+
+<span class="sd">      If you need to, you can override the name of the stage indicator file by</span>
+<span class="sd">      passing in a different name.</span>
+
+<span class="sd">      *Note:* If you have user/group as strings, call the :any:`util.getUidGid` function</span>
+<span class="sd">      to get the associated uid/gid as an ownership tuple.</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         stageIndicator: Name of the indicator file to write</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If a path cannot be encoded properly</span>
+<span class="sd">         IOError: If there is an IO error creating the file</span>
+<span class="sd">         OSError: If there is an OS error creating or changing permissions on the file</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="n">stageIndicator</span> <span class="o">=</span> <span class="n">encodePath</span><span class="p">(</span><span class="n">stageIndicator</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">stageIndicator</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="n">sourceFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">workingDir</span><span class="p">,</span> <span class="n">DEF_STAGE_INDICATOR</span><span class="p">)</span>
+         <span class="n">targetFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">collectDir</span><span class="p">,</span> <span class="n">DEF_STAGE_INDICATOR</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="n">sourceFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">workingDir</span><span class="p">,</span> <span class="n">DEF_STAGE_INDICATOR</span><span class="p">)</span>
+         <span class="n">targetFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">collectDir</span><span class="p">,</span> <span class="n">stageIndicator</span><span class="p">)</span>
+      <span class="k">try</span><span class="p">:</span>
+         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">sourceFile</span><span class="p">):</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">sourceFile</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+               <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+         <span class="n">RemotePeer</span><span class="o">.</span><span class="n">_pushLocalFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">remoteUser</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">localUser</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">_rcpCommand</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rcpCommandList</span><span class="p">,</span>
+                                   <span class="n">sourceFile</span><span class="p">,</span> <span class="n">targetFile</span><span class="p">)</span>
+      <span class="k">finally</span><span class="p">:</span>
+         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">sourceFile</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+               <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">sourceFile</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span> <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="RemotePeer.executeRemoteCommand"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.peer.RemotePeer.executeRemoteCommand">[docs]</a>   <span class="k">def</span> <span class="nf">executeRemoteCommand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Executes a command on the peer via remote shell.</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         command: Command to execute</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         IOError: If there is an error executing the command on the remote peer</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="n">RemotePeer</span><span class="o">.</span><span class="n">_executeRemoteCommand</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">remoteUser</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">localUser</span><span class="p">,</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rshCommand</span><span class="p">,</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">_rshCommandList</span><span class="p">,</span> <span class="n">command</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RemotePeer.executeManagedAction"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.peer.RemotePeer.executeManagedAction">[docs]</a>   <span class="k">def</span> <span class="nf">executeManagedAction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">fullBackup</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Executes a managed action on this peer.</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         action: Name of the action to execute</span>
+<span class="sd">         fullBackup: Whether a full backup should be executed</span>
+
+<span class="sd">      Raises:</span>
+<span class="sd">         IOError: If there is an error executing the action on the remote peer</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">try</span><span class="p">:</span>
+         <span class="n">command</span> <span class="o">=</span> <span class="n">RemotePeer</span><span class="o">.</span><span class="n">_buildCbackCommand</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cbackCommand</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">fullBackup</span><span class="p">)</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">executeRemoteCommand</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+      <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+         <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Failed to execute action [</span><span class="si">%s</span><span class="s2">] on managed client [</span><span class="si">%s</span><span class="s2">].&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span></div>
+
+
+   <span class="c1">##################</span>
+   <span class="c1"># Private methods</span>
+   <span class="c1">##################</span>
+
+   <span class="nd">@staticmethod</span>
+   <span class="k">def</span> <span class="nf">_getDirContents</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Returns the contents of a directory in terms of a Set.</span>
+
+<span class="sd">      The directory&#39;s contents are read as a :any:`FilesystemList` containing only</span>
+<span class="sd">      files, and then the list is converted into a set object for later use.</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         path: Directory path to get contents for</span>
+<span class="sd">      Returns:</span>
+<span class="sd">          Set of files in the directory</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If path is not a directory or does not exist</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="n">contents</span> <span class="o">=</span> <span class="n">FilesystemList</span><span class="p">()</span>
+      <span class="n">contents</span><span class="o">.</span><span class="n">excludeDirs</span> <span class="o">=</span> <span class="kc">True</span>
+      <span class="n">contents</span><span class="o">.</span><span class="n">excludeLinks</span> <span class="o">=</span> <span class="kc">True</span>
+      <span class="n">contents</span><span class="o">.</span><span class="n">addDirContents</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+      <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="n">contents</span><span class="p">)</span>
+
+   <span class="nd">@staticmethod</span>
+   <span class="k">def</span> <span class="nf">_copyRemoteDir</span><span class="p">(</span><span class="n">remoteUser</span><span class="p">,</span> <span class="n">localUser</span><span class="p">,</span> <span class="n">remoteHost</span><span class="p">,</span> <span class="n">rcpCommand</span><span class="p">,</span> <span class="n">rcpCommandList</span><span class="p">,</span>
+                      <span class="n">sourceDir</span><span class="p">,</span> <span class="n">targetDir</span><span class="p">,</span> <span class="n">ownership</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Copies files from the source directory to the target directory.</span>
+
+<span class="sd">      This function is not recursive.  Only the files in the directory will be</span>
+<span class="sd">      copied.   Ownership and permissions will be left at their default values</span>
+<span class="sd">      if new values are not specified.  Behavior when copying soft links from</span>
+<span class="sd">      the collect directory is dependent on the behavior of the specified rcp</span>
+<span class="sd">      command.</span>
+
+<span class="sd">      *Note:* The returned count of copied files might be inaccurate if some of</span>
+<span class="sd">      the copied files already existed in the staging directory prior to the</span>
+<span class="sd">      copy taking place.  We don&#39;t clear the staging directory first, because</span>
+<span class="sd">      some extension might also be using it.</span>
+
+<span class="sd">      *Note:* If you have user/group as strings, call the :any:`util.getUidGid` function</span>
+<span class="sd">      to get the associated uid/gid as an ownership tuple.</span>
+
+<span class="sd">      *Note:* We don&#39;t have a good way of knowing exactly what files we copied</span>
+<span class="sd">      down from the remote peer, unless we want to parse the output of the rcp</span>
+<span class="sd">      command (ugh).  We could change permissions on everything in the target</span>
+<span class="sd">      directory, but that&#39;s kind of ugly too.  Instead, we use Python&#39;s set</span>
+<span class="sd">      functionality to figure out what files were added while we executed the</span>
+<span class="sd">      rcp command.  This isn&#39;t perfect - for instance, it&#39;s not correct if</span>
+<span class="sd">      someone else is messing with the directory at the same time we&#39;re doing</span>
+<span class="sd">      the remote copy - but it&#39;s about as good as we&#39;re going to get.</span>
+
+<span class="sd">      *Note:* Apparently, we can&#39;t count on all rcp-compatible implementations</span>
+<span class="sd">      to return sensible errors for some error conditions.  As an example, the</span>
+<span class="sd">      ``scp`` command in Debian &#39;woody&#39; returns a zero (normal) status even</span>
+<span class="sd">      when it can&#39;t find a host or if the login or path is invalid.  We try</span>
+<span class="sd">      to work around this by issuing ``IOError`` if we don&#39;t copy any files from</span>
+<span class="sd">      the remote host.</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         remoteUser: Name of the Cedar Backup user on the remote peer</span>
+<span class="sd">         localUser: Name of the Cedar Backup user on the current host</span>
+<span class="sd">         remoteHost: Hostname of the remote peer</span>
+<span class="sd">         rcpCommand: An rcp-compatible copy command to use for copying files from the peer</span>
+<span class="sd">         rcpCommandList: An rcp-compatible copy command to use for copying files, as for :any:`util.executeCommand`</span>
+<span class="sd">         sourceDir: Source directory</span>
+<span class="sd">         targetDir: Target directory</span>
+<span class="sd">         ownership: Owner and group that files should have, tuple of numeric ``(uid, gid)``</span>
+<span class="sd">         permissions: Unix permissions mode that the staged files should have, in octal like ``0640``</span>
+<span class="sd">      Returns:</span>
+<span class="sd">          Number of files copied from the source directory to the target directory</span>
+
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If source or target is not a directory or does not exist</span>
+<span class="sd">         IOError: If there is an IO error copying the files</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="n">beforeSet</span> <span class="o">=</span> <span class="n">RemotePeer</span><span class="o">.</span><span class="n">_getDirContents</span><span class="p">(</span><span class="n">targetDir</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">localUser</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">isRunningAsRoot</span><span class="p">():</span>
+               <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Only root can remote copy as another user.&quot;</span><span class="p">)</span>
+         <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span> <span class="k">pass</span>
+         <span class="n">actualCommand</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">@</span><span class="si">%s</span><span class="s2">:</span><span class="si">%s</span><span class="s2">/* </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rcpCommand</span><span class="p">,</span> <span class="n">remoteUser</span><span class="p">,</span> <span class="n">remoteHost</span><span class="p">,</span> <span class="n">sourceDir</span><span class="p">,</span> <span class="n">targetDir</span><span class="p">)</span>
+         <span class="n">command</span> <span class="o">=</span> <span class="n">resolveCommand</span><span class="p">(</span><span class="n">SU_COMMAND</span><span class="p">)</span>
+         <span class="n">result</span> <span class="o">=</span> <span class="n">executeCommand</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="p">[</span><span class="n">localUser</span><span class="p">,</span> <span class="s2">&quot;-c&quot;</span><span class="p">,</span> <span class="n">actualCommand</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+         <span class="k">if</span> <span class="n">result</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Error (</span><span class="si">%d</span><span class="s2">) copying files from remote host as local user [</span><span class="si">%s</span><span class="s2">].&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">localUser</span><span class="p">))</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="n">copySource</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">@</span><span class="si">%s</span><span class="s2">:</span><span class="si">%s</span><span class="s2">/*&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">remoteUser</span><span class="p">,</span> <span class="n">remoteHost</span><span class="p">,</span> <span class="n">sourceDir</span><span class="p">)</span>
+         <span class="n">command</span> <span class="o">=</span> <span class="n">resolveCommand</span><span class="p">(</span><span class="n">rcpCommandList</span><span class="p">)</span>
+         <span class="n">result</span> <span class="o">=</span> <span class="n">executeCommand</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="p">[</span><span class="n">copySource</span><span class="p">,</span> <span class="n">targetDir</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+         <span class="k">if</span> <span class="n">result</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Error (</span><span class="si">%d</span><span class="s2">) copying files from remote host.&quot;</span> <span class="o">%</span> <span class="n">result</span><span class="p">)</span>
+      <span class="n">afterSet</span> <span class="o">=</span> <span class="n">RemotePeer</span><span class="o">.</span><span class="n">_getDirContents</span><span class="p">(</span><span class="n">targetDir</span><span class="p">)</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">afterSet</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+         <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Did not copy any files from remote peer.&quot;</span><span class="p">)</span>
+      <span class="n">differenceSet</span> <span class="o">=</span> <span class="n">afterSet</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">beforeSet</span><span class="p">)</span>  <span class="c1"># files we added as part of copy</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">differenceSet</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+         <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Apparently did not copy any new files from remote peer.&quot;</span><span class="p">)</span>
+      <span class="k">for</span> <span class="n">targetFile</span> <span class="ow">in</span> <span class="n">differenceSet</span><span class="p">:</span>
+         <span class="k">if</span> <span class="n">ownership</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">chown</span><span class="p">(</span><span class="n">targetFile</span><span class="p">,</span> <span class="n">ownership</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ownership</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+         <span class="k">if</span> <span class="n">permissions</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">targetFile</span><span class="p">,</span> <span class="n">permissions</span><span class="p">)</span>
+      <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">differenceSet</span><span class="p">)</span>
+
+   <span class="nd">@staticmethod</span>
+   <span class="k">def</span> <span class="nf">_copyRemoteFile</span><span class="p">(</span><span class="n">remoteUser</span><span class="p">,</span> <span class="n">localUser</span><span class="p">,</span> <span class="n">remoteHost</span><span class="p">,</span>
+                       <span class="n">rcpCommand</span><span class="p">,</span> <span class="n">rcpCommandList</span><span class="p">,</span>
+                       <span class="n">sourceFile</span><span class="p">,</span> <span class="n">targetFile</span><span class="p">,</span> <span class="n">ownership</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                       <span class="n">permissions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Copies a remote source file to a target file.</span>
+
+<span class="sd">      *Note:* Internally, we have to go through and escape any spaces in the</span>
+<span class="sd">      source path with double-backslash, otherwise things get screwed up.   It</span>
+<span class="sd">      doesn&#39;t seem to be required in the target path. I hope this is portable</span>
+<span class="sd">      to various different rcp methods, but I guess it might not be (all I have</span>
+<span class="sd">      to test with is OpenSSH).</span>
+
+<span class="sd">      *Note:* If you have user/group as strings, call the :any:`util.getUidGid` function</span>
+<span class="sd">      to get the associated uid/gid as an ownership tuple.</span>
+
+<span class="sd">      *Note:* We will not overwrite a target file that exists when this method</span>
+<span class="sd">      is invoked.  If the target already exists, we&#39;ll raise an exception.</span>
+
+<span class="sd">      *Note:* Apparently, we can&#39;t count on all rcp-compatible implementations</span>
+<span class="sd">      to return sensible errors for some error conditions.  As an example, the</span>
+<span class="sd">      ``scp`` command in Debian &#39;woody&#39; returns a zero (normal) status even when</span>
+<span class="sd">      it can&#39;t find a host or if the login or path is invalid.  We try to work</span>
+<span class="sd">      around this by issuing ``IOError`` the target file does not exist when</span>
+<span class="sd">      we&#39;re done.</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         remoteUser: Name of the Cedar Backup user on the remote peer</span>
+<span class="sd">         remoteHost: Hostname of the remote peer</span>
+<span class="sd">         localUser: Name of the Cedar Backup user on the current host</span>
+<span class="sd">         rcpCommand: An rcp-compatible copy command to use for copying files from the peer</span>
+<span class="sd">         rcpCommandList: An rcp-compatible copy command to use for copying files, as for :any:`util.executeCommand`</span>
+<span class="sd">         sourceFile: Source file to copy</span>
+<span class="sd">         targetFile: Target file to create</span>
+<span class="sd">         ownership: Owner and group that files should have, tuple of numeric ``(uid, gid)``</span>
+<span class="sd">         permissions: Unix permissions mode that the staged files should have, in octal like ``0640``</span>
+<span class="sd">         overwrite: Indicates whether it&#39;s OK to overwrite the target file</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         IOError: If the target file already exists</span>
+<span class="sd">         IOError: If there is an IO error copying the file</span>
+<span class="sd">         OSError: If there is an OS error changing permissions on the file</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="n">overwrite</span><span class="p">:</span>
+         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">targetFile</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Target file [</span><span class="si">%s</span><span class="s2">] already exists.&quot;</span> <span class="o">%</span> <span class="n">targetFile</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">localUser</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">isRunningAsRoot</span><span class="p">():</span>
+               <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Only root can remote copy as another user.&quot;</span><span class="p">)</span>
+         <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span> <span class="k">pass</span>
+         <span class="n">actualCommand</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">@</span><span class="si">%s</span><span class="s2">:</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rcpCommand</span><span class="p">,</span> <span class="n">remoteUser</span><span class="p">,</span> <span class="n">remoteHost</span><span class="p">,</span> <span class="n">sourceFile</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2"> &quot;</span><span class="p">),</span> <span class="n">targetFile</span><span class="p">)</span>
+         <span class="n">command</span> <span class="o">=</span> <span class="n">resolveCommand</span><span class="p">(</span><span class="n">SU_COMMAND</span><span class="p">)</span>
+         <span class="n">result</span> <span class="o">=</span> <span class="n">executeCommand</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="p">[</span><span class="n">localUser</span><span class="p">,</span> <span class="s2">&quot;-c&quot;</span><span class="p">,</span> <span class="n">actualCommand</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+         <span class="k">if</span> <span class="n">result</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Error (</span><span class="si">%d</span><span class="s2">) copying [</span><span class="si">%s</span><span class="s2">] from remote host as local user [</span><span class="si">%s</span><span class="s2">].&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">sourceFile</span><span class="p">,</span> <span class="n">localUser</span><span class="p">))</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="n">copySource</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">@</span><span class="si">%s</span><span class="s2">:</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">remoteUser</span><span class="p">,</span> <span class="n">remoteHost</span><span class="p">,</span> <span class="n">sourceFile</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2"> &quot;</span><span class="p">))</span>
+         <span class="n">command</span> <span class="o">=</span> <span class="n">resolveCommand</span><span class="p">(</span><span class="n">rcpCommandList</span><span class="p">)</span>
+         <span class="n">result</span> <span class="o">=</span> <span class="n">executeCommand</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="p">[</span><span class="n">copySource</span><span class="p">,</span> <span class="n">targetFile</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+         <span class="k">if</span> <span class="n">result</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Error (</span><span class="si">%d</span><span class="s2">) copying [</span><span class="si">%s</span><span class="s2">] from remote host.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">sourceFile</span><span class="p">))</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">targetFile</span><span class="p">):</span>
+         <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Apparently unable to copy file from remote host.&quot;</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">ownership</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="n">os</span><span class="o">.</span><span class="n">chown</span><span class="p">(</span><span class="n">targetFile</span><span class="p">,</span> <span class="n">ownership</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ownership</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+      <span class="k">if</span> <span class="n">permissions</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">targetFile</span><span class="p">,</span> <span class="n">permissions</span><span class="p">)</span>
+
+   <span class="nd">@staticmethod</span>
+   <span class="k">def</span> <span class="nf">_pushLocalFile</span><span class="p">(</span><span class="n">remoteUser</span><span class="p">,</span> <span class="n">localUser</span><span class="p">,</span> <span class="n">remoteHost</span><span class="p">,</span>
+                      <span class="n">rcpCommand</span><span class="p">,</span> <span class="n">rcpCommandList</span><span class="p">,</span>
+                      <span class="n">sourceFile</span><span class="p">,</span> <span class="n">targetFile</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Copies a local source file to a remote host.</span>
+
+<span class="sd">      *Note:* We will not overwrite a target file that exists when this method</span>
+<span class="sd">      is invoked.  If the target already exists, we&#39;ll raise an exception.</span>
+
+<span class="sd">      *Note:* Internally, we have to go through and escape any spaces in the</span>
+<span class="sd">      source and target paths with double-backslash, otherwise things get</span>
+<span class="sd">      screwed up.  I hope this is portable to various different rcp methods,</span>
+<span class="sd">      but I guess it might not be (all I have to test with is OpenSSH).</span>
+
+<span class="sd">      *Note:* If you have user/group as strings, call the :any:`util.getUidGid` function</span>
+<span class="sd">      to get the associated uid/gid as an ownership tuple.</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         remoteUser: Name of the Cedar Backup user on the remote peer</span>
+<span class="sd">         localUser: Name of the Cedar Backup user on the current host</span>
+<span class="sd">         remoteHost: Hostname of the remote peer</span>
+<span class="sd">         rcpCommand: An rcp-compatible copy command to use for copying files from the peer</span>
+<span class="sd">         rcpCommandList: An rcp-compatible copy command to use for copying files, as for :any:`util.executeCommand`</span>
+<span class="sd">         sourceFile: Source file to copy</span>
+<span class="sd">         targetFile: Target file to create</span>
+<span class="sd">         overwrite: Indicates whether it&#39;s OK to overwrite the target file</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         IOError: If there is an IO error copying the file</span>
+<span class="sd">         OSError: If there is an OS error changing permissions on the file</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="n">overwrite</span><span class="p">:</span>
+         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">targetFile</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Target file [</span><span class="si">%s</span><span class="s2">] already exists.&quot;</span> <span class="o">%</span> <span class="n">targetFile</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">localUser</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">isRunningAsRoot</span><span class="p">():</span>
+               <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Only root can remote copy as another user.&quot;</span><span class="p">)</span>
+         <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span> <span class="k">pass</span>
+         <span class="n">actualCommand</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> &quot;</span><span class="si">%s</span><span class="s1">&quot; &quot;</span><span class="si">%s</span><span class="s1">@</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rcpCommand</span><span class="p">,</span> <span class="n">sourceFile</span><span class="p">,</span> <span class="n">remoteUser</span><span class="p">,</span> <span class="n">remoteHost</span><span class="p">,</span> <span class="n">targetFile</span><span class="p">)</span>
+         <span class="n">command</span> <span class="o">=</span> <span class="n">resolveCommand</span><span class="p">(</span><span class="n">SU_COMMAND</span><span class="p">)</span>
+         <span class="n">result</span> <span class="o">=</span> <span class="n">executeCommand</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="p">[</span><span class="n">localUser</span><span class="p">,</span> <span class="s2">&quot;-c&quot;</span><span class="p">,</span> <span class="n">actualCommand</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+         <span class="k">if</span> <span class="n">result</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Error (</span><span class="si">%d</span><span class="s2">) copying [</span><span class="si">%s</span><span class="s2">] to remote host as local user [</span><span class="si">%s</span><span class="s2">].&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">sourceFile</span><span class="p">,</span> <span class="n">localUser</span><span class="p">))</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="n">copyTarget</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">@</span><span class="si">%s</span><span class="s2">:</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">remoteUser</span><span class="p">,</span> <span class="n">remoteHost</span><span class="p">,</span> <span class="n">targetFile</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2"> &quot;</span><span class="p">))</span>
+         <span class="n">command</span> <span class="o">=</span> <span class="n">resolveCommand</span><span class="p">(</span><span class="n">rcpCommandList</span><span class="p">)</span>
+         <span class="n">result</span> <span class="o">=</span> <span class="n">executeCommand</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="p">[</span><span class="n">sourceFile</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2"> &quot;</span><span class="p">),</span> <span class="n">copyTarget</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+         <span class="k">if</span> <span class="n">result</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Error (</span><span class="si">%d</span><span class="s2">) copying [</span><span class="si">%s</span><span class="s2">] to remote host.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">sourceFile</span><span class="p">))</span>
+
+   <span class="nd">@staticmethod</span>
+   <span class="k">def</span> <span class="nf">_executeRemoteCommand</span><span class="p">(</span><span class="n">remoteUser</span><span class="p">,</span> <span class="n">localUser</span><span class="p">,</span> <span class="n">remoteHost</span><span class="p">,</span> <span class="n">rshCommand</span><span class="p">,</span> <span class="n">rshCommandList</span><span class="p">,</span> <span class="n">remoteCommand</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Executes a command on the peer via remote shell.</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         remoteUser: Name of the Cedar Backup user on the remote peer</span>
+<span class="sd">         localUser: Name of the Cedar Backup user on the current host</span>
+<span class="sd">         remoteHost: Hostname of the remote peer</span>
+<span class="sd">         rshCommand: An rsh-compatible copy command to use for remote shells to the peer</span>
+<span class="sd">         rshCommandList: An rsh-compatible copy command to use for remote shells to the peer, as for :any:`util.executeCommand`</span>
+<span class="sd">         remoteCommand: The command to be executed on the remote host, with no special shell characters</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         IOError: If there is an error executing the remote command</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="n">actualCommand</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">@</span><span class="si">%s</span><span class="s2"> &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rshCommand</span><span class="p">,</span> <span class="n">remoteUser</span><span class="p">,</span> <span class="n">remoteHost</span><span class="p">,</span> <span class="n">remoteCommand</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">localUser</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">isRunningAsRoot</span><span class="p">():</span>
+               <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Only root can remote shell as another user.&quot;</span><span class="p">)</span>
+         <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span> <span class="k">pass</span>
+         <span class="n">command</span> <span class="o">=</span> <span class="n">resolveCommand</span><span class="p">(</span><span class="n">SU_COMMAND</span><span class="p">)</span>
+         <span class="n">result</span> <span class="o">=</span> <span class="n">executeCommand</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="p">[</span><span class="n">localUser</span><span class="p">,</span> <span class="s2">&quot;-c&quot;</span><span class="p">,</span> <span class="n">actualCommand</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+         <span class="k">if</span> <span class="n">result</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Command failed [su -c </span><span class="si">%s</span><span class="s2"> </span><span class="se">\&quot;</span><span class="si">%s</span><span class="se">\&quot;</span><span class="s2">]&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">localUser</span><span class="p">,</span> <span class="n">actualCommand</span><span class="p">))</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="n">command</span> <span class="o">=</span> <span class="n">resolveCommand</span><span class="p">(</span><span class="n">rshCommandList</span><span class="p">)</span>
+         <span class="n">result</span> <span class="o">=</span> <span class="n">executeCommand</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">@</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">remoteUser</span><span class="p">,</span> <span class="n">remoteHost</span><span class="p">),</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">remoteCommand</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+         <span class="k">if</span> <span class="n">result</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Command failed [</span><span class="si">%s</span><span class="s2">]&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">actualCommand</span><span class="p">))</span>
+
+   <span class="nd">@staticmethod</span>
+   <span class="k">def</span> <span class="nf">_buildCbackCommand</span><span class="p">(</span><span class="n">cbackCommand</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">fullBackup</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Builds a Cedar Backup command line for the named action.</span>
+
+<span class="sd">      *Note:* If the cback command is None, then DEF_CBACK_COMMAND is used.</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         cbackCommand: cback command to execute, including required options</span>
+<span class="sd">         action: Name of the action to execute</span>
+<span class="sd">         fullBackup: Whether a full backup should be executed</span>
+
+<span class="sd">      Returns:</span>
+<span class="sd">          String suitable for passing to :any:`_executeRemoteCommand` as remoteCommand</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If action is None</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="n">action</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Action cannot be None.&quot;</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">cbackCommand</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="n">cbackCommand</span> <span class="o">=</span> <span class="n">DEF_CBACK_COMMAND</span>
+      <span class="k">if</span> <span class="n">fullBackup</span><span class="p">:</span>
+         <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> --full </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cbackCommand</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cbackCommand</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span></div>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Cedar Backup v3  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright .
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.9.
+    </div>
+  </body>
+</html>

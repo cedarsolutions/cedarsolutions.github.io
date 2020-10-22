@@ -1,0 +1,1591 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>CedarBackup3.filesystem &#8212; Cedar Backup v3  documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="Cedar Backup v3  documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Cedar Backup v3  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for CedarBackup3.filesystem</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: iso-8859-1 -*-</span>
+<span class="c1"># vim: set ft=python ts=3 sw=3 expandtab:</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+<span class="c1">#</span>
+<span class="c1">#              C E D A R</span>
+<span class="c1">#          S O L U T I O N S       &quot;Software done right.&quot;</span>
+<span class="c1">#           S O F T W A R E</span>
+<span class="c1">#</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright (c) 2004-2008,2010,2015 Kenneth J. Pronovici.</span>
+<span class="c1"># All rights reserved.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is free software; you can redistribute it and/or</span>
+<span class="c1"># modify it under the terms of the GNU General Public License,</span>
+<span class="c1"># Version 2, as published by the Free Software Foundation.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</span>
+<span class="c1">#</span>
+<span class="c1"># Copies of the GNU General Public License are available from</span>
+<span class="c1"># the Free Software Foundation website, http://www.gnu.org/.</span>
+<span class="c1">#</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+<span class="c1">#</span>
+<span class="c1"># Author   : Kenneth J. Pronovici &lt;pronovic@ieee.org&gt;</span>
+<span class="c1"># Language : Python 3 (&gt;= 3.4)</span>
+<span class="c1"># Project  : Cedar Backup, release 3</span>
+<span class="c1"># Purpose  : Provides filesystem-related objects.</span>
+<span class="c1">#</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Module documentation</span>
+<span class="c1">########################################################################</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Provides filesystem-related objects.</span>
+<span class="sd">:author: Kenneth J. Pronovici &lt;pronovic@ieee.org&gt;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Imported modules</span>
+<span class="c1">########################################################################</span>
+
+<span class="c1"># System modules</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">tarfile</span>
+<span class="kn">import</span> <span class="nn">hashlib</span>
+
+<span class="c1"># Cedar Backup modules</span>
+<span class="kn">from</span> <span class="nn">CedarBackup3.knapsack</span> <span class="k">import</span> <span class="n">firstFit</span><span class="p">,</span> <span class="n">bestFit</span><span class="p">,</span> <span class="n">worstFit</span><span class="p">,</span> <span class="n">alternateFit</span>
+<span class="kn">from</span> <span class="nn">CedarBackup3.util</span> <span class="k">import</span> <span class="n">AbsolutePathList</span><span class="p">,</span> <span class="n">UnorderedList</span><span class="p">,</span> <span class="n">RegexList</span>
+<span class="kn">from</span> <span class="nn">CedarBackup3.util</span> <span class="k">import</span> <span class="n">removeKeys</span><span class="p">,</span> <span class="n">displayBytes</span><span class="p">,</span> <span class="n">calculateFileAge</span><span class="p">,</span> <span class="n">encodePath</span><span class="p">,</span> <span class="n">dereferenceLink</span>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Module-wide variables</span>
+<span class="c1">########################################################################</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;CedarBackup3.log.filesystem&quot;</span><span class="p">)</span>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># FilesystemList class definition</span>
+<span class="c1">########################################################################</span>
+
+<div class="viewcode-block" id="FilesystemList"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.filesystem.FilesystemList">[docs]</a><span class="k">class</span> <span class="nc">FilesystemList</span><span class="p">(</span><span class="nb">list</span><span class="p">):</span>
+
+   <span class="c1">######################</span>
+   <span class="c1"># Class documentation</span>
+   <span class="c1">######################</span>
+
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Represents a list of filesystem items.</span>
+
+<span class="sd">   This is a generic class that represents a list of filesystem items.  Callers</span>
+<span class="sd">   can add individual files or directories to the list, or can recursively add</span>
+<span class="sd">   the contents of a directory.  The class also allows for up-front exclusions</span>
+<span class="sd">   in several forms (all files, all directories, all items matching a pattern,</span>
+<span class="sd">   all items whose basename matches a pattern, or all directories containing a</span>
+<span class="sd">   specific &quot;ignore file&quot;).  Symbolic links are typically backed up</span>
+<span class="sd">   non-recursively, i.e. the link to a directory is backed up, but not the</span>
+<span class="sd">   contents of that link (we don&#39;t want to deal with recursive loops, etc.).</span>
+
+<span class="sd">   The custom methods such as :any:`addFile` will only add items if they exist on</span>
+<span class="sd">   the filesystem and do not match any exclusions that are already in place.</span>
+<span class="sd">   However, since a FilesystemList is a subclass of Python&#39;s standard list</span>
+<span class="sd">   class, callers can also add items to the list in the usual way, using</span>
+<span class="sd">   methods like ``append()`` or ``insert()``.  No validations apply to items</span>
+<span class="sd">   added to the list in this way; however, many list-manipulation methods deal</span>
+<span class="sd">   &quot;gracefully&quot; with items that don&#39;t exist in the filesystem, often by</span>
+<span class="sd">   ignoring them.</span>
+
+<span class="sd">   Once a list has been created, callers can remove individual items from the</span>
+<span class="sd">   list using standard methods like ``pop()`` or ``remove()`` or they can use</span>
+<span class="sd">   custom methods to remove specific types of entries or entries which match a</span>
+<span class="sd">   particular pattern.</span>
+
+<span class="sd">   *Note:* Regular expression patterns that apply to paths are assumed to be</span>
+<span class="sd">   bounded at front and back by the beginning and end of the string, i.e. they</span>
+<span class="sd">   are treated as if they begin with ``^`` and end with ``$``.  This is true</span>
+<span class="sd">   whether we are matching a complete path or a basename.</span>
+
+<span class="sd">   &quot;&quot;&quot;</span>
+
+
+   <span class="c1">##############</span>
+   <span class="c1"># Constructor</span>
+   <span class="c1">##############</span>
+
+<div class="viewcode-block" id="FilesystemList.__init__"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.filesystem.FilesystemList.__init__">[docs]</a>   <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;Initializes a list with no configured exclusions.&quot;&quot;&quot;</span>
+      <span class="nb">list</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_excludeFiles</span> <span class="o">=</span> <span class="kc">False</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_excludeDirs</span> <span class="o">=</span> <span class="kc">False</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_excludeLinks</span> <span class="o">=</span> <span class="kc">False</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_excludePaths</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_excludePatterns</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_excludeBasenamePatterns</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_ignoreFile</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">excludeFiles</span> <span class="o">=</span> <span class="kc">False</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">excludeLinks</span> <span class="o">=</span> <span class="kc">False</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">excludeDirs</span> <span class="o">=</span> <span class="kc">False</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">excludePaths</span> <span class="o">=</span> <span class="p">[]</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">excludePatterns</span> <span class="o">=</span> <span class="n">RegexList</span><span class="p">()</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">excludeBasenamePatterns</span> <span class="o">=</span> <span class="n">RegexList</span><span class="p">()</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">ignoreFile</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+   <span class="c1">#############</span>
+   <span class="c1"># Properties</span>
+   <span class="c1">#############</span>
+
+   <span class="k">def</span> <span class="nf">_setExcludeFiles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to set the exclude files flag.</span>
+<span class="sd">      No validations, but we normalize the value to ``True`` or ``False``.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">_excludeFiles</span> <span class="o">=</span> <span class="kc">True</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">_excludeFiles</span> <span class="o">=</span> <span class="kc">False</span>
+
+   <span class="k">def</span> <span class="nf">_getExcludeFiles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to get the exclude files flag.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_excludeFiles</span>
+
+   <span class="k">def</span> <span class="nf">_setExcludeDirs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to set the exclude directories flag.</span>
+<span class="sd">      No validations, but we normalize the value to ``True`` or ``False``.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">_excludeDirs</span> <span class="o">=</span> <span class="kc">True</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">_excludeDirs</span> <span class="o">=</span> <span class="kc">False</span>
+
+   <span class="k">def</span> <span class="nf">_getExcludeDirs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to get the exclude directories flag.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_excludeDirs</span>
+
+   <span class="k">def</span> <span class="nf">_setExcludeLinks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to set the exclude soft links flag.</span>
+<span class="sd">      No validations, but we normalize the value to ``True`` or ``False``.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">_excludeLinks</span> <span class="o">=</span> <span class="kc">True</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">_excludeLinks</span> <span class="o">=</span> <span class="kc">False</span>
+
+   <span class="k">def</span> <span class="nf">_getExcludeLinks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to get the exclude soft links flag.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_excludeLinks</span>
+
+   <span class="k">def</span> <span class="nf">_setExcludePaths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to set the exclude paths list.</span>
+<span class="sd">      A ``None`` value is converted to an empty list.</span>
+<span class="sd">      Elements do not have to exist on disk at the time of assignment.</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If any list element is not an absolute path</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_excludePaths</span> <span class="o">=</span> <span class="n">AbsolutePathList</span><span class="p">()</span>
+      <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">_excludePaths</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+   <span class="k">def</span> <span class="nf">_getExcludePaths</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to get the absolute exclude paths list.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_excludePaths</span>
+
+   <span class="k">def</span> <span class="nf">_setExcludePatterns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to set the exclude patterns list.</span>
+<span class="sd">      A ``None`` value is converted to an empty list.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_excludePatterns</span> <span class="o">=</span> <span class="n">RegexList</span><span class="p">()</span>
+      <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">_excludePatterns</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+   <span class="k">def</span> <span class="nf">_getExcludePatterns</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to get the exclude patterns list.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_excludePatterns</span>
+
+   <span class="k">def</span> <span class="nf">_setExcludeBasenamePatterns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to set the exclude basename patterns list.</span>
+<span class="sd">      A ``None`` value is converted to an empty list.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_excludeBasenamePatterns</span> <span class="o">=</span> <span class="n">RegexList</span><span class="p">()</span>
+      <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">_excludeBasenamePatterns</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+   <span class="k">def</span> <span class="nf">_getExcludeBasenamePatterns</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to get the exclude basename patterns list.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_excludeBasenamePatterns</span>
+
+   <span class="k">def</span> <span class="nf">_setIgnoreFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to set the ignore file.</span>
+<span class="sd">      The value must be a non-empty string if it is not ``None``.</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If the value is an empty string</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The ignore file must be a non-empty string.&quot;</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_ignoreFile</span> <span class="o">=</span> <span class="n">value</span>
+
+   <span class="k">def</span> <span class="nf">_getIgnoreFile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to get the ignore file.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ignoreFile</span>
+
+   <span class="n">excludeFiles</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_getExcludeFiles</span><span class="p">,</span> <span class="n">_setExcludeFiles</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Boolean indicating whether files should be excluded.&quot;</span><span class="p">)</span>
+   <span class="n">excludeDirs</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_getExcludeDirs</span><span class="p">,</span> <span class="n">_setExcludeDirs</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Boolean indicating whether directories should be excluded.&quot;</span><span class="p">)</span>
+   <span class="n">excludeLinks</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_getExcludeLinks</span><span class="p">,</span> <span class="n">_setExcludeLinks</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Boolean indicating whether soft links should be excluded.&quot;</span><span class="p">)</span>
+   <span class="n">excludePaths</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_getExcludePaths</span><span class="p">,</span> <span class="n">_setExcludePaths</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;List of absolute paths to be excluded.&quot;</span><span class="p">)</span>
+   <span class="n">excludePatterns</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_getExcludePatterns</span><span class="p">,</span> <span class="n">_setExcludePatterns</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                              <span class="s2">&quot;List of regular expression patterns (matching complete path) to be excluded.&quot;</span><span class="p">)</span>
+   <span class="n">excludeBasenamePatterns</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_getExcludeBasenamePatterns</span><span class="p">,</span> <span class="n">_setExcludeBasenamePatterns</span><span class="p">,</span>
+                                      <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;List of regular expression patterns (matching basename) to be excluded.&quot;</span><span class="p">)</span>
+   <span class="n">ignoreFile</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_getIgnoreFile</span><span class="p">,</span> <span class="n">_setIgnoreFile</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Name of file which will cause directory contents to be ignored.&quot;</span><span class="p">)</span>
+
+
+   <span class="c1">##############</span>
+   <span class="c1"># Add methods</span>
+   <span class="c1">##############</span>
+
+<div class="viewcode-block" id="FilesystemList.addFile"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.filesystem.FilesystemList.addFile">[docs]</a>   <span class="k">def</span> <span class="nf">addFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Adds a file to the list.</span>
+
+<span class="sd">      The path must exist and must be a file or a link to an existing file.  It</span>
+<span class="sd">      will be added to the list subject to any exclusions that are in place.</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         path (String representing a path on disk): File path to be added to the list</span>
+<span class="sd">      Returns:</span>
+<span class="sd">          Number of items added to the list</span>
+
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If path is not a file or does not exist</span>
+<span class="sd">         ValueError: If the path could not be encoded properly</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="n">path</span> <span class="o">=</span> <span class="n">encodePath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Path [</span><span class="si">%s</span><span class="s2">] is not a file or does not exist on disk.&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Path is not a file or does not exist on disk.&quot;</span><span class="p">)</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">excludeLinks</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">islink</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Path [</span><span class="si">%s</span><span class="s2">] is excluded based on excludeLinks.&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+         <span class="k">return</span> <span class="mi">0</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">excludeFiles</span><span class="p">:</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Path [</span><span class="si">%s</span><span class="s2">] is excluded based on excludeFiles.&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+         <span class="k">return</span> <span class="mi">0</span>
+      <span class="k">if</span> <span class="n">path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">excludePaths</span><span class="p">:</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Path [</span><span class="si">%s</span><span class="s2">] is excluded based on excludePaths.&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+         <span class="k">return</span> <span class="mi">0</span>
+      <span class="k">for</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">excludePatterns</span><span class="p">:</span>
+         <span class="n">pattern</span> <span class="o">=</span> <span class="n">encodePath</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>  <span class="c1"># use same encoding as filenames</span>
+         <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^</span><span class="si">%s</span><span class="s2">$&quot;</span> <span class="o">%</span> <span class="n">pattern</span><span class="p">)</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">path</span><span class="p">):</span> <span class="c1"># safe to assume all are valid due to RegexList</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Path [</span><span class="si">%s</span><span class="s2">] is excluded based on pattern [</span><span class="si">%s</span><span class="s2">].&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">pattern</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">0</span>
+      <span class="k">for</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">excludeBasenamePatterns</span><span class="p">:</span> <span class="c1"># safe to assume all are valid due to RegexList</span>
+         <span class="n">pattern</span> <span class="o">=</span> <span class="n">encodePath</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>  <span class="c1"># use same encoding as filenames</span>
+         <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^</span><span class="si">%s</span><span class="s2">$&quot;</span> <span class="o">%</span> <span class="n">pattern</span><span class="p">)</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="p">)):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Path [</span><span class="si">%s</span><span class="s2">] is excluded based on basename pattern [</span><span class="si">%s</span><span class="s2">].&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">pattern</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">0</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Added file to list: [</span><span class="si">%s</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+      <span class="k">return</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="FilesystemList.addDir"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.filesystem.FilesystemList.addDir">[docs]</a>   <span class="k">def</span> <span class="nf">addDir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Adds a directory to the list.</span>
+
+<span class="sd">      The path must exist and must be a directory or a link to an existing</span>
+<span class="sd">      directory.  It will be added to the list subject to any exclusions that</span>
+<span class="sd">      are in place.  The :any:`ignoreFile` does not apply to this method, only to</span>
+<span class="sd">      :any:`addDirContents`.</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         path (String representing a path on disk): Directory path to be added to the list</span>
+<span class="sd">      Returns:</span>
+<span class="sd">          Number of items added to the list</span>
+
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If path is not a directory or does not exist</span>
+<span class="sd">         ValueError: If the path could not be encoded properly</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="n">path</span> <span class="o">=</span> <span class="n">encodePath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+      <span class="n">path</span> <span class="o">=</span> <span class="n">normalizeDir</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Path [</span><span class="si">%s</span><span class="s2">] is not a directory or does not exist on disk.&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Path is not a directory or does not exist on disk.&quot;</span><span class="p">)</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">excludeLinks</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">islink</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Path [</span><span class="si">%s</span><span class="s2">] is excluded based on excludeLinks.&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+         <span class="k">return</span> <span class="mi">0</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">excludeDirs</span><span class="p">:</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Path [</span><span class="si">%s</span><span class="s2">] is excluded based on excludeDirs.&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+         <span class="k">return</span> <span class="mi">0</span>
+      <span class="k">if</span> <span class="n">path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">excludePaths</span><span class="p">:</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Path [</span><span class="si">%s</span><span class="s2">] is excluded based on excludePaths.&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+         <span class="k">return</span> <span class="mi">0</span>
+      <span class="k">for</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">excludePatterns</span><span class="p">:</span> <span class="c1"># safe to assume all are valid due to RegexList</span>
+         <span class="n">pattern</span> <span class="o">=</span> <span class="n">encodePath</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>  <span class="c1"># use same encoding as filenames</span>
+         <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^</span><span class="si">%s</span><span class="s2">$&quot;</span> <span class="o">%</span> <span class="n">pattern</span><span class="p">)</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Path [</span><span class="si">%s</span><span class="s2">] is excluded based on pattern [</span><span class="si">%s</span><span class="s2">].&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">pattern</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">0</span>
+      <span class="k">for</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">excludeBasenamePatterns</span><span class="p">:</span> <span class="c1"># safe to assume all are valid due to RegexList</span>
+         <span class="n">pattern</span> <span class="o">=</span> <span class="n">encodePath</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>  <span class="c1"># use same encoding as filenames</span>
+         <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^</span><span class="si">%s</span><span class="s2">$&quot;</span> <span class="o">%</span> <span class="n">pattern</span><span class="p">)</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="p">)):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Path [</span><span class="si">%s</span><span class="s2">] is excluded based on basename pattern [</span><span class="si">%s</span><span class="s2">].&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">pattern</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">0</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Added directory to list: [</span><span class="si">%s</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+      <span class="k">return</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="FilesystemList.addDirContents"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.filesystem.FilesystemList.addDirContents">[docs]</a>   <span class="k">def</span> <span class="nf">addDirContents</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">addSelf</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">linkDepth</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dereference</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Adds the contents of a directory to the list.</span>
+
+<span class="sd">      The path must exist and must be a directory or a link to a directory.</span>
+<span class="sd">      The contents of the directory (as well as the directory path itself) will</span>
+<span class="sd">      be recursively added to the list, subject to any exclusions that are in</span>
+<span class="sd">      place.  If you only want the directory and its immediate contents to be</span>
+<span class="sd">      added, then pass in ``recursive=False``.</span>
+
+<span class="sd">      *Note:* If a directory&#39;s absolute path matches an exclude pattern or path,</span>
+<span class="sd">      or if the directory contains the configured ignore file, then the</span>
+<span class="sd">      directory and all of its contents will be recursively excluded from the</span>
+<span class="sd">      list.</span>
+
+<span class="sd">      *Note:* If the passed-in directory happens to be a soft link, it will be</span>
+<span class="sd">      recursed.  However, the linkDepth parameter controls whether any soft</span>
+<span class="sd">      links *within* the directory will be recursed.  The link depth is</span>
+<span class="sd">      maximum depth of the tree at which soft links should be followed.  So, a</span>
+<span class="sd">      depth of 0 does not follow any soft links, a depth of 1 follows only</span>
+<span class="sd">      links within the passed-in directory, a depth of 2 follows the links at</span>
+<span class="sd">      the next level down, etc.</span>
+
+<span class="sd">      *Note:* Any invalid soft links (i.e.  soft links that point to</span>
+<span class="sd">      non-existent items) will be silently ignored.</span>
+
+<span class="sd">      *Note:* The :any:`excludeDirs` flag only controls whether any given directory</span>
+<span class="sd">      path itself is added to the list once it has been discovered.  It does</span>
+<span class="sd">      *not* modify any behavior related to directory recursion.</span>
+
+<span class="sd">      *Note:* If you call this method *on a link to a directory* that link will</span>
+<span class="sd">      never be dereferenced (it may, however, be followed).</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         path (String representing a path on disk): Directory path whose contents should be added to the list</span>
+<span class="sd">         recursive (Boolean value): Indicates whether directory contents should be added recursively</span>
+<span class="sd">         addSelf (Boolean value): Indicates whether the directory itself should be added to the list</span>
+<span class="sd">         linkDepth (Integer value): Maximum depth of the tree at which soft links should be followed, zero means not to folow</span>
+<span class="sd">         dereference (Boolean value): Indicates whether soft links, if followed, should be dereferenced</span>
+<span class="sd">      Returns:</span>
+<span class="sd">          Number of items recursively added to the list</span>
+
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If path is not a directory or does not exist</span>
+<span class="sd">         ValueError: If the path could not be encoded properly</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="n">path</span> <span class="o">=</span> <span class="n">encodePath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+      <span class="n">path</span> <span class="o">=</span> <span class="n">normalizeDir</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_addDirContentsInternal</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">addSelf</span><span class="p">,</span> <span class="n">recursive</span><span class="p">,</span> <span class="n">linkDepth</span><span class="p">,</span> <span class="n">dereference</span><span class="p">)</span></div>
+
+   <span class="k">def</span> <span class="nf">_addDirContentsInternal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">includePath</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">linkDepth</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dereference</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Internal implementation of ``addDirContents``.</span>
+
+<span class="sd">      This internal implementation exists due to some refactoring.  Basically,</span>
+<span class="sd">      some subclasses have a need to add the contents of a directory, but not</span>
+<span class="sd">      the directory itself.  This is different than the standard ``FilesystemList``</span>
+<span class="sd">      behavior and actually ends up making a special case out of the first</span>
+<span class="sd">      call in the recursive chain.  Since I don&#39;t want to expose the modified</span>
+<span class="sd">      interface, ``addDirContents`` ends up being wholly implemented in terms</span>
+<span class="sd">      of this method.</span>
+
+<span class="sd">      The linkDepth parameter controls whether soft links are followed when we</span>
+<span class="sd">      are adding the contents recursively.  Any recursive calls reduce the</span>
+<span class="sd">      value by one.  If the value zero or less, then soft links will just be</span>
+<span class="sd">      added as directories, but will not be followed.  This means that links</span>
+<span class="sd">      are followed to a *constant depth* starting from the top-most directory.</span>
+
+<span class="sd">      There is one difference between soft links and directories: soft links</span>
+<span class="sd">      that are added recursively are not placed into the list explicitly.  This</span>
+<span class="sd">      is because if we do add the links recursively, the resulting tar file</span>
+<span class="sd">      gets a little confused (it has a link and a directory with the same</span>
+<span class="sd">      name).</span>
+
+<span class="sd">      *Note:* If you call this method *on a link to a directory* that link will</span>
+<span class="sd">      never be dereferenced (it may, however, be followed).</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         path: Directory path whose contents should be added to the list</span>
+<span class="sd">         includePath: Indicates whether to include the path as well as contents</span>
+<span class="sd">         recursive: Indicates whether directory contents should be added recursively</span>
+<span class="sd">         linkDepth: Depth of soft links that should be followed</span>
+<span class="sd">         dereference: Indicates whether soft links, if followed, should be dereferenced</span>
+
+<span class="sd">      Returns:</span>
+<span class="sd">          Number of items recursively added to the list</span>
+
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If path is not a directory or does not exist</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="n">added</span> <span class="o">=</span> <span class="mi">0</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Path [</span><span class="si">%s</span><span class="s2">] is not a directory or does not exist on disk.&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Path is not a directory or does not exist on disk.&quot;</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">excludePaths</span><span class="p">:</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Path [</span><span class="si">%s</span><span class="s2">] is excluded based on excludePaths.&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+         <span class="k">return</span> <span class="n">added</span>
+      <span class="k">for</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">excludePatterns</span><span class="p">:</span> <span class="c1"># safe to assume all are valid due to RegexList</span>
+         <span class="n">pattern</span> <span class="o">=</span> <span class="n">encodePath</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>  <span class="c1"># use same encoding as filenames</span>
+         <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^</span><span class="si">%s</span><span class="s2">$&quot;</span> <span class="o">%</span> <span class="n">pattern</span><span class="p">)</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Path [</span><span class="si">%s</span><span class="s2">] is excluded based on pattern [</span><span class="si">%s</span><span class="s2">].&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">pattern</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">added</span>
+      <span class="k">for</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">excludeBasenamePatterns</span><span class="p">:</span> <span class="c1"># safe to assume all are valid due to RegexList</span>
+         <span class="n">pattern</span> <span class="o">=</span> <span class="n">encodePath</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>  <span class="c1"># use same encoding as filenames</span>
+         <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^</span><span class="si">%s</span><span class="s2">$&quot;</span> <span class="o">%</span> <span class="n">pattern</span><span class="p">)</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="p">)):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Path [</span><span class="si">%s</span><span class="s2">] is excluded based on basename pattern [</span><span class="si">%s</span><span class="s2">].&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">pattern</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">added</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ignoreFile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ignoreFile</span><span class="p">)):</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Path [</span><span class="si">%s</span><span class="s2">] is excluded based on ignore file.&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+         <span class="k">return</span> <span class="n">added</span>
+      <span class="k">if</span> <span class="n">includePath</span><span class="p">:</span>
+         <span class="n">added</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">addDir</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>    <span class="c1"># could actually be excluded by addDir, yet</span>
+      <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+         <span class="n">entrypath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">entry</span><span class="p">)</span>
+         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">entrypath</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">linkDepth</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">dereference</span><span class="p">:</span>
+               <span class="n">derefpath</span> <span class="o">=</span> <span class="n">dereferenceLink</span><span class="p">(</span><span class="n">entrypath</span><span class="p">)</span>
+               <span class="k">if</span> <span class="n">derefpath</span> <span class="o">!=</span> <span class="n">entrypath</span><span class="p">:</span>
+                  <span class="n">added</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">addFile</span><span class="p">(</span><span class="n">derefpath</span><span class="p">)</span>
+            <span class="n">added</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">addFile</span><span class="p">(</span><span class="n">entrypath</span><span class="p">)</span>
+         <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">entrypath</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">islink</span><span class="p">(</span><span class="n">entrypath</span><span class="p">):</span>
+               <span class="k">if</span> <span class="n">recursive</span><span class="p">:</span>
+                  <span class="k">if</span> <span class="n">linkDepth</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                     <span class="n">newDepth</span> <span class="o">=</span> <span class="n">linkDepth</span> <span class="o">-</span> <span class="mi">1</span>
+                     <span class="k">if</span> <span class="n">dereference</span><span class="p">:</span>
+                        <span class="n">derefpath</span> <span class="o">=</span> <span class="n">dereferenceLink</span><span class="p">(</span><span class="n">entrypath</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">derefpath</span> <span class="o">!=</span> <span class="n">entrypath</span><span class="p">:</span>
+                           <span class="n">added</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_addDirContentsInternal</span><span class="p">(</span><span class="n">derefpath</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">recursive</span><span class="p">,</span> <span class="n">newDepth</span><span class="p">,</span> <span class="n">dereference</span><span class="p">)</span>
+                        <span class="n">added</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">addDir</span><span class="p">(</span><span class="n">entrypath</span><span class="p">)</span>
+                     <span class="k">else</span><span class="p">:</span>
+                        <span class="n">added</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_addDirContentsInternal</span><span class="p">(</span><span class="n">entrypath</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">recursive</span><span class="p">,</span> <span class="n">newDepth</span><span class="p">,</span> <span class="n">dereference</span><span class="p">)</span>
+                  <span class="k">else</span><span class="p">:</span>
+                     <span class="n">added</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">addDir</span><span class="p">(</span><span class="n">entrypath</span><span class="p">)</span>
+               <span class="k">else</span><span class="p">:</span>
+                  <span class="n">added</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">addDir</span><span class="p">(</span><span class="n">entrypath</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+               <span class="k">if</span> <span class="n">recursive</span><span class="p">:</span>
+                  <span class="n">newDepth</span> <span class="o">=</span> <span class="n">linkDepth</span> <span class="o">-</span> <span class="mi">1</span>
+                  <span class="n">added</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_addDirContentsInternal</span><span class="p">(</span><span class="n">entrypath</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">recursive</span><span class="p">,</span> <span class="n">newDepth</span><span class="p">,</span> <span class="n">dereference</span><span class="p">)</span>
+               <span class="k">else</span><span class="p">:</span>
+                  <span class="n">added</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">addDir</span><span class="p">(</span><span class="n">entrypath</span><span class="p">)</span>
+      <span class="k">return</span> <span class="n">added</span>
+
+
+   <span class="c1">#################</span>
+   <span class="c1"># Remove methods</span>
+   <span class="c1">#################</span>
+
+<div class="viewcode-block" id="FilesystemList.removeFiles"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.filesystem.FilesystemList.removeFiles">[docs]</a>   <span class="k">def</span> <span class="nf">removeFiles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Removes file entries from the list.</span>
+
+<span class="sd">      If ``pattern`` is not passed in or is ``None``, then all file entries will</span>
+<span class="sd">      be removed from the list.  Otherwise, only those file entries matching</span>
+<span class="sd">      the pattern will be removed.  Any entry which does not exist on disk</span>
+<span class="sd">      will be ignored (use :any:`removeInvalid` to purge those entries).</span>
+
+<span class="sd">      This method might be fairly slow for large lists, since it must check the</span>
+<span class="sd">      type of each item in the list.  If you know ahead of time that you want</span>
+<span class="sd">      to exclude all files, then you will be better off setting :any:`excludeFiles`</span>
+<span class="sd">      to ``True`` before adding items to the list.</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         pattern: Regular expression pattern representing entries to remove</span>
+
+<span class="sd">      Returns:</span>
+<span class="sd">          Number of entries removed</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If the passed-in pattern is not a valid regular expression</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="n">removed</span> <span class="o">=</span> <span class="mi">0</span>
+      <span class="k">if</span> <span class="n">pattern</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">[:]:</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">entry</span><span class="p">):</span>
+               <span class="bp">self</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+               <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Removed path [</span><span class="si">%s</span><span class="s2">] from list.&quot;</span><span class="p">,</span> <span class="n">entry</span><span class="p">)</span>
+               <span class="n">removed</span> <span class="o">+=</span> <span class="mi">1</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="k">try</span><span class="p">:</span>
+            <span class="n">pattern</span> <span class="o">=</span> <span class="n">encodePath</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>  <span class="c1"># use same encoding as filenames</span>
+            <span class="n">compiled</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>
+         <span class="k">except</span> <span class="n">re</span><span class="o">.</span><span class="n">error</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Pattern is not a valid regular expression.&quot;</span><span class="p">)</span>
+         <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">[:]:</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">entry</span><span class="p">):</span>
+               <span class="k">if</span> <span class="n">compiled</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">entry</span><span class="p">):</span>
+                  <span class="bp">self</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+                  <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Removed path [</span><span class="si">%s</span><span class="s2">] from list.&quot;</span><span class="p">,</span> <span class="n">entry</span><span class="p">)</span>
+                  <span class="n">removed</span> <span class="o">+=</span> <span class="mi">1</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Removed a total of </span><span class="si">%d</span><span class="s2"> entries.&quot;</span><span class="p">,</span> <span class="n">removed</span><span class="p">)</span>
+      <span class="k">return</span> <span class="n">removed</span></div>
+
+<div class="viewcode-block" id="FilesystemList.removeDirs"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.filesystem.FilesystemList.removeDirs">[docs]</a>   <span class="k">def</span> <span class="nf">removeDirs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Removes directory entries from the list.</span>
+
+<span class="sd">      If ``pattern`` is not passed in or is ``None``, then all directory entries</span>
+<span class="sd">      will be removed from the list.  Otherwise, only those directory entries</span>
+<span class="sd">      matching the pattern will be removed.  Any entry which does not exist on</span>
+<span class="sd">      disk will be ignored (use :any:`removeInvalid` to purge those entries).</span>
+
+<span class="sd">      This method might be fairly slow for large lists, since it must check the</span>
+<span class="sd">      type of each item in the list.  If you know ahead of time that you want</span>
+<span class="sd">      to exclude all directories, then you will be better off setting</span>
+<span class="sd">      :any:`excludeDirs` to ``True`` before adding items to the list (note that this</span>
+<span class="sd">      will not prevent you from recursively adding the *contents* of</span>
+<span class="sd">      directories).</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         pattern: Regular expression pattern representing entries to remove</span>
+
+<span class="sd">      Returns:</span>
+<span class="sd">          Number of entries removed</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If the passed-in pattern is not a valid regular expression</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="n">removed</span> <span class="o">=</span> <span class="mi">0</span>
+      <span class="k">if</span> <span class="n">pattern</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">[:]:</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">entry</span><span class="p">):</span>
+               <span class="bp">self</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+               <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Removed path [</span><span class="si">%s</span><span class="s2">] from list.&quot;</span><span class="p">,</span> <span class="n">entry</span><span class="p">)</span>
+               <span class="n">removed</span> <span class="o">+=</span> <span class="mi">1</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="k">try</span><span class="p">:</span>
+            <span class="n">pattern</span> <span class="o">=</span> <span class="n">encodePath</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>  <span class="c1"># use same encoding as filenames</span>
+            <span class="n">compiled</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>
+         <span class="k">except</span> <span class="n">re</span><span class="o">.</span><span class="n">error</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Pattern is not a valid regular expression.&quot;</span><span class="p">)</span>
+         <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">[:]:</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">entry</span><span class="p">):</span>
+               <span class="k">if</span> <span class="n">compiled</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">entry</span><span class="p">):</span>
+                  <span class="bp">self</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+                  <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Removed path [</span><span class="si">%s</span><span class="s2">] from list based on pattern [</span><span class="si">%s</span><span class="s2">].&quot;</span><span class="p">,</span> <span class="n">entry</span><span class="p">,</span> <span class="n">pattern</span><span class="p">)</span>
+                  <span class="n">removed</span> <span class="o">+=</span> <span class="mi">1</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Removed a total of </span><span class="si">%d</span><span class="s2"> entries.&quot;</span><span class="p">,</span> <span class="n">removed</span><span class="p">)</span>
+      <span class="k">return</span> <span class="n">removed</span></div>
+
+<div class="viewcode-block" id="FilesystemList.removeLinks"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.filesystem.FilesystemList.removeLinks">[docs]</a>   <span class="k">def</span> <span class="nf">removeLinks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Removes soft link entries from the list.</span>
+
+<span class="sd">      If ``pattern`` is not passed in or is ``None``, then all soft link entries</span>
+<span class="sd">      will be removed from the list.  Otherwise, only those soft link entries</span>
+<span class="sd">      matching the pattern will be removed.  Any entry which does not exist on</span>
+<span class="sd">      disk will be ignored (use :any:`removeInvalid` to purge those entries).</span>
+
+<span class="sd">      This method might be fairly slow for large lists, since it must check the</span>
+<span class="sd">      type of each item in the list.  If you know ahead of time that you want</span>
+<span class="sd">      to exclude all soft links, then you will be better off setting</span>
+<span class="sd">      :any:`excludeLinks` to ``True`` before adding items to the list.</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         pattern: Regular expression pattern representing entries to remove</span>
+
+<span class="sd">      Returns:</span>
+<span class="sd">          Number of entries removed</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If the passed-in pattern is not a valid regular expression</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="n">removed</span> <span class="o">=</span> <span class="mi">0</span>
+      <span class="k">if</span> <span class="n">pattern</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">[:]:</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">islink</span><span class="p">(</span><span class="n">entry</span><span class="p">):</span>
+               <span class="bp">self</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+               <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Removed path [</span><span class="si">%s</span><span class="s2">] from list.&quot;</span><span class="p">,</span> <span class="n">entry</span><span class="p">)</span>
+               <span class="n">removed</span> <span class="o">+=</span> <span class="mi">1</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="k">try</span><span class="p">:</span>
+            <span class="n">pattern</span> <span class="o">=</span> <span class="n">encodePath</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>  <span class="c1"># use same encoding as filenames</span>
+            <span class="n">compiled</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>
+         <span class="k">except</span> <span class="n">re</span><span class="o">.</span><span class="n">error</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Pattern is not a valid regular expression.&quot;</span><span class="p">)</span>
+         <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">[:]:</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">islink</span><span class="p">(</span><span class="n">entry</span><span class="p">):</span>
+               <span class="k">if</span> <span class="n">compiled</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">entry</span><span class="p">):</span>
+                  <span class="bp">self</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+                  <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Removed path [</span><span class="si">%s</span><span class="s2">] from list based on pattern [</span><span class="si">%s</span><span class="s2">].&quot;</span><span class="p">,</span> <span class="n">entry</span><span class="p">,</span> <span class="n">pattern</span><span class="p">)</span>
+                  <span class="n">removed</span> <span class="o">+=</span> <span class="mi">1</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Removed a total of </span><span class="si">%d</span><span class="s2"> entries.&quot;</span><span class="p">,</span> <span class="n">removed</span><span class="p">)</span>
+      <span class="k">return</span> <span class="n">removed</span></div>
+
+<div class="viewcode-block" id="FilesystemList.removeMatch"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.filesystem.FilesystemList.removeMatch">[docs]</a>   <span class="k">def</span> <span class="nf">removeMatch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Removes from the list all entries matching a pattern.</span>
+
+<span class="sd">      This method removes from the list all entries which match the passed in</span>
+<span class="sd">      ``pattern``.  Since there is no need to check the type of each entry, it</span>
+<span class="sd">      is faster to call this method than to call the :any:`removeFiles`,</span>
+<span class="sd">      :any:`removeDirs` or :any:`removeLinks` methods individually.  If you know which</span>
+<span class="sd">      patterns you will want to remove ahead of time, you may be better off</span>
+<span class="sd">      setting :any:`excludePatterns` or :any:`excludeBasenamePatterns` before adding</span>
+<span class="sd">      items to the list.</span>
+
+<span class="sd">      *Note:* Unlike when using the exclude lists, the pattern here is *not*</span>
+<span class="sd">      bounded at the front and the back of the string.  You can use any pattern</span>
+<span class="sd">      you want.</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         pattern: Regular expression pattern representing entries to remove</span>
+
+<span class="sd">      Returns:</span>
+<span class="sd">          Number of entries removed</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If the passed-in pattern is not a valid regular expression</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">try</span><span class="p">:</span>
+         <span class="n">pattern</span> <span class="o">=</span> <span class="n">encodePath</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>  <span class="c1"># use same encoding as filenames</span>
+         <span class="n">compiled</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>
+      <span class="k">except</span> <span class="n">re</span><span class="o">.</span><span class="n">error</span><span class="p">:</span>
+         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Pattern is not a valid regular expression.&quot;</span><span class="p">)</span>
+      <span class="n">removed</span> <span class="o">=</span> <span class="mi">0</span>
+      <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">[:]:</span>
+         <span class="k">if</span> <span class="n">compiled</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">entry</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Removed path [</span><span class="si">%s</span><span class="s2">] from list based on pattern [</span><span class="si">%s</span><span class="s2">].&quot;</span><span class="p">,</span> <span class="n">entry</span><span class="p">,</span> <span class="n">pattern</span><span class="p">)</span>
+            <span class="n">removed</span> <span class="o">+=</span> <span class="mi">1</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Removed a total of </span><span class="si">%d</span><span class="s2"> entries.&quot;</span><span class="p">,</span> <span class="n">removed</span><span class="p">)</span>
+      <span class="k">return</span> <span class="n">removed</span></div>
+
+<div class="viewcode-block" id="FilesystemList.removeInvalid"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.filesystem.FilesystemList.removeInvalid">[docs]</a>   <span class="k">def</span> <span class="nf">removeInvalid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Removes from the list all entries that do not exist on disk.</span>
+
+<span class="sd">      This method removes from the list all entries which do not currently</span>
+<span class="sd">      exist on disk in some form.  No attention is paid to whether the entries</span>
+<span class="sd">      are files or directories.</span>
+
+<span class="sd">      Returns:</span>
+<span class="sd">          Number of entries removed</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="n">removed</span> <span class="o">=</span> <span class="mi">0</span>
+      <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">[:]:</span>
+         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">entry</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Removed path [</span><span class="si">%s</span><span class="s2">] from list.&quot;</span><span class="p">,</span> <span class="n">entry</span><span class="p">)</span>
+            <span class="n">removed</span> <span class="o">+=</span> <span class="mi">1</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Removed a total of </span><span class="si">%d</span><span class="s2"> entries.&quot;</span><span class="p">,</span> <span class="n">removed</span><span class="p">)</span>
+      <span class="k">return</span> <span class="n">removed</span></div>
+
+
+   <span class="c1">##################</span>
+   <span class="c1"># Utility methods</span>
+   <span class="c1">##################</span>
+
+<div class="viewcode-block" id="FilesystemList.normalize"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.filesystem.FilesystemList.normalize">[docs]</a>   <span class="k">def</span> <span class="nf">normalize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;Normalizes the list, ensuring that each entry is unique.&quot;&quot;&quot;</span>
+      <span class="n">orig</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+      <span class="n">dups</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">=</span><span class="bp">self</span><span class="p">:</span> <span class="bp">self</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="p">[</span><span class="n">x</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))))</span>
+      <span class="n">items</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">=</span><span class="bp">self</span><span class="p">:</span> <span class="bp">self</span><span class="p">[</span><span class="n">x</span><span class="p">],</span> <span class="n">dups</span><span class="p">))</span>
+      <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">remove</span><span class="p">,</span> <span class="n">items</span><span class="p">))</span>
+      <span class="n">new</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Completed normalizing list; removed </span><span class="si">%d</span><span class="s2"> items (</span><span class="si">%d</span><span class="s2"> originally, </span><span class="si">%d</span><span class="s2"> now).&quot;</span><span class="p">,</span> <span class="n">new</span><span class="o">-</span><span class="n">orig</span><span class="p">,</span> <span class="n">orig</span><span class="p">,</span> <span class="n">new</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FilesystemList.verify"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.filesystem.FilesystemList.verify">[docs]</a>   <span class="k">def</span> <span class="nf">verify</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Verifies that all entries in the list exist on disk.</span>
+<span class="sd">      Returns:</span>
+<span class="sd">          ``True`` if all entries exist, ``False`` otherwise</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">entry</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Path [</span><span class="si">%s</span><span class="s2">] is invalid; list is not valid.&quot;</span><span class="p">,</span> <span class="n">entry</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;All entries in list are valid.&quot;</span><span class="p">)</span>
+      <span class="k">return</span> <span class="kc">True</span></div></div>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># SpanItem class definition</span>
+<span class="c1">########################################################################</span>
+
+<div class="viewcode-block" id="SpanItem"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.filesystem.SpanItem">[docs]</a><span class="k">class</span> <span class="nc">SpanItem</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span> <span class="c1"># pylint: disable=R0903</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Item returned by :any:`BackupFileList.generateSpan`.</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="SpanItem.__init__"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.filesystem.SpanItem.__init__">[docs]</a>   <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fileList</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">capacity</span><span class="p">,</span> <span class="n">utilization</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Create object.</span>
+<span class="sd">      Args:</span>
+<span class="sd">         fileList: List of files</span>
+<span class="sd">         size: Size (in bytes) of files</span>
+<span class="sd">         utilization: Utilization, as a percentage (0-100)</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">fileList</span> <span class="o">=</span> <span class="n">fileList</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="n">size</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">capacity</span> <span class="o">=</span> <span class="n">capacity</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">utilization</span> <span class="o">=</span> <span class="n">utilization</span></div></div>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># BackupFileList class definition</span>
+<span class="c1">########################################################################</span>
+
+<div class="viewcode-block" id="BackupFileList"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.filesystem.BackupFileList">[docs]</a><span class="k">class</span> <span class="nc">BackupFileList</span><span class="p">(</span><span class="n">FilesystemList</span><span class="p">):</span> <span class="c1"># pylint: disable=R0904</span>
+
+   <span class="c1">######################</span>
+   <span class="c1"># Class documentation</span>
+   <span class="c1">######################</span>
+
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   List of files to be backed up.</span>
+
+<span class="sd">   A BackupFileList is a :any:`FilesystemList` containing a list of files to be</span>
+<span class="sd">   backed up.  It only contains files, not directories (soft links are treated</span>
+<span class="sd">   like files).  On top of the generic functionality provided by</span>
+<span class="sd">   :any:`FilesystemList`, this class adds functionality to keep a hash (checksum)</span>
+<span class="sd">   for each file in the list, and it also provides a method to calculate the</span>
+<span class="sd">   total size of the files in the list and a way to export the list into tar</span>
+<span class="sd">   form.</span>
+
+<span class="sd">   &quot;&quot;&quot;</span>
+
+   <span class="c1">##############</span>
+   <span class="c1"># Constructor</span>
+   <span class="c1">##############</span>
+
+<div class="viewcode-block" id="BackupFileList.__init__"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.filesystem.BackupFileList.__init__">[docs]</a>   <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;Initializes a list with no configured exclusions.&quot;&quot;&quot;</span>
+      <span class="n">FilesystemList</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+
+   <span class="c1">################################</span>
+   <span class="c1"># Overridden superclass methods</span>
+   <span class="c1">################################</span>
+
+<div class="viewcode-block" id="BackupFileList.addDir"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.filesystem.BackupFileList.addDir">[docs]</a>   <span class="k">def</span> <span class="nf">addDir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Adds a directory to the list.</span>
+
+<span class="sd">      Note that this class does not allow directories to be added by themselves</span>
+<span class="sd">      (a backup list contains only files).  However, since links to directories</span>
+<span class="sd">      are technically files, we allow them to be added.</span>
+
+<span class="sd">      This method is implemented in terms of the superclass method, with one</span>
+<span class="sd">      additional validation: the superclass method is only called if the</span>
+<span class="sd">      passed-in path is both a directory and a link.  All of the superclass&#39;s</span>
+<span class="sd">      existing validations and restrictions apply.</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         path (String representing a path on disk): Directory path to be added to the list</span>
+<span class="sd">      Returns:</span>
+<span class="sd">          Number of items added to the list</span>
+
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If path is not a directory or does not exist</span>
+<span class="sd">         ValueError: If the path could not be encoded properly</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="n">path</span> <span class="o">=</span> <span class="n">encodePath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+      <span class="n">path</span> <span class="o">=</span> <span class="n">normalizeDir</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">islink</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+         <span class="k">return</span> <span class="mi">0</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="k">return</span> <span class="n">FilesystemList</span><span class="o">.</span><span class="n">addDir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span></div>
+
+
+   <span class="c1">##################</span>
+   <span class="c1"># Utility methods</span>
+   <span class="c1">##################</span>
+
+<div class="viewcode-block" id="BackupFileList.totalSize"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.filesystem.BackupFileList.totalSize">[docs]</a>   <span class="k">def</span> <span class="nf">totalSize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Returns the total size among all files in the list.</span>
+<span class="sd">      Only files are counted.</span>
+<span class="sd">      Soft links that point at files are ignored.</span>
+<span class="sd">      Entries which do not exist on disk are ignored.</span>
+<span class="sd">      Returns:</span>
+<span class="sd">          Total size, in bytes</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="n">total</span> <span class="o">=</span> <span class="mf">0.0</span>
+      <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">islink</span><span class="p">(</span><span class="n">entry</span><span class="p">):</span>
+            <span class="n">total</span> <span class="o">+=</span> <span class="nb">float</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span><span class="o">.</span><span class="n">st_size</span><span class="p">)</span>
+      <span class="k">return</span> <span class="n">total</span></div>
+
+<div class="viewcode-block" id="BackupFileList.generateSizeMap"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.filesystem.BackupFileList.generateSizeMap">[docs]</a>   <span class="k">def</span> <span class="nf">generateSizeMap</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Generates a mapping from file to file size in bytes.</span>
+<span class="sd">      The mapping does include soft links, which are listed with size zero.</span>
+<span class="sd">      Entries which do not exist on disk are ignored.</span>
+<span class="sd">      Returns:</span>
+<span class="sd">          Dictionary mapping file to file size</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="n">table</span> <span class="o">=</span> <span class="p">{</span> <span class="p">}</span>
+      <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">islink</span><span class="p">(</span><span class="n">entry</span><span class="p">):</span>
+            <span class="n">table</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+         <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">entry</span><span class="p">):</span>
+            <span class="n">table</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span><span class="o">.</span><span class="n">st_size</span><span class="p">)</span>
+      <span class="k">return</span> <span class="n">table</span></div>
+
+<div class="viewcode-block" id="BackupFileList.generateDigestMap"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.filesystem.BackupFileList.generateDigestMap">[docs]</a>   <span class="k">def</span> <span class="nf">generateDigestMap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stripPrefix</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Generates a mapping from file to file digest.</span>
+
+<span class="sd">      Currently, the digest is an SHA hash, which should be pretty secure.  In</span>
+<span class="sd">      the future, this might be a different kind of hash, but we guarantee that</span>
+<span class="sd">      the type of the hash will not change unless the library major version</span>
+<span class="sd">      number is bumped.</span>
+
+<span class="sd">      Entries which do not exist on disk are ignored.</span>
+
+<span class="sd">      Soft links are ignored.  We would end up generating a digest for the file</span>
+<span class="sd">      that the soft link points at, which doesn&#39;t make any sense.</span>
+
+<span class="sd">      If ``stripPrefix`` is passed in, then that prefix will be stripped from</span>
+<span class="sd">      each key when the map is generated.  This can be useful in generating two</span>
+<span class="sd">      &quot;relative&quot; digest maps to be compared to one another.</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         stripPrefix (String with any contents): Common prefix to be stripped from paths</span>
+<span class="sd">      Returns:</span>
+<span class="sd">          Dictionary mapping file to digest value</span>
+<span class="sd">      @see: :any:`removeUnchanged`</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="n">table</span> <span class="o">=</span> <span class="p">{</span> <span class="p">}</span>
+      <span class="k">if</span> <span class="n">stripPrefix</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">islink</span><span class="p">(</span><span class="n">entry</span><span class="p">):</span>
+               <span class="n">table</span><span class="p">[</span><span class="n">entry</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">stripPrefix</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="n">BackupFileList</span><span class="o">.</span><span class="n">_generateDigest</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">islink</span><span class="p">(</span><span class="n">entry</span><span class="p">):</span>
+               <span class="n">table</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span> <span class="o">=</span> <span class="n">BackupFileList</span><span class="o">.</span><span class="n">_generateDigest</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+      <span class="k">return</span> <span class="n">table</span></div>
+
+   <span class="nd">@staticmethod</span>
+   <span class="k">def</span> <span class="nf">_generateDigest</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Generates an SHA digest for a given file on disk.</span>
+
+<span class="sd">      The original code for this function used this simplistic implementation,</span>
+<span class="sd">      which requires reading the entire file into memory at once in order to</span>
+<span class="sd">      generate a digest value::</span>
+
+<span class="sd">         sha.new(open(path).read()).hexdigest()</span>
+
+<span class="sd">      Not surprisingly, this isn&#39;t an optimal solution.  The U{Simple file</span>
+<span class="sd">      hashing &lt;http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/259109&gt;}</span>
+<span class="sd">      Python Cookbook recipe describes how to incrementally generate a hash</span>
+<span class="sd">      value by reading in chunks of data rather than reading the file all at</span>
+<span class="sd">      once.  The recipe relies on the the ``update()`` method of the various</span>
+<span class="sd">      Python hashing algorithms.</span>
+
+<span class="sd">      In my tests using a 110 MB file on CD, the original implementation</span>
+<span class="sd">      requires 111 seconds.  This implementation requires only 40-45 seconds,</span>
+<span class="sd">      which is a pretty substantial speed-up.</span>
+
+<span class="sd">      Experience shows that reading in around 4kB (4096 bytes) at a time yields</span>
+<span class="sd">      the best performance.  Smaller reads are quite a bit slower, and larger</span>
+<span class="sd">      reads don&#39;t make much of a difference.  The 4kB number makes me a little</span>
+<span class="sd">      suspicious, and I think it might be related to the size of a filesystem</span>
+<span class="sd">      read at the hardware level.  However, I&#39;ve decided to just hardcode 4096</span>
+<span class="sd">      until I have evidence that shows it&#39;s worthwhile making the read size</span>
+<span class="sd">      configurable.</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         path: Path to generate digest for</span>
+
+<span class="sd">      Returns:</span>
+<span class="sd">          ASCII-safe SHA digest for the file</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         OSError: If the file cannot be opened</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="c1"># pylint: disable=C0103,E1101</span>
+      <span class="n">s</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha1</span><span class="p">()</span>
+      <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+         <span class="n">readBytes</span> <span class="o">=</span> <span class="mi">4096</span>  <span class="c1"># see notes above</span>
+         <span class="k">while</span> <span class="n">readBytes</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">readString</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">readBytes</span><span class="p">)</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">readString</span><span class="p">)</span>
+            <span class="n">readBytes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">readString</span><span class="p">)</span>
+      <span class="n">digest</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Generated digest [</span><span class="si">%s</span><span class="s2">] for file [</span><span class="si">%s</span><span class="s2">].&quot;</span><span class="p">,</span> <span class="n">digest</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+      <span class="k">return</span> <span class="n">digest</span>
+
+<div class="viewcode-block" id="BackupFileList.generateFitted"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.filesystem.BackupFileList.generateFitted">[docs]</a>   <span class="k">def</span> <span class="nf">generateFitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">capacity</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s2">&quot;worst_fit&quot;</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Generates a list of items that fit in the indicated capacity.</span>
+
+<span class="sd">      Sometimes, callers would like to include every item in a list, but are</span>
+<span class="sd">      unable to because not all of the items fit in the space available.  This</span>
+<span class="sd">      method returns a copy of the list, containing only the items that fit in</span>
+<span class="sd">      a given capacity.  A copy is returned so that we don&#39;t lose any</span>
+<span class="sd">      information if for some reason the fitted list is unsatisfactory.</span>
+
+<span class="sd">      The fitting is done using the functions in the knapsack module.  By</span>
+<span class="sd">      default, the first fit algorithm is used, but you can also choose</span>
+<span class="sd">      from best fit, worst fit and alternate fit.</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         capacity (Integer, in bytes): Maximum capacity among the files in the new list</span>
+<span class="sd">         algorithm (One of &quot;first_fit&quot;, &quot;best_fit&quot;, &quot;worst_fit&quot;, &quot;alternate_fit&quot;): Knapsack (fit) algorithm to use</span>
+<span class="sd">      Returns:</span>
+<span class="sd">          Copy of list with total size no larger than indicated capacity</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If the algorithm is invalid</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="n">table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getKnapsackTable</span><span class="p">()</span>
+      <span class="n">function</span> <span class="o">=</span> <span class="n">BackupFileList</span><span class="o">.</span><span class="n">_getKnapsackFunction</span><span class="p">(</span><span class="n">algorithm</span><span class="p">)</span>
+      <span class="k">return</span> <span class="n">function</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">capacity</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="BackupFileList.generateSpan"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.filesystem.BackupFileList.generateSpan">[docs]</a>   <span class="k">def</span> <span class="nf">generateSpan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">capacity</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s2">&quot;worst_fit&quot;</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Splits the list of items into sub-lists that fit in a given capacity.</span>
+
+<span class="sd">      Sometimes, callers need split to a backup file list into a set of smaller</span>
+<span class="sd">      lists.  For instance, you could use this to &quot;span&quot; the files across a set</span>
+<span class="sd">      of discs.</span>
+
+<span class="sd">      The fitting is done using the functions in the knapsack module.  By</span>
+<span class="sd">      default, the first fit algorithm is used, but you can also choose</span>
+<span class="sd">      from best fit, worst fit and alternate fit.</span>
+
+<span class="sd">      *Note:* If any of your items are larger than the capacity, then it won&#39;t</span>
+<span class="sd">      be possible to find a solution.  In this case, a value error will be</span>
+<span class="sd">      raised.</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         capacity (Integer, in bytes): Maximum capacity among the files in the new list</span>
+<span class="sd">         algorithm (One of &quot;first_fit&quot;, &quot;best_fit&quot;, &quot;worst_fit&quot;, &quot;alternate_fit&quot;): Knapsack (fit) algorithm to use</span>
+<span class="sd">      Returns:</span>
+<span class="sd">          List of :any:`SpanItem` objects</span>
+
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If the algorithm is invalid</span>
+<span class="sd">         ValueError: If it&#39;s not possible to fit some items</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="n">spanItems</span> <span class="o">=</span> <span class="p">[]</span>
+      <span class="n">function</span> <span class="o">=</span> <span class="n">BackupFileList</span><span class="o">.</span><span class="n">_getKnapsackFunction</span><span class="p">(</span><span class="n">algorithm</span><span class="p">)</span>
+      <span class="n">table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getKnapsackTable</span><span class="p">(</span><span class="n">capacity</span><span class="p">)</span>
+      <span class="n">iteration</span> <span class="o">=</span> <span class="mi">0</span>
+      <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">table</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+         <span class="n">iteration</span> <span class="o">+=</span> <span class="mi">1</span>
+         <span class="n">fit</span> <span class="o">=</span> <span class="n">function</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">capacity</span><span class="p">)</span>
+         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fit</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># Should never happen due to validations in _convertToKnapsackForm(), but let&#39;s be safe</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;After iteration </span><span class="si">%d</span><span class="s2">, unable to add any new items.&quot;</span> <span class="o">%</span> <span class="n">iteration</span><span class="p">)</span>
+         <span class="n">removeKeys</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">fit</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+         <span class="n">utilization</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">fit</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">capacity</span><span class="p">))</span><span class="o">*</span><span class="mf">100.0</span>
+         <span class="n">item</span> <span class="o">=</span> <span class="n">SpanItem</span><span class="p">(</span><span class="n">fit</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">fit</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">capacity</span><span class="p">,</span> <span class="n">utilization</span><span class="p">)</span>
+         <span class="n">spanItems</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+      <span class="k">return</span> <span class="n">spanItems</span></div>
+
+   <span class="k">def</span> <span class="nf">_getKnapsackTable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">capacity</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Converts the list into the form needed by the knapsack algorithms.</span>
+<span class="sd">      Returns:</span>
+<span class="sd">          Dictionary mapping file name to tuple of (file path, file size)</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="n">table</span> <span class="o">=</span> <span class="p">{</span> <span class="p">}</span>
+      <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">islink</span><span class="p">(</span><span class="n">entry</span><span class="p">):</span>
+            <span class="n">table</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+         <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">entry</span><span class="p">):</span>
+            <span class="n">size</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span><span class="o">.</span><span class="n">st_size</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">capacity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+               <span class="k">if</span> <span class="n">size</span> <span class="o">&gt;</span> <span class="n">capacity</span><span class="p">:</span>
+                  <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;File [</span><span class="si">%s</span><span class="s2">] cannot fit in capacity </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">displayBytes</span><span class="p">(</span><span class="n">capacity</span><span class="p">)))</span>
+            <span class="n">table</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
+      <span class="k">return</span> <span class="n">table</span>
+
+   <span class="nd">@staticmethod</span>
+   <span class="k">def</span> <span class="nf">_getKnapsackFunction</span><span class="p">(</span><span class="n">algorithm</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Returns a reference to the function associated with an algorithm name.</span>
+<span class="sd">      Algorithm name must be one of &quot;first_fit&quot;, &quot;best_fit&quot;, &quot;worst_fit&quot;, &quot;alternate_fit&quot;</span>
+<span class="sd">      Args:</span>
+<span class="sd">         algorithm: Name of the algorithm</span>
+<span class="sd">      Returns:</span>
+<span class="sd">          Reference to knapsack function</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If the algorithm name is unknown</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="n">algorithm</span> <span class="o">==</span> <span class="s2">&quot;first_fit&quot;</span><span class="p">:</span>
+         <span class="k">return</span> <span class="n">firstFit</span>
+      <span class="k">elif</span> <span class="n">algorithm</span> <span class="o">==</span> <span class="s2">&quot;best_fit&quot;</span><span class="p">:</span>
+         <span class="k">return</span> <span class="n">bestFit</span>
+      <span class="k">elif</span> <span class="n">algorithm</span> <span class="o">==</span> <span class="s2">&quot;worst_fit&quot;</span><span class="p">:</span>
+         <span class="k">return</span> <span class="n">worstFit</span>
+      <span class="k">elif</span> <span class="n">algorithm</span> <span class="o">==</span> <span class="s2">&quot;alternate_fit&quot;</span><span class="p">:</span>
+         <span class="k">return</span> <span class="n">alternateFit</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Algorithm [</span><span class="si">%s</span><span class="s2">] is invalid.&quot;</span> <span class="o">%</span> <span class="n">algorithm</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BackupFileList.generateTarfile"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.filesystem.BackupFileList.generateTarfile">[docs]</a>   <span class="k">def</span> <span class="nf">generateTarfile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;tar&#39;</span><span class="p">,</span> <span class="n">ignore</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Creates a tar file containing the files in the list.</span>
+
+<span class="sd">      By default, this method will create uncompressed tar files.  If you pass</span>
+<span class="sd">      in mode ``&#39;targz&#39;``, then it will create gzipped tar files, and if you</span>
+<span class="sd">      pass in mode ``&#39;tarbz2&#39;``, then it will create bzipped tar files.</span>
+
+<span class="sd">      The tar file will be created as a GNU tar archive, which enables extended</span>
+<span class="sd">      file name lengths, etc.  Since GNU tar is so prevalent, I&#39;ve decided that</span>
+<span class="sd">      the extra functionality out-weighs the disadvantage of not being</span>
+<span class="sd">      &quot;standard&quot;.</span>
+
+<span class="sd">      If you pass in ``flat=True``, then a &quot;flat&quot; archive will be created, and</span>
+<span class="sd">      all of the files will be added to the root of the archive.  So, the file</span>
+<span class="sd">      ``/tmp/something/whatever.txt`` would be added as just ``whatever.txt``.</span>
+
+<span class="sd">      By default, the whole method call fails if there are problems adding any</span>
+<span class="sd">      of the files to the archive, resulting in an exception.  Under these</span>
+<span class="sd">      circumstances, callers are advised that they might want to call</span>
+<span class="sd">      :any:`removeInvalid` and then attempt to extract the tar file a second</span>
+<span class="sd">      time, since the most common cause of failures is a missing file (a file</span>
+<span class="sd">      that existed when the list was built, but is gone again by the time the</span>
+<span class="sd">      tar file is built).</span>
+
+<span class="sd">      If you want to, you can pass in ``ignore=True``, and the method will</span>
+<span class="sd">      ignore errors encountered when adding individual files to the archive</span>
+<span class="sd">      (but not errors opening and closing the archive itself).</span>
+
+<span class="sd">      We&#39;ll always attempt to remove the tarfile from disk if an exception will</span>
+<span class="sd">      be thrown.</span>
+
+<span class="sd">      *Note:* No validation is done as to whether the entries in the list are</span>
+<span class="sd">      files, since only files or soft links should be in an object like this.</span>
+<span class="sd">      However, to be safe, everything is explicitly added to the tar archive</span>
+<span class="sd">      non-recursively so it&#39;s safe to include soft links to directories.</span>
+
+<span class="sd">      *Note:* The Python ``tarfile`` module, which is used internally here, is</span>
+<span class="sd">      supposed to deal properly with long filenames and links.  In my testing,</span>
+<span class="sd">      I have found that it appears to be able to add long really long filenames</span>
+<span class="sd">      to archives, but doesn&#39;t do a good job reading them back out, even out of</span>
+<span class="sd">      an archive it created.  Fortunately, all Cedar Backup does is add files</span>
+<span class="sd">      to archives.</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         path (String representing a path on disk): Path of tar file to create on disk</span>
+<span class="sd">         mode (One of either ``&#39;tar&#39;``, ``&#39;targz&#39;`` or ``&#39;tarbz2&#39;``): Tar creation mode</span>
+<span class="sd">         ignore (Boolean): Indicates whether to ignore certain errors</span>
+<span class="sd">         flat (Boolean): Creates &quot;flat&quot; archive by putting all items in root</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If mode is not valid</span>
+<span class="sd">         ValueError: If list is empty</span>
+<span class="sd">         ValueError: If the path could not be encoded properly</span>
+<span class="sd">         TarError: If there is a problem creating the tar file</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="c1"># pylint: disable=E1101</span>
+      <span class="n">path</span> <span class="o">=</span> <span class="n">encodePath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Empty list cannot be used to generate tarfile.&quot;</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;tar&#39;</span><span class="p">:</span> <span class="n">tarmode</span> <span class="o">=</span> <span class="s2">&quot;w:&quot;</span>
+      <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;targz&#39;</span><span class="p">:</span> <span class="n">tarmode</span> <span class="o">=</span> <span class="s2">&quot;w:gz&quot;</span>
+      <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;tarbz2&#39;</span><span class="p">:</span> <span class="n">tarmode</span> <span class="o">=</span> <span class="s2">&quot;w:bz2&quot;</span>
+      <span class="k">else</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Mode [</span><span class="si">%s</span><span class="s2">] is not valid.&quot;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
+      <span class="k">try</span><span class="p">:</span>
+         <span class="n">tar</span> <span class="o">=</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">tarmode</span><span class="p">)</span>
+         <span class="k">try</span><span class="p">:</span>
+            <span class="n">tar</span><span class="o">.</span><span class="n">format</span> <span class="o">=</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">GNU_FORMAT</span>
+         <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="n">tar</span><span class="o">.</span><span class="n">posix</span> <span class="o">=</span> <span class="kc">False</span>
+         <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+               <span class="k">if</span> <span class="n">flat</span><span class="p">:</span>
+                  <span class="n">tar</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">arcname</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">entry</span><span class="p">),</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+               <span class="k">else</span><span class="p">:</span>
+                  <span class="n">tar</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">TarError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+               <span class="k">if</span> <span class="ow">not</span> <span class="n">ignore</span><span class="p">:</span>
+                  <span class="k">raise</span> <span class="n">e</span>
+               <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Unable to add file [</span><span class="si">%s</span><span class="s2">]; going on anyway.&quot;</span><span class="p">,</span> <span class="n">entry</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+               <span class="k">if</span> <span class="ow">not</span> <span class="n">ignore</span><span class="p">:</span>
+                  <span class="k">raise</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">TarError</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+               <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Unable to add file [</span><span class="si">%s</span><span class="s2">]; going on anyway.&quot;</span><span class="p">,</span> <span class="n">entry</span><span class="p">)</span>
+         <span class="n">tar</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+      <span class="k">except</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">ReadError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+         <span class="k">try</span><span class="p">:</span> <span class="n">tar</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+         <span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+         <span class="k">raise</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">ReadError</span><span class="p">(</span><span class="s2">&quot;Unable to open [</span><span class="si">%s</span><span class="s2">]; maybe directory doesn&#39;t exist?&quot;</span> <span class="o">%</span> <span class="n">path</span><span class="p">)</span>
+      <span class="k">except</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">TarError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+         <span class="k">try</span><span class="p">:</span> <span class="n">tar</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+         <span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+         <span class="k">raise</span> <span class="n">e</span></div>
+
+<div class="viewcode-block" id="BackupFileList.removeUnchanged"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.filesystem.BackupFileList.removeUnchanged">[docs]</a>   <span class="k">def</span> <span class="nf">removeUnchanged</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">digestMap</span><span class="p">,</span> <span class="n">captureDigest</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Removes unchanged entries from the list.</span>
+
+<span class="sd">      This method relies on a digest map as returned from :any:`generateDigestMap`.</span>
+<span class="sd">      For each entry in ``digestMap``, if the entry also exists in the current</span>
+<span class="sd">      list *and* the entry in the current list has the same digest value as in</span>
+<span class="sd">      the map, the entry in the current list will be removed.</span>
+
+<span class="sd">      This method offers a convenient way for callers to filter unneeded</span>
+<span class="sd">      entries from a list.  The idea is that a caller will capture a digest map</span>
+<span class="sd">      from ``generateDigestMap`` at some point in time (perhaps the beginning of</span>
+<span class="sd">      the week), and will save off that map using ``pickle`` or some other</span>
+<span class="sd">      method.  Then, the caller could use this method sometime in the future to</span>
+<span class="sd">      filter out any unchanged files based on the saved-off map.</span>
+
+<span class="sd">      If ``captureDigest`` is passed-in as ``True``, then digest information will</span>
+<span class="sd">      be captured for the entire list before the removal step occurs using the</span>
+<span class="sd">      same rules as in :any:`generateDigestMap`.  The check will involve a lookup</span>
+<span class="sd">      into the complete digest map.</span>
+
+<span class="sd">      If ``captureDigest`` is passed in as ``False``, we will only generate a</span>
+<span class="sd">      digest value for files we actually need to check, and we&#39;ll ignore any</span>
+<span class="sd">      entry in the list which isn&#39;t a file that currently exists on disk.</span>
+
+<span class="sd">      The return value varies depending on ``captureDigest``, as well.  To</span>
+<span class="sd">      preserve backwards compatibility, if ``captureDigest`` is ``False``, then</span>
+<span class="sd">      we&#39;ll just return a single value representing the number of entries</span>
+<span class="sd">      removed.  Otherwise, we&#39;ll return a tuple of C{(entries removed, digest</span>
+<span class="sd">      map)}.  The returned digest map will be in exactly the form returned by</span>
+<span class="sd">      :any:`generateDigestMap`.</span>
+
+<span class="sd">      *Note:* For performance reasons, this method actually ends up rebuilding</span>
+<span class="sd">      the list from scratch.  First, we build a temporary dictionary containing</span>
+<span class="sd">      all of the items from the original list.  Then, we remove items as needed</span>
+<span class="sd">      from the dictionary (which is faster than the equivalent operation on a</span>
+<span class="sd">      list).  Finally, we replace the contents of the current list based on the</span>
+<span class="sd">      keys left in the dictionary.  This should be transparent to the caller.</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         digestMap (Map as returned from :any:`generateDigestMap`): Dictionary mapping file name to digest value</span>
+<span class="sd">         captureDigest (Boolean): Indicates that digest information should be captured</span>
+<span class="sd">      Returns:</span>
+<span class="sd">          Results as discussed above (format varies based on arguments)</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="n">captureDigest</span><span class="p">:</span>
+         <span class="n">removed</span> <span class="o">=</span> <span class="mi">0</span>
+         <span class="n">table</span> <span class="o">=</span> <span class="p">{}</span>
+         <span class="n">captured</span> <span class="o">=</span> <span class="p">{}</span>
+         <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">islink</span><span class="p">(</span><span class="n">entry</span><span class="p">):</span>
+               <span class="n">table</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span> <span class="o">=</span> <span class="n">BackupFileList</span><span class="o">.</span><span class="n">_generateDigest</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+               <span class="n">captured</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span> <span class="o">=</span> <span class="n">table</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+               <span class="n">table</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+         <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">digestMap</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="k">if</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">table</span><span class="p">:</span>
+               <span class="k">if</span> <span class="n">table</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># equivalent to file/link check in other case</span>
+                  <span class="n">digest</span> <span class="o">=</span> <span class="n">table</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span>
+                  <span class="k">if</span> <span class="n">digest</span> <span class="o">==</span> <span class="n">digestMap</span><span class="p">[</span><span class="n">entry</span><span class="p">]:</span>
+                     <span class="n">removed</span> <span class="o">+=</span> <span class="mi">1</span>
+                     <span class="k">del</span> <span class="n">table</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span>
+                     <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Discarded unchanged file [</span><span class="si">%s</span><span class="s2">].&quot;</span><span class="p">,</span> <span class="n">entry</span><span class="p">)</span>
+         <span class="bp">self</span><span class="p">[:]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+         <span class="k">return</span> <span class="p">(</span><span class="n">removed</span><span class="p">,</span> <span class="n">captured</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="n">removed</span> <span class="o">=</span> <span class="mi">0</span>
+         <span class="n">table</span> <span class="o">=</span> <span class="p">{}</span>
+         <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="n">table</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+         <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">digestMap</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="k">if</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">table</span><span class="p">:</span>
+               <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">islink</span><span class="p">(</span><span class="n">entry</span><span class="p">):</span>
+                  <span class="n">digest</span> <span class="o">=</span> <span class="n">BackupFileList</span><span class="o">.</span><span class="n">_generateDigest</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+                  <span class="k">if</span> <span class="n">digest</span> <span class="o">==</span> <span class="n">digestMap</span><span class="p">[</span><span class="n">entry</span><span class="p">]:</span>
+                     <span class="n">removed</span> <span class="o">+=</span> <span class="mi">1</span>
+                     <span class="k">del</span> <span class="n">table</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span>
+                     <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Discarded unchanged file [</span><span class="si">%s</span><span class="s2">].&quot;</span><span class="p">,</span> <span class="n">entry</span><span class="p">)</span>
+         <span class="bp">self</span><span class="p">[:]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+         <span class="k">return</span> <span class="n">removed</span></div></div>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># PurgeItemList class definition</span>
+<span class="c1">########################################################################</span>
+
+<div class="viewcode-block" id="PurgeItemList"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.filesystem.PurgeItemList">[docs]</a><span class="k">class</span> <span class="nc">PurgeItemList</span><span class="p">(</span><span class="n">FilesystemList</span><span class="p">):</span> <span class="c1"># pylint: disable=R0904</span>
+
+   <span class="c1">######################</span>
+   <span class="c1"># Class documentation</span>
+   <span class="c1">######################</span>
+
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   List of files and directories to be purged.</span>
+
+<span class="sd">   A PurgeItemList is a :any:`FilesystemList` containing a list of files and</span>
+<span class="sd">   directories to be purged.  On top of the generic functionality provided by</span>
+<span class="sd">   :any:`FilesystemList`, this class adds functionality to remove items that are</span>
+<span class="sd">   too young to be purged, and to actually remove each item in the list from</span>
+<span class="sd">   the filesystem.</span>
+
+<span class="sd">   The other main difference is that when you add a directory&#39;s contents to a</span>
+<span class="sd">   purge item list, the directory itself is not added to the list.  This way,</span>
+<span class="sd">   if someone asks to purge within in ``/opt/backup/collect``, that directory</span>
+<span class="sd">   doesn&#39;t get removed once all of the files within it is gone.</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+
+   <span class="c1">##############</span>
+   <span class="c1"># Constructor</span>
+   <span class="c1">##############</span>
+
+<div class="viewcode-block" id="PurgeItemList.__init__"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.filesystem.PurgeItemList.__init__">[docs]</a>   <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;Initializes a list with no configured exclusions.&quot;&quot;&quot;</span>
+      <span class="n">FilesystemList</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+
+   <span class="c1">##############</span>
+   <span class="c1"># Add methods</span>
+   <span class="c1">##############</span>
+
+<div class="viewcode-block" id="PurgeItemList.addDirContents"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.filesystem.PurgeItemList.addDirContents">[docs]</a>   <span class="k">def</span> <span class="nf">addDirContents</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">addSelf</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">linkDepth</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dereference</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Adds the contents of a directory to the list.</span>
+
+<span class="sd">      The path must exist and must be a directory or a link to a directory.</span>
+<span class="sd">      The contents of the directory (but *not* the directory path itself) will</span>
+<span class="sd">      be recursively added to the list, subject to any exclusions that are in</span>
+<span class="sd">      place.  If you only want the directory and its contents to be added, then</span>
+<span class="sd">      pass in ``recursive=False``.</span>
+
+<span class="sd">      *Note:* If a directory&#39;s absolute path matches an exclude pattern or path,</span>
+<span class="sd">      or if the directory contains the configured ignore file, then the</span>
+<span class="sd">      directory and all of its contents will be recursively excluded from the</span>
+<span class="sd">      list.</span>
+
+<span class="sd">      *Note:* If the passed-in directory happens to be a soft link, it will be</span>
+<span class="sd">      recursed.  However, the linkDepth parameter controls whether any soft</span>
+<span class="sd">      links *within* the directory will be recursed.  The link depth is</span>
+<span class="sd">      maximum depth of the tree at which soft links should be followed.  So, a</span>
+<span class="sd">      depth of 0 does not follow any soft links, a depth of 1 follows only</span>
+<span class="sd">      links within the passed-in directory, a depth of 2 follows the links at</span>
+<span class="sd">      the next level down, etc.</span>
+
+<span class="sd">      *Note:* Any invalid soft links (i.e.  soft links that point to</span>
+<span class="sd">      non-existent items) will be silently ignored.</span>
+
+<span class="sd">      *Note:* The :any:`excludeDirs` flag only controls whether any given soft link</span>
+<span class="sd">      path itself is added to the list once it has been discovered.  It does</span>
+<span class="sd">      *not* modify any behavior related to directory recursion.</span>
+
+<span class="sd">      *Note:* The :any:`excludeDirs` flag only controls whether any given directory</span>
+<span class="sd">      path itself is added to the list once it has been discovered.  It does</span>
+<span class="sd">      *not* modify any behavior related to directory recursion.</span>
+
+<span class="sd">      *Note:* If you call this method *on a link to a directory* that link will</span>
+<span class="sd">      never be dereferenced (it may, however, be followed).</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         path (String representing a path on disk): Directory path whose contents should be added to the list</span>
+<span class="sd">         recursive (Boolean value): Indicates whether directory contents should be added recursively</span>
+<span class="sd">         addSelf: Ignored in this subclass</span>
+
+<span class="sd">         linkDepth (Integer value, where zero means not to follow any soft links): Depth of soft links that should be followed</span>
+<span class="sd">         dereference (Boolean value): Indicates whether soft links, if followed, should be dereferenced</span>
+<span class="sd">      Returns:</span>
+<span class="sd">          Number of items recursively added to the list</span>
+
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If path is not a directory or does not exist</span>
+<span class="sd">         ValueError: If the path could not be encoded properly</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="n">path</span> <span class="o">=</span> <span class="n">encodePath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+      <span class="n">path</span> <span class="o">=</span> <span class="n">normalizeDir</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+      <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">PurgeItemList</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_addDirContentsInternal</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">recursive</span><span class="p">,</span> <span class="n">linkDepth</span><span class="p">,</span> <span class="n">dereference</span><span class="p">)</span></div>
+
+
+   <span class="c1">##################</span>
+   <span class="c1"># Utility methods</span>
+   <span class="c1">##################</span>
+
+<div class="viewcode-block" id="PurgeItemList.removeYoungFiles"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.filesystem.PurgeItemList.removeYoungFiles">[docs]</a>   <span class="k">def</span> <span class="nf">removeYoungFiles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">daysOld</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Removes from the list files younger than a certain age (in days).</span>
+
+<span class="sd">      Any file whose &quot;age&quot; in days is less than (``&lt;``) the value of the</span>
+<span class="sd">      ``daysOld`` parameter will be removed from the list so that it will not be</span>
+<span class="sd">      purged later when :any:`purgeItems` is called.  Directories and soft links</span>
+<span class="sd">      will be ignored.</span>
+
+<span class="sd">      The &quot;age&quot; of a file is the amount of time since the file was last used,</span>
+<span class="sd">      per the most recent of the file&#39;s ``st_atime`` and ``st_mtime`` values.</span>
+
+<span class="sd">      *Note:* Some people find the &quot;sense&quot; of this method confusing or</span>
+<span class="sd">      &quot;backwards&quot;.  Keep in mind that this method is used to remove items</span>
+<span class="sd">      *from the list*, not from the filesystem!  It removes from the list</span>
+<span class="sd">      those items that you would *not* want to purge because they are too</span>
+<span class="sd">      young.  As an example, passing in ``daysOld`` of zero (0) would remove</span>
+<span class="sd">      from the list no files, which would result in purging all of the files</span>
+<span class="sd">      later.  I would be happy to make a synonym of this method with an</span>
+<span class="sd">      easier-to-understand &quot;sense&quot;, if someone can suggest one.</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         daysOld (Integer value &gt;= 0): Minimum age of files that are to be kept in the list</span>
+<span class="sd">      Returns:</span>
+<span class="sd">          Number of entries removed</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="n">removed</span> <span class="o">=</span> <span class="mi">0</span>
+      <span class="n">daysOld</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">daysOld</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">daysOld</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Days old value must be an integer &gt;= 0.&quot;</span><span class="p">)</span>
+      <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">[:]:</span>
+         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">islink</span><span class="p">(</span><span class="n">entry</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+               <span class="n">ageInDays</span> <span class="o">=</span> <span class="n">calculateFileAge</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+               <span class="n">ageInWholeDays</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">ageInDays</span><span class="p">)</span>
+               <span class="k">if</span> <span class="n">ageInWholeDays</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span> <span class="n">ageInWholeDays</span> <span class="o">=</span> <span class="mi">0</span>
+               <span class="k">if</span> <span class="n">ageInWholeDays</span> <span class="o">&lt;</span> <span class="n">daysOld</span><span class="p">:</span>
+                  <span class="n">removed</span> <span class="o">+=</span> <span class="mi">1</span>
+                  <span class="bp">self</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+               <span class="k">pass</span>
+      <span class="k">return</span> <span class="n">removed</span></div>
+
+<div class="viewcode-block" id="PurgeItemList.purgeItems"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.filesystem.PurgeItemList.purgeItems">[docs]</a>   <span class="k">def</span> <span class="nf">purgeItems</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Purges all items in the list.</span>
+
+<span class="sd">      Every item in the list will be purged.  Directories in the list will</span>
+<span class="sd">      *not* be purged recursively, and hence will only be removed if they are</span>
+<span class="sd">      empty.  Errors will be ignored.</span>
+
+<span class="sd">      To faciliate easy removal of directories that will end up being empty,</span>
+<span class="sd">      the delete process happens in two passes: files first (including soft</span>
+<span class="sd">      links), then directories.</span>
+
+<span class="sd">      Returns:</span>
+<span class="sd">          Tuple containing count of (files, dirs) removed</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="n">files</span> <span class="o">=</span> <span class="mi">0</span>
+      <span class="n">dirs</span> <span class="o">=</span> <span class="mi">0</span>
+      <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">islink</span><span class="p">(</span><span class="n">entry</span><span class="p">)):</span>
+            <span class="k">try</span><span class="p">:</span>
+               <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+               <span class="n">files</span> <span class="o">+=</span> <span class="mi">1</span>
+               <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Purged file [</span><span class="si">%s</span><span class="s2">].&quot;</span><span class="p">,</span> <span class="n">entry</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+               <span class="k">pass</span>
+      <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">islink</span><span class="p">(</span><span class="n">entry</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+               <span class="n">os</span><span class="o">.</span><span class="n">rmdir</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+               <span class="n">dirs</span> <span class="o">+=</span> <span class="mi">1</span>
+               <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Purged empty directory [</span><span class="si">%s</span><span class="s2">].&quot;</span><span class="p">,</span> <span class="n">entry</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+               <span class="k">pass</span>
+      <span class="k">return</span> <span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">dirs</span><span class="p">)</span></div></div>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Public functions</span>
+<span class="c1">########################################################################</span>
+
+<span class="c1">##########################</span>
+<span class="c1"># normalizeDir() function</span>
+<span class="c1">##########################</span>
+
+<div class="viewcode-block" id="normalizeDir"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.filesystem.normalizeDir">[docs]</a><span class="k">def</span> <span class="nf">normalizeDir</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Normalizes a directory name.</span>
+
+<span class="sd">   For our purposes, a directory name is normalized by removing the trailing</span>
+<span class="sd">   path separator, if any.  This is important because we want directories to</span>
+<span class="sd">   appear within lists in a consistent way, although from the user&#39;s</span>
+<span class="sd">   perspective passing in ``/path/to/dir/`` and ``/path/to/dir`` are equivalent.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      path (String representing a path on disk): Path to be normalized</span>
+<span class="sd">   Returns:</span>
+<span class="sd">       Normalized path, which should be equivalent to the original</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="k">if</span> <span class="n">path</span> <span class="o">!=</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="ow">and</span> <span class="n">path</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">:]</span> <span class="o">==</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">:</span>
+      <span class="k">return</span> <span class="n">path</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+   <span class="k">return</span> <span class="n">path</span></div>
+
+
+<span class="c1">#############################</span>
+<span class="c1"># compareContents() function</span>
+<span class="c1">#############################</span>
+
+<div class="viewcode-block" id="compareContents"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.filesystem.compareContents">[docs]</a><span class="k">def</span> <span class="nf">compareContents</span><span class="p">(</span><span class="n">path1</span><span class="p">,</span> <span class="n">path2</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Compares the contents of two directories to see if they are equivalent.</span>
+
+<span class="sd">   The two directories are recursively compared.  First, we check whether they</span>
+<span class="sd">   contain exactly the same set of files.  Then, we check to see every given</span>
+<span class="sd">   file has exactly the same contents in both directories.</span>
+
+<span class="sd">   This is all relatively simple to implement through the magic of</span>
+<span class="sd">   :any:`BackupFileList.generateDigestMap`, which knows how to strip a path prefix</span>
+<span class="sd">   off the front of each entry in the mapping it generates.  This makes our</span>
+<span class="sd">   comparison as simple as creating a list for each path, then generating a</span>
+<span class="sd">   digest map for each path and comparing the two.</span>
+
+<span class="sd">   If no exception is thrown, the two directories are considered identical.</span>
+
+<span class="sd">   If the ``verbose`` flag is ``True``, then an alternate (but slower) method is</span>
+<span class="sd">   used so that any thrown exception can indicate exactly which file caused the</span>
+<span class="sd">   comparison to fail.  The thrown ``ValueError`` exception distinguishes</span>
+<span class="sd">   between the directories containing different files, and containing the same</span>
+<span class="sd">   files with differing content.</span>
+
+<span class="sd">   *Note:* Symlinks are *not* followed for the purposes of this comparison.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      path1 (String representing a path on disk): First path to compare</span>
+<span class="sd">      path2 (String representing a path on disk): First path to compare</span>
+<span class="sd">      verbose (Boolean): Indicates whether a verbose response should be given</span>
+<span class="sd">   Raises:</span>
+<span class="sd">      ValueError: If a directory doesn&#39;t exist or can&#39;t be read</span>
+<span class="sd">      ValueError: If the two directories are not equivalent</span>
+<span class="sd">      IOError: If there is an unusual problem reading the directories</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="k">try</span><span class="p">:</span>
+      <span class="n">path1List</span> <span class="o">=</span> <span class="n">BackupFileList</span><span class="p">()</span>
+      <span class="n">path1List</span><span class="o">.</span><span class="n">addDirContents</span><span class="p">(</span><span class="n">path1</span><span class="p">)</span>
+      <span class="n">path1Digest</span> <span class="o">=</span> <span class="n">path1List</span><span class="o">.</span><span class="n">generateDigestMap</span><span class="p">(</span><span class="n">stripPrefix</span><span class="o">=</span><span class="n">normalizeDir</span><span class="p">(</span><span class="n">path1</span><span class="p">))</span>
+      <span class="n">path2List</span> <span class="o">=</span> <span class="n">BackupFileList</span><span class="p">()</span>
+      <span class="n">path2List</span><span class="o">.</span><span class="n">addDirContents</span><span class="p">(</span><span class="n">path2</span><span class="p">)</span>
+      <span class="n">path2Digest</span> <span class="o">=</span> <span class="n">path2List</span><span class="o">.</span><span class="n">generateDigestMap</span><span class="p">(</span><span class="n">stripPrefix</span><span class="o">=</span><span class="n">normalizeDir</span><span class="p">(</span><span class="n">path2</span><span class="p">))</span>
+      <span class="n">compareDigestMaps</span><span class="p">(</span><span class="n">path1Digest</span><span class="p">,</span> <span class="n">path2Digest</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+   <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;I/O error encountered during consistency check.&quot;</span><span class="p">)</span>
+      <span class="k">raise</span> <span class="n">e</span></div>
+
+<div class="viewcode-block" id="compareDigestMaps"><a class="viewcode-back" href="../../CedarBackup3.html#CedarBackup3.filesystem.compareDigestMaps">[docs]</a><span class="k">def</span> <span class="nf">compareDigestMaps</span><span class="p">(</span><span class="n">digest1</span><span class="p">,</span> <span class="n">digest2</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Compares two digest maps and throws an exception if they differ.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      digest1 (Digest as returned from BackupFileList.generateDigestMap()): First digest to compare</span>
+<span class="sd">      digest2 (Digest as returned from BackupFileList.generateDigestMap()): Second digest to compare</span>
+<span class="sd">      verbose (Boolean): Indicates whether a verbose response should be given</span>
+<span class="sd">   Raises:</span>
+<span class="sd">      ValueError: If the two directories are not equivalent</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="k">if</span> <span class="ow">not</span> <span class="n">verbose</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">digest1</span> <span class="o">!=</span> <span class="n">digest2</span><span class="p">:</span>
+         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Consistency check failed.&quot;</span><span class="p">)</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="n">list1</span> <span class="o">=</span> <span class="n">UnorderedList</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">digest1</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+      <span class="n">list2</span> <span class="o">=</span> <span class="n">UnorderedList</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">digest2</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+      <span class="k">if</span> <span class="n">list1</span> <span class="o">!=</span> <span class="n">list2</span><span class="p">:</span>
+         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Directories contain a different set of files.&quot;</span><span class="p">)</span>
+      <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">list1</span><span class="p">:</span>
+         <span class="k">if</span> <span class="n">digest1</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">!=</span> <span class="n">digest2</span><span class="p">[</span><span class="n">key</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;File contents for [</span><span class="si">%s</span><span class="s2">] vary between directories.&quot;</span> <span class="o">%</span> <span class="n">key</span><span class="p">)</span></div>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Cedar Backup v3  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright .
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.9.
+    </div>
+  </body>
+</html>

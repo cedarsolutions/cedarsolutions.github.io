@@ -1,0 +1,961 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>CedarBackup3.extend.amazons3 &#8212; Cedar Backup v3  documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="Cedar Backup v3  documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Cedar Backup v3  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for CedarBackup3.extend.amazons3</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: iso-8859-1 -*-</span>
+<span class="c1"># vim: set ft=python ts=3 sw=3 expandtab:</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+<span class="c1">#</span>
+<span class="c1">#              C E D A R</span>
+<span class="c1">#          S O L U T I O N S       &quot;Software done right.&quot;</span>
+<span class="c1">#           S O F T W A R E</span>
+<span class="c1">#</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright (c) 2014-2015 Kenneth J. Pronovici.</span>
+<span class="c1"># All rights reserved.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is free software; you can redistribute it and/or</span>
+<span class="c1"># modify it under the terms of the GNU General Public License,</span>
+<span class="c1"># Version 2, as published by the Free Software Foundation.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</span>
+<span class="c1">#</span>
+<span class="c1"># Copies of the GNU General Public License are available from</span>
+<span class="c1"># the Free Software Foundation website, http://www.gnu.org/.</span>
+<span class="c1">#</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+<span class="c1">#</span>
+<span class="c1"># Author   : Kenneth J. Pronovici &lt;pronovic@ieee.org&gt;</span>
+<span class="c1"># Language : Python 3 (&gt;= 3.4)</span>
+<span class="c1"># Project  : Official Cedar Backup Extensions</span>
+<span class="c1"># Purpose  : &quot;Store&quot; type extension that writes data to Amazon S3.</span>
+<span class="c1">#</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Module documentation</span>
+<span class="c1">########################################################################</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Store-type extension that writes data to Amazon S3.</span>
+
+<span class="sd">This extension requires a new configuration section &lt;amazons3&gt; and is intended</span>
+<span class="sd">to be run immediately after the standard stage action, replacing the standard</span>
+<span class="sd">store action.  Aside from its own configuration, it requires the options and</span>
+<span class="sd">staging configuration sections in the standard Cedar Backup configuration file.</span>
+<span class="sd">Since it is intended to replace the store action, it does not rely on any store</span>
+<span class="sd">configuration.</span>
+
+<span class="sd">The underlying functionality relies on the U{AWS CLI interface</span>
+<span class="sd">&lt;http://aws.amazon.com/documentation/cli/&gt;}.  Before you use this extension,</span>
+<span class="sd">you need to set up your Amazon S3 account and configure the AWS CLI connection</span>
+<span class="sd">per Amazon&#39;s documentation.  The extension assumes that the backup is being</span>
+<span class="sd">executed as root, and switches over to the configured backup user to</span>
+<span class="sd">communicate with AWS.  So, make sure you configure AWS CLI as the backup user</span>
+<span class="sd">and not root.</span>
+
+<span class="sd">You can optionally configure Cedar Backup to encrypt data before sending it</span>
+<span class="sd">to S3.  To do that, provide a complete command line using the ``${input``} and</span>
+<span class="sd">``${output``} variables to represent the original input file and the encrypted</span>
+<span class="sd">output file.  This command will be executed as the backup user.</span>
+
+<span class="sd">For instance, you can use something like this with GPG::</span>
+
+<span class="sd">   /usr/bin/gpg -c --no-use-agent --batch --yes --passphrase-file /home/backup/.passphrase -o ${output} ${input}</span>
+
+<span class="sd">The GPG mechanism depends on a strong passphrase for security.  One way to</span>
+<span class="sd">generate a strong passphrase is using your system random number generator, i.e.::</span>
+
+<span class="sd">   dd if=/dev/urandom count=20 bs=1 | xxd -ps</span>
+
+<span class="sd">(See U{StackExchange &lt;http://security.stackexchange.com/questions/14867/gpg-encryption-security&gt;}</span>
+<span class="sd">for more details about that advice.) If you decide to use encryption, make sure</span>
+<span class="sd">you save off the passphrase in a safe place, so you can get at your backup data</span>
+<span class="sd">later if you need to.  And obviously, make sure to set permissions on the</span>
+<span class="sd">passphrase file so it can only be read by the backup user.</span>
+
+<span class="sd">This extension was written for and tested on Linux.  It will throw an exception</span>
+<span class="sd">if run on Windows.</span>
+
+<span class="sd">:author: Kenneth J. Pronovici &lt;pronovic@ieee.org&gt;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Imported modules</span>
+<span class="c1">########################################################################</span>
+
+<span class="c1"># System modules</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">total_ordering</span>
+
+<span class="c1"># Cedar Backup modules</span>
+<span class="kn">from</span> <span class="nn">CedarBackup3.filesystem</span> <span class="k">import</span> <span class="n">FilesystemList</span><span class="p">,</span> <span class="n">BackupFileList</span>
+<span class="kn">from</span> <span class="nn">CedarBackup3.util</span> <span class="k">import</span> <span class="n">resolveCommand</span><span class="p">,</span> <span class="n">executeCommand</span><span class="p">,</span> <span class="n">isRunningAsRoot</span><span class="p">,</span> <span class="n">changeOwnership</span><span class="p">,</span> <span class="n">isStartOfWeek</span>
+<span class="kn">from</span> <span class="nn">CedarBackup3.util</span> <span class="k">import</span> <span class="n">displayBytes</span><span class="p">,</span> <span class="n">UNIT_BYTES</span>
+<span class="kn">from</span> <span class="nn">CedarBackup3.xmlutil</span> <span class="k">import</span> <span class="n">createInputDom</span><span class="p">,</span> <span class="n">addContainerNode</span><span class="p">,</span> <span class="n">addBooleanNode</span><span class="p">,</span> <span class="n">addStringNode</span>
+<span class="kn">from</span> <span class="nn">CedarBackup3.xmlutil</span> <span class="k">import</span> <span class="n">readFirstChild</span><span class="p">,</span> <span class="n">readString</span><span class="p">,</span> <span class="n">readBoolean</span>
+<span class="kn">from</span> <span class="nn">CedarBackup3.actions.util</span> <span class="k">import</span> <span class="n">writeIndicatorFile</span>
+<span class="kn">from</span> <span class="nn">CedarBackup3.actions.constants</span> <span class="k">import</span> <span class="n">DIR_TIME_FORMAT</span><span class="p">,</span> <span class="n">STAGE_INDICATOR</span>
+<span class="kn">from</span> <span class="nn">CedarBackup3.config</span> <span class="k">import</span> <span class="n">ByteQuantity</span><span class="p">,</span> <span class="n">readByteQuantity</span><span class="p">,</span> <span class="n">addByteQuantityNode</span>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Module-wide constants and variables</span>
+<span class="c1">########################################################################</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;CedarBackup3.log.extend.amazons3&quot;</span><span class="p">)</span>
+
+<span class="n">SU_COMMAND</span>    <span class="o">=</span> <span class="p">[</span> <span class="s2">&quot;su&quot;</span> <span class="p">]</span>
+<span class="n">AWS_COMMAND</span>   <span class="o">=</span> <span class="p">[</span> <span class="s2">&quot;aws&quot;</span> <span class="p">]</span>
+
+<span class="n">STORE_INDICATOR</span> <span class="o">=</span> <span class="s2">&quot;cback.amazons3&quot;</span>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># AmazonS3Config class definition</span>
+<span class="c1">########################################################################</span>
+
+<span class="nd">@total_ordering</span>
+<div class="viewcode-block" id="AmazonS3Config"><a class="viewcode-back" href="../../../CedarBackup3.extend.html#CedarBackup3.extend.amazons3.AmazonS3Config">[docs]</a><span class="k">class</span> <span class="nc">AmazonS3Config</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Class representing Amazon S3 configuration.</span>
+
+<span class="sd">   Amazon S3 configuration is used for storing backup data in Amazon&#39;s S3 cloud</span>
+<span class="sd">   storage using the ``s3cmd`` tool.</span>
+
+<span class="sd">   The following restrictions exist on data in this class:</span>
+
+<span class="sd">      - The s3Bucket value must be a non-empty string</span>
+<span class="sd">      - The encryptCommand value, if set, must be a non-empty string</span>
+<span class="sd">      - The full backup size limit, if set, must be a ByteQuantity &gt;= 0</span>
+<span class="sd">      - The incremental backup size limit, if set, must be a ByteQuantity &gt;= 0</span>
+
+<span class="sd">   &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="AmazonS3Config.__init__"><a class="viewcode-back" href="../../../CedarBackup3.extend.html#CedarBackup3.extend.amazons3.AmazonS3Config.__init__">[docs]</a>   <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">warnMidnite</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">s3Bucket</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">encryptCommand</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">fullBackupSizeLimit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">incrementalBackupSizeLimit</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Constructor for the ``AmazonS3Config`` class.</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         warnMidnite: Whether to generate warnings for crossing midnite</span>
+<span class="sd">         s3Bucket: Name of the Amazon S3 bucket in which to store the data</span>
+<span class="sd">         encryptCommand: Command used to encrypt backup data before upload to S3</span>
+<span class="sd">         fullBackupSizeLimit: Maximum size of a full backup, a ByteQuantity</span>
+<span class="sd">         incrementalBackupSizeLimit: Maximum size of an incremental backup, a ByteQuantity</span>
+
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If one of the values is invalid</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_warnMidnite</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_s3Bucket</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_encryptCommand</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_fullBackupSizeLimit</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_incrementalBackupSizeLimit</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">warnMidnite</span> <span class="o">=</span> <span class="n">warnMidnite</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">s3Bucket</span> <span class="o">=</span> <span class="n">s3Bucket</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">encryptCommand</span> <span class="o">=</span> <span class="n">encryptCommand</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">fullBackupSizeLimit</span> <span class="o">=</span> <span class="n">fullBackupSizeLimit</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">incrementalBackupSizeLimit</span> <span class="o">=</span> <span class="n">incrementalBackupSizeLimit</span></div>
+
+   <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Official string representation for class instance.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="s2">&quot;AmazonS3Config(</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">warnMidnite</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">s3Bucket</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">encryptCommand</span><span class="p">,</span>
+                                                     <span class="bp">self</span><span class="o">.</span><span class="n">fullBackupSizeLimit</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">incrementalBackupSizeLimit</span><span class="p">)</span>
+
+   <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Informal string representation for class instance.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
+
+   <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;Equals operator, iplemented in terms of original Python 2 compare operator.&quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cmp__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+
+   <span class="k">def</span> <span class="nf">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;Less-than operator, iplemented in terms of original Python 2 compare operator.&quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cmp__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span>
+
+   <span class="k">def</span> <span class="nf">__gt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;Greater-than operator, iplemented in terms of original Python 2 compare operator.&quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cmp__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+
+   <span class="k">def</span> <span class="nf">__cmp__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Original Python 2 comparison operator.</span>
+<span class="sd">      Args:</span>
+<span class="sd">         other: Other object to compare to</span>
+<span class="sd">      Returns:</span>
+<span class="sd">          -1/0/1 depending on whether self is ``&lt;``, ``=`` or ``&gt;`` other</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="n">other</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">return</span> <span class="mi">1</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">warnMidnite</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">warnMidnite</span><span class="p">:</span>
+         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">warnMidnite</span> <span class="o">&lt;</span> <span class="n">other</span><span class="o">.</span><span class="n">warnMidnite</span><span class="p">:</span>
+            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+         <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">1</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">s3Bucket</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">s3Bucket</span><span class="p">:</span>
+         <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">s3Bucket</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">str</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">s3Bucket</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+         <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">1</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">encryptCommand</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">encryptCommand</span><span class="p">:</span>
+         <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">encryptCommand</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">str</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">encryptCommand</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+         <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">1</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fullBackupSizeLimit</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">fullBackupSizeLimit</span><span class="p">:</span>
+         <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fullBackupSizeLimit</span> <span class="ow">or</span> <span class="n">ByteQuantity</span><span class="p">())</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">fullBackupSizeLimit</span> <span class="ow">or</span> <span class="n">ByteQuantity</span><span class="p">()):</span>
+            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+         <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">1</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">incrementalBackupSizeLimit</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">incrementalBackupSizeLimit</span><span class="p">:</span>
+         <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">incrementalBackupSizeLimit</span> <span class="ow">or</span> <span class="n">ByteQuantity</span><span class="p">())</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">incrementalBackupSizeLimit</span> <span class="ow">or</span> <span class="n">ByteQuantity</span><span class="p">()):</span>
+            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+         <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">1</span>
+      <span class="k">return</span> <span class="mi">0</span>
+
+   <span class="k">def</span> <span class="nf">_setWarnMidnite</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to set the midnite warning flag.</span>
+<span class="sd">      No validations, but we normalize the value to ``True`` or ``False``.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">_warnMidnite</span> <span class="o">=</span> <span class="kc">True</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">_warnMidnite</span> <span class="o">=</span> <span class="kc">False</span>
+
+   <span class="k">def</span> <span class="nf">_getWarnMidnite</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to get the midnite warning flag.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_warnMidnite</span>
+
+   <span class="k">def</span> <span class="nf">_setS3Bucket</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to set the S3 bucket.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;S3 bucket must be non-empty string.&quot;</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_s3Bucket</span> <span class="o">=</span> <span class="n">value</span>
+
+   <span class="k">def</span> <span class="nf">_getS3Bucket</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to get the S3 bucket.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_s3Bucket</span>
+
+   <span class="k">def</span> <span class="nf">_setEncryptCommand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to set the encrypt command.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Encrypt command must be non-empty string.&quot;</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_encryptCommand</span> <span class="o">=</span> <span class="n">value</span>
+
+   <span class="k">def</span> <span class="nf">_getEncryptCommand</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to get the encrypt command.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_encryptCommand</span>
+
+   <span class="k">def</span> <span class="nf">_setFullBackupSizeLimit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to set the full backup size limit.</span>
+<span class="sd">      The value must be an integer &gt;= 0.</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If the value is not valid</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">_fullBackupSizeLimit</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">ByteQuantity</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fullBackupSizeLimit</span> <span class="o">=</span> <span class="n">value</span>
+         <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fullBackupSizeLimit</span> <span class="o">=</span> <span class="n">ByteQuantity</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">UNIT_BYTES</span><span class="p">)</span>
+
+   <span class="k">def</span> <span class="nf">_getFullBackupSizeLimit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to get the full backup size limit.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fullBackupSizeLimit</span>
+
+   <span class="k">def</span> <span class="nf">_setIncrementalBackupSizeLimit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to set the incremental backup size limit.</span>
+<span class="sd">      The value must be an integer &gt;= 0.</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If the value is not valid</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">_incrementalBackupSizeLimit</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">ByteQuantity</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_incrementalBackupSizeLimit</span> <span class="o">=</span> <span class="n">value</span>
+         <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_incrementalBackupSizeLimit</span> <span class="o">=</span> <span class="n">ByteQuantity</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">UNIT_BYTES</span><span class="p">)</span>
+
+   <span class="k">def</span> <span class="nf">_getIncrementalBackupSizeLimit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to get the incremental backup size limit.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_incrementalBackupSizeLimit</span>
+
+   <span class="n">warnMidnite</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_getWarnMidnite</span><span class="p">,</span> <span class="n">_setWarnMidnite</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Whether to generate warnings for crossing midnite.&quot;</span><span class="p">)</span>
+   <span class="n">s3Bucket</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_getS3Bucket</span><span class="p">,</span> <span class="n">_setS3Bucket</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Amazon S3 Bucket in which to store data&quot;</span><span class="p">)</span>
+   <span class="n">encryptCommand</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_getEncryptCommand</span><span class="p">,</span> <span class="n">_setEncryptCommand</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Command used to encrypt data before upload to S3&quot;</span><span class="p">)</span>
+   <span class="n">fullBackupSizeLimit</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_getFullBackupSizeLimit</span><span class="p">,</span> <span class="n">_setFullBackupSizeLimit</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                                  <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Maximum size of a full backup, as a ByteQuantity&quot;</span><span class="p">)</span>
+   <span class="n">incrementalBackupSizeLimit</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_getIncrementalBackupSizeLimit</span><span class="p">,</span> <span class="n">_setIncrementalBackupSizeLimit</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                                         <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Maximum size of an incremental backup, as a ByteQuantity&quot;</span><span class="p">)</span></div>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># LocalConfig class definition</span>
+<span class="c1">########################################################################</span>
+
+<span class="nd">@total_ordering</span>
+<div class="viewcode-block" id="LocalConfig"><a class="viewcode-back" href="../../../CedarBackup3.extend.html#CedarBackup3.extend.amazons3.LocalConfig">[docs]</a><span class="k">class</span> <span class="nc">LocalConfig</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Class representing this extension&#39;s configuration document.</span>
+
+<span class="sd">   This is not a general-purpose configuration object like the main Cedar</span>
+<span class="sd">   Backup configuration object.  Instead, it just knows how to parse and emit</span>
+<span class="sd">   amazons3-specific configuration values.  Third parties who need to read and</span>
+<span class="sd">   write configuration related to this extension should access it through the</span>
+<span class="sd">   constructor, ``validate`` and ``addConfig`` methods.</span>
+
+<span class="sd">   *Note:* Lists within this class are &quot;unordered&quot; for equality comparisons.</span>
+
+<span class="sd">   &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="LocalConfig.__init__"><a class="viewcode-back" href="../../../CedarBackup3.extend.html#CedarBackup3.extend.amazons3.LocalConfig.__init__">[docs]</a>   <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xmlData</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xmlPath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">validate</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Initializes a configuration object.</span>
+
+<span class="sd">      If you initialize the object without passing either ``xmlData`` or</span>
+<span class="sd">      ``xmlPath`` then configuration will be empty and will be invalid until it</span>
+<span class="sd">      is filled in properly.</span>
+
+<span class="sd">      No reference to the original XML data or original path is saved off by</span>
+<span class="sd">      this class.  Once the data has been parsed (successfully or not) this</span>
+<span class="sd">      original information is discarded.</span>
+
+<span class="sd">      Unless the ``validate`` argument is ``False``, the :any:`LocalConfig.validate`</span>
+<span class="sd">      method will be called (with its default arguments) against configuration</span>
+<span class="sd">      after successfully parsing any passed-in XML.  Keep in mind that even if</span>
+<span class="sd">      ``validate`` is ``False``, it might not be possible to parse the passed-in</span>
+<span class="sd">      XML document if lower-level validations fail.</span>
+
+<span class="sd">      *Note:* It is strongly suggested that the ``validate`` option always be set</span>
+<span class="sd">      to ``True`` (the default) unless there is a specific need to read in</span>
+<span class="sd">      invalid configuration from disk.</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         xmlData (String data): XML data representing configuration</span>
+<span class="sd">         xmlPath (Absolute path to a file on disk): Path to an XML file on disk</span>
+<span class="sd">         validate (Boolean true/false): Validate the document after parsing it</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If both ``xmlData`` and ``xmlPath`` are passed-in</span>
+<span class="sd">         ValueError: If the XML data in ``xmlData`` or ``xmlPath`` cannot be parsed</span>
+<span class="sd">         ValueError: If the parsed configuration document is not valid</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_amazons3</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">amazons3</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="k">if</span> <span class="n">xmlData</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">xmlPath</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Use either xmlData or xmlPath, but not both.&quot;</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">xmlData</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">_parseXmlData</span><span class="p">(</span><span class="n">xmlData</span><span class="p">)</span>
+         <span class="k">if</span> <span class="n">validate</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+      <span class="k">elif</span> <span class="n">xmlPath</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">xmlPath</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">xmlData</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">_parseXmlData</span><span class="p">(</span><span class="n">xmlData</span><span class="p">)</span>
+         <span class="k">if</span> <span class="n">validate</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span></div>
+
+   <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Official string representation for class instance.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="s2">&quot;LocalConfig(</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amazons3</span><span class="p">)</span>
+
+   <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Informal string representation for class instance.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
+
+   <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;Equals operator, iplemented in terms of original Python 2 compare operator.&quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cmp__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+
+   <span class="k">def</span> <span class="nf">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;Less-than operator, iplemented in terms of original Python 2 compare operator.&quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cmp__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span>
+
+   <span class="k">def</span> <span class="nf">__gt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;Greater-than operator, iplemented in terms of original Python 2 compare operator.&quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cmp__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+
+   <span class="k">def</span> <span class="nf">__cmp__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Original Python 2 comparison operator.</span>
+<span class="sd">      Lists within this class are &quot;unordered&quot; for equality comparisons.</span>
+<span class="sd">      Args:</span>
+<span class="sd">         other: Other object to compare to</span>
+<span class="sd">      Returns:</span>
+<span class="sd">          -1/0/1 depending on whether self is ``&lt;``, ``=`` or ``&gt;`` other</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="n">other</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">return</span> <span class="mi">1</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">amazons3</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">amazons3</span><span class="p">:</span>
+         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">amazons3</span> <span class="o">&lt;</span> <span class="n">other</span><span class="o">.</span><span class="n">amazons3</span><span class="p">:</span>
+            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+         <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">1</span>
+      <span class="k">return</span> <span class="mi">0</span>
+
+   <span class="k">def</span> <span class="nf">_setAmazonS3</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to set the amazons3 configuration value.</span>
+<span class="sd">      If not ``None``, the value must be a ``AmazonS3Config`` object.</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If the value is not a ``AmazonS3Config``</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">_amazons3</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">AmazonS3Config</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Value must be a ``AmazonS3Config`` object.&quot;</span><span class="p">)</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">_amazons3</span> <span class="o">=</span> <span class="n">value</span>
+
+   <span class="k">def</span> <span class="nf">_getAmazonS3</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Property target used to get the amazons3 configuration value.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_amazons3</span>
+
+   <span class="n">amazons3</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_getAmazonS3</span><span class="p">,</span> <span class="n">_setAmazonS3</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;AmazonS3 configuration in terms of a ``AmazonS3Config`` object.&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="LocalConfig.validate"><a class="viewcode-back" href="../../../CedarBackup3.extend.html#CedarBackup3.extend.amazons3.LocalConfig.validate">[docs]</a>   <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Validates configuration represented by the object.</span>
+
+<span class="sd">      AmazonS3 configuration must be filled in.  Within that, the s3Bucket target must be filled in</span>
+
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If one of the validations fails</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">amazons3</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;AmazonS3 section is required.&quot;</span><span class="p">)</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">amazons3</span><span class="o">.</span><span class="n">s3Bucket</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;AmazonS3 s3Bucket must be set.&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LocalConfig.addConfig"><a class="viewcode-back" href="../../../CedarBackup3.extend.html#CedarBackup3.extend.amazons3.LocalConfig.addConfig">[docs]</a>   <span class="k">def</span> <span class="nf">addConfig</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xmlDom</span><span class="p">,</span> <span class="n">parentNode</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Adds an &lt;amazons3&gt; configuration section as the next child of a parent.</span>
+
+<span class="sd">      Third parties should use this function to write configuration related to</span>
+<span class="sd">      this extension.</span>
+
+<span class="sd">      We add the following fields to the document::</span>
+
+<span class="sd">         warnMidnite                 //cb_config/amazons3/warn_midnite</span>
+<span class="sd">         s3Bucket                    //cb_config/amazons3/s3_bucket</span>
+<span class="sd">         encryptCommand              //cb_config/amazons3/encrypt</span>
+<span class="sd">         fullBackupSizeLimit         //cb_config/amazons3/full_size_limit</span>
+<span class="sd">         incrementalBackupSizeLimit  //cb_config/amazons3/incr_size_limit</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         xmlDom: DOM tree as from ``impl.createDocument()``</span>
+<span class="sd">         parentNode: Parent that the section should be appended to</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">amazons3</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="n">sectionNode</span> <span class="o">=</span> <span class="n">addContainerNode</span><span class="p">(</span><span class="n">xmlDom</span><span class="p">,</span> <span class="n">parentNode</span><span class="p">,</span> <span class="s2">&quot;amazons3&quot;</span><span class="p">)</span>
+         <span class="n">addBooleanNode</span><span class="p">(</span><span class="n">xmlDom</span><span class="p">,</span> <span class="n">sectionNode</span><span class="p">,</span> <span class="s2">&quot;warn_midnite&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">amazons3</span><span class="o">.</span><span class="n">warnMidnite</span><span class="p">)</span>
+         <span class="n">addStringNode</span><span class="p">(</span><span class="n">xmlDom</span><span class="p">,</span> <span class="n">sectionNode</span><span class="p">,</span> <span class="s2">&quot;s3_bucket&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">amazons3</span><span class="o">.</span><span class="n">s3Bucket</span><span class="p">)</span>
+         <span class="n">addStringNode</span><span class="p">(</span><span class="n">xmlDom</span><span class="p">,</span> <span class="n">sectionNode</span><span class="p">,</span> <span class="s2">&quot;encrypt&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">amazons3</span><span class="o">.</span><span class="n">encryptCommand</span><span class="p">)</span>
+         <span class="n">addByteQuantityNode</span><span class="p">(</span><span class="n">xmlDom</span><span class="p">,</span> <span class="n">sectionNode</span><span class="p">,</span> <span class="s2">&quot;full_size_limit&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">amazons3</span><span class="o">.</span><span class="n">fullBackupSizeLimit</span><span class="p">)</span>
+         <span class="n">addByteQuantityNode</span><span class="p">(</span><span class="n">xmlDom</span><span class="p">,</span> <span class="n">sectionNode</span><span class="p">,</span> <span class="s2">&quot;incr_size_limit&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">amazons3</span><span class="o">.</span><span class="n">incrementalBackupSizeLimit</span><span class="p">)</span></div>
+
+   <span class="k">def</span> <span class="nf">_parseXmlData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xmlData</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Internal method to parse an XML string into the object.</span>
+
+<span class="sd">      This method parses the XML document into a DOM tree (``xmlDom``) and then</span>
+<span class="sd">      calls a static method to parse the amazons3 configuration section.</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         xmlData (String data): XML data to be parsed</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If the XML cannot be successfully parsed</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="p">(</span><span class="n">xmlDom</span><span class="p">,</span> <span class="n">parentNode</span><span class="p">)</span> <span class="o">=</span> <span class="n">createInputDom</span><span class="p">(</span><span class="n">xmlData</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_amazons3</span> <span class="o">=</span> <span class="n">LocalConfig</span><span class="o">.</span><span class="n">_parseAmazonS3</span><span class="p">(</span><span class="n">parentNode</span><span class="p">)</span>
+
+   <span class="nd">@staticmethod</span>
+   <span class="k">def</span> <span class="nf">_parseAmazonS3</span><span class="p">(</span><span class="n">parent</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      Parses an amazons3 configuration section.</span>
+
+<span class="sd">      We read the following individual fields::</span>
+
+<span class="sd">         warnMidnite                 //cb_config/amazons3/warn_midnite</span>
+<span class="sd">         s3Bucket                    //cb_config/amazons3/s3_bucket</span>
+<span class="sd">         encryptCommand              //cb_config/amazons3/encrypt</span>
+<span class="sd">         fullBackupSizeLimit         //cb_config/amazons3/full_size_limit</span>
+<span class="sd">         incrementalBackupSizeLimit  //cb_config/amazons3/incr_size_limit</span>
+
+<span class="sd">      Args:</span>
+<span class="sd">         parent: Parent node to search beneath</span>
+
+<span class="sd">      Returns:</span>
+<span class="sd">          ``AmazonS3Config`` object or ``None`` if the section does not exist</span>
+<span class="sd">      Raises:</span>
+<span class="sd">         ValueError: If some filled-in value is invalid</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="n">amazons3</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="n">section</span> <span class="o">=</span> <span class="n">readFirstChild</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="s2">&quot;amazons3&quot;</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">section</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="n">amazons3</span> <span class="o">=</span> <span class="n">AmazonS3Config</span><span class="p">()</span>
+         <span class="n">amazons3</span><span class="o">.</span><span class="n">warnMidnite</span> <span class="o">=</span> <span class="n">readBoolean</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s2">&quot;warn_midnite&quot;</span><span class="p">)</span>
+         <span class="n">amazons3</span><span class="o">.</span><span class="n">s3Bucket</span> <span class="o">=</span> <span class="n">readString</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s2">&quot;s3_bucket&quot;</span><span class="p">)</span>
+         <span class="n">amazons3</span><span class="o">.</span><span class="n">encryptCommand</span> <span class="o">=</span> <span class="n">readString</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s2">&quot;encrypt&quot;</span><span class="p">)</span>
+         <span class="n">amazons3</span><span class="o">.</span><span class="n">fullBackupSizeLimit</span> <span class="o">=</span> <span class="n">readByteQuantity</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s2">&quot;full_size_limit&quot;</span><span class="p">)</span>
+         <span class="n">amazons3</span><span class="o">.</span><span class="n">incrementalBackupSizeLimit</span> <span class="o">=</span> <span class="n">readByteQuantity</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s2">&quot;incr_size_limit&quot;</span><span class="p">)</span>
+      <span class="k">return</span> <span class="n">amazons3</span></div>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Public functions</span>
+<span class="c1">########################################################################</span>
+
+<span class="c1">###########################</span>
+<span class="c1"># executeAction() function</span>
+<span class="c1">###########################</span>
+
+<div class="viewcode-block" id="executeAction"><a class="viewcode-back" href="../../../CedarBackup3.extend.html#CedarBackup3.extend.amazons3.executeAction">[docs]</a><span class="k">def</span> <span class="nf">executeAction</span><span class="p">(</span><span class="n">configPath</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Executes the amazons3 backup action.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      configPath (String representing a path on disk): Path to configuration file on disk</span>
+<span class="sd">      options (Options object): Program command-line options</span>
+<span class="sd">      config (Config object): Program configuration</span>
+<span class="sd">   Raises:</span>
+<span class="sd">      ValueError: Under many generic error conditions</span>
+<span class="sd">      IOError: If there are I/O problems reading or writing files</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Executing amazons3 extended action.&quot;</span><span class="p">)</span>
+   <span class="k">if</span> <span class="ow">not</span> <span class="n">isRunningAsRoot</span><span class="p">():</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Error: the amazons3 extended action must be run as root.&quot;</span><span class="p">)</span>
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The amazons3 extended action must be run as root.&quot;</span><span class="p">)</span>
+   <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Error: the amazons3 extended action is not supported on Windows.&quot;</span><span class="p">)</span>
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The amazons3 extended action is not supported on Windows.&quot;</span><span class="p">)</span>
+   <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">config</span><span class="o">.</span><span class="n">stage</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cedar Backup configuration is not properly filled in.&quot;</span><span class="p">)</span>
+   <span class="n">local</span> <span class="o">=</span> <span class="n">LocalConfig</span><span class="p">(</span><span class="n">xmlPath</span><span class="o">=</span><span class="n">configPath</span><span class="p">)</span>
+   <span class="n">stagingDirs</span> <span class="o">=</span> <span class="n">_findCorrectDailyDir</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">local</span><span class="p">)</span>
+   <span class="n">_applySizeLimits</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">local</span><span class="p">,</span> <span class="n">stagingDirs</span><span class="p">)</span>
+   <span class="n">_writeToAmazonS3</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">local</span><span class="p">,</span> <span class="n">stagingDirs</span><span class="p">)</span>
+   <span class="n">_writeStoreIndicator</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">stagingDirs</span><span class="p">)</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Executed the amazons3 extended action successfully.&quot;</span><span class="p">)</span></div>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Private utility functions</span>
+<span class="c1">########################################################################</span>
+
+<span class="c1">#########################</span>
+<span class="c1"># _findCorrectDailyDir()</span>
+<span class="c1">#########################</span>
+
+<span class="k">def</span> <span class="nf">_findCorrectDailyDir</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">local</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Finds the correct daily staging directory to be written to Amazon S3.</span>
+
+<span class="sd">   This is substantially similar to the same function in store.py.  The</span>
+<span class="sd">   main difference is that it doesn&#39;t rely on store configuration at all.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      options: Options object</span>
+<span class="sd">      config: Config object</span>
+<span class="sd">      local: Local config object</span>
+
+<span class="sd">   Returns:</span>
+<span class="sd">       Correct staging dir, as a dict mapping directory to date suffix</span>
+<span class="sd">   Raises:</span>
+<span class="sd">      IOError: If the staging directory cannot be found</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="n">oneDay</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+   <span class="n">today</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span>
+   <span class="n">yesterday</span> <span class="o">=</span> <span class="n">today</span> <span class="o">-</span> <span class="n">oneDay</span>
+   <span class="n">tomorrow</span> <span class="o">=</span> <span class="n">today</span> <span class="o">+</span> <span class="n">oneDay</span>
+   <span class="n">todayDate</span> <span class="o">=</span> <span class="n">today</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="n">DIR_TIME_FORMAT</span><span class="p">)</span>
+   <span class="n">yesterdayDate</span> <span class="o">=</span> <span class="n">yesterday</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="n">DIR_TIME_FORMAT</span><span class="p">)</span>
+   <span class="n">tomorrowDate</span> <span class="o">=</span> <span class="n">tomorrow</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="n">DIR_TIME_FORMAT</span><span class="p">)</span>
+   <span class="n">todayPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">stage</span><span class="o">.</span><span class="n">targetDir</span><span class="p">,</span> <span class="n">todayDate</span><span class="p">)</span>
+   <span class="n">yesterdayPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">stage</span><span class="o">.</span><span class="n">targetDir</span><span class="p">,</span> <span class="n">yesterdayDate</span><span class="p">)</span>
+   <span class="n">tomorrowPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">stage</span><span class="o">.</span><span class="n">targetDir</span><span class="p">,</span> <span class="n">tomorrowDate</span><span class="p">)</span>
+   <span class="n">todayStageInd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">todayPath</span><span class="p">,</span> <span class="n">STAGE_INDICATOR</span><span class="p">)</span>
+   <span class="n">yesterdayStageInd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">yesterdayPath</span><span class="p">,</span> <span class="n">STAGE_INDICATOR</span><span class="p">)</span>
+   <span class="n">tomorrowStageInd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tomorrowPath</span><span class="p">,</span> <span class="n">STAGE_INDICATOR</span><span class="p">)</span>
+   <span class="n">todayStoreInd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">todayPath</span><span class="p">,</span> <span class="n">STORE_INDICATOR</span><span class="p">)</span>
+   <span class="n">yesterdayStoreInd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">yesterdayPath</span><span class="p">,</span> <span class="n">STORE_INDICATOR</span><span class="p">)</span>
+   <span class="n">tomorrowStoreInd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tomorrowPath</span><span class="p">,</span> <span class="n">STORE_INDICATOR</span><span class="p">)</span>
+   <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">full</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">todayPath</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">todayStageInd</span><span class="p">):</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Amazon S3 process will use current day&#39;s staging directory [</span><span class="si">%s</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">todayPath</span><span class="p">)</span>
+         <span class="k">return</span> <span class="p">{</span> <span class="n">todayPath</span><span class="p">:</span><span class="n">todayDate</span> <span class="p">}</span>
+      <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Unable to find staging directory to process (only tried today due to full option).&quot;</span><span class="p">)</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">todayPath</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">todayStageInd</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">todayStoreInd</span><span class="p">):</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Amazon S3 process will use current day&#39;s staging directory [</span><span class="si">%s</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">todayPath</span><span class="p">)</span>
+         <span class="k">return</span> <span class="p">{</span> <span class="n">todayPath</span><span class="p">:</span><span class="n">todayDate</span> <span class="p">}</span>
+      <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">yesterdayPath</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">yesterdayStageInd</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">yesterdayStoreInd</span><span class="p">):</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Amazon S3 process will use previous day&#39;s staging directory [</span><span class="si">%s</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">yesterdayPath</span><span class="p">)</span>
+         <span class="k">if</span> <span class="n">local</span><span class="o">.</span><span class="n">amazons3</span><span class="o">.</span><span class="n">warnMidnite</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Warning: Amazon S3 process crossed midnite boundary to find data.&quot;</span><span class="p">)</span>
+         <span class="k">return</span> <span class="p">{</span> <span class="n">yesterdayPath</span><span class="p">:</span><span class="n">yesterdayDate</span> <span class="p">}</span>
+      <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">tomorrowPath</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">tomorrowStageInd</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">tomorrowStoreInd</span><span class="p">):</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Amazon S3 process will use next day&#39;s staging directory [</span><span class="si">%s</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">tomorrowPath</span><span class="p">)</span>
+         <span class="k">if</span> <span class="n">local</span><span class="o">.</span><span class="n">amazons3</span><span class="o">.</span><span class="n">warnMidnite</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Warning: Amazon S3 process crossed midnite boundary to find data.&quot;</span><span class="p">)</span>
+         <span class="k">return</span> <span class="p">{</span> <span class="n">tomorrowPath</span><span class="p">:</span><span class="n">tomorrowDate</span> <span class="p">}</span>
+      <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Unable to find unused staging directory to process (tried today, yesterday, tomorrow).&quot;</span><span class="p">)</span>
+
+
+<span class="c1">##############################</span>
+<span class="c1"># _applySizeLimits() function</span>
+<span class="c1">##############################</span>
+
+<span class="k">def</span> <span class="nf">_applySizeLimits</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">local</span><span class="p">,</span> <span class="n">stagingDirs</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Apply size limits, throwing an exception if any limits are exceeded.</span>
+
+<span class="sd">   Size limits are optional.  If a limit is set to None, it does not apply.</span>
+<span class="sd">   The full size limit applies if the full option is set or if today is the</span>
+<span class="sd">   start of the week.  The incremental size limit applies otherwise.  Limits</span>
+<span class="sd">   are applied to the total size of all the relevant staging directories.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      options: Options object</span>
+<span class="sd">      config: Config object</span>
+<span class="sd">      local: Local config object</span>
+<span class="sd">      stagingDirs: Dictionary mapping directory path to date suffix</span>
+
+<span class="sd">   Raises:</span>
+<span class="sd">      ValueError: Under many generic error conditions</span>
+<span class="sd">      ValueError: If a size limit has been exceeded</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">full</span> <span class="ow">or</span> <span class="n">isStartOfWeek</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">startingDay</span><span class="p">):</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Using Amazon S3 size limit for full backups.&quot;</span><span class="p">)</span>
+      <span class="n">limit</span> <span class="o">=</span> <span class="n">local</span><span class="o">.</span><span class="n">amazons3</span><span class="o">.</span><span class="n">fullBackupSizeLimit</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Using Amazon S3 size limit for incremental backups.&quot;</span><span class="p">)</span>
+      <span class="n">limit</span> <span class="o">=</span> <span class="n">local</span><span class="o">.</span><span class="n">amazons3</span><span class="o">.</span><span class="n">incrementalBackupSizeLimit</span>
+   <span class="k">if</span> <span class="n">limit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;No Amazon S3 size limit will be applied.&quot;</span><span class="p">)</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Amazon S3 size limit is: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">limit</span><span class="p">)</span>
+      <span class="n">contents</span> <span class="o">=</span> <span class="n">BackupFileList</span><span class="p">()</span>
+      <span class="k">for</span> <span class="n">stagingDir</span> <span class="ow">in</span> <span class="n">stagingDirs</span><span class="p">:</span>
+         <span class="n">contents</span><span class="o">.</span><span class="n">addDirContents</span><span class="p">(</span><span class="n">stagingDir</span><span class="p">)</span>
+      <span class="n">total</span> <span class="o">=</span> <span class="n">contents</span><span class="o">.</span><span class="n">totalSize</span><span class="p">()</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Amazon S3 backup size is: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">displayBytes</span><span class="p">(</span><span class="n">total</span><span class="p">))</span>
+      <span class="k">if</span> <span class="n">total</span> <span class="o">&gt;</span> <span class="n">limit</span><span class="p">:</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Amazon S3 size limit exceeded: </span><span class="si">%s</span><span class="s2"> &gt; </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">displayBytes</span><span class="p">(</span><span class="n">total</span><span class="p">),</span> <span class="n">limit</span><span class="p">)</span>
+         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Amazon S3 size limit exceeded: </span><span class="si">%s</span><span class="s2"> &gt; </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">displayBytes</span><span class="p">(</span><span class="n">total</span><span class="p">),</span> <span class="n">limit</span><span class="p">))</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Total size does not exceed Amazon S3 size limit, so backup can continue.&quot;</span><span class="p">)</span>
+
+
+<span class="c1">##############################</span>
+<span class="c1"># _writeToAmazonS3() function</span>
+<span class="c1">##############################</span>
+
+<span class="k">def</span> <span class="nf">_writeToAmazonS3</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">local</span><span class="p">,</span> <span class="n">stagingDirs</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Writes the indicated staging directories to an Amazon S3 bucket.</span>
+
+<span class="sd">   Each of the staging directories listed in ``stagingDirs`` will be written to</span>
+<span class="sd">   the configured Amazon S3 bucket from local configuration.  The directories</span>
+<span class="sd">   will be placed into the image at the root by date, so staging directory</span>
+<span class="sd">   ``/opt/stage/2005/02/10`` will be placed into the S3 bucket at ``/2005/02/10``.</span>
+<span class="sd">   If an encrypt commmand is provided, the files will be encrypted first.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      config: Config object</span>
+<span class="sd">      local: Local config object</span>
+<span class="sd">      stagingDirs: Dictionary mapping directory path to date suffix</span>
+
+<span class="sd">   Raises:</span>
+<span class="sd">      ValueError: Under many generic error conditions</span>
+<span class="sd">      IOError: If there is a problem writing to Amazon S3</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="k">for</span> <span class="n">stagingDir</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">stagingDirs</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Storing stage directory to Amazon S3 [</span><span class="si">%s</span><span class="s2">].&quot;</span><span class="p">,</span> <span class="n">stagingDir</span><span class="p">)</span>
+      <span class="n">dateSuffix</span> <span class="o">=</span> <span class="n">stagingDirs</span><span class="p">[</span><span class="n">stagingDir</span><span class="p">]</span>
+      <span class="n">s3BucketUrl</span> <span class="o">=</span> <span class="s2">&quot;s3://</span><span class="si">%s</span><span class="s2">/</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">local</span><span class="o">.</span><span class="n">amazons3</span><span class="o">.</span><span class="n">s3Bucket</span><span class="p">,</span> <span class="n">dateSuffix</span><span class="p">)</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;S3 bucket URL is [</span><span class="si">%s</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">s3BucketUrl</span><span class="p">)</span>
+      <span class="n">_clearExistingBackup</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">s3BucketUrl</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">local</span><span class="o">.</span><span class="n">amazons3</span><span class="o">.</span><span class="n">encryptCommand</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Encryption is disabled; files will be uploaded in cleartext.&quot;</span><span class="p">)</span>
+         <span class="n">_uploadStagingDir</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">stagingDir</span><span class="p">,</span> <span class="n">s3BucketUrl</span><span class="p">)</span>
+         <span class="n">_verifyUpload</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">stagingDir</span><span class="p">,</span> <span class="n">s3BucketUrl</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Encryption is enabled; files will be uploaded after being encrypted.&quot;</span><span class="p">)</span>
+         <span class="n">encryptedDir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">(</span><span class="nb">dir</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">workingDir</span><span class="p">)</span>
+         <span class="n">changeOwnership</span><span class="p">(</span><span class="n">encryptedDir</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupUser</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupGroup</span><span class="p">)</span>
+         <span class="k">try</span><span class="p">:</span>
+            <span class="n">_encryptStagingDir</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">local</span><span class="p">,</span> <span class="n">stagingDir</span><span class="p">,</span> <span class="n">encryptedDir</span><span class="p">)</span>
+            <span class="n">_uploadStagingDir</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">encryptedDir</span><span class="p">,</span> <span class="n">s3BucketUrl</span><span class="p">)</span>
+            <span class="n">_verifyUpload</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">encryptedDir</span><span class="p">,</span> <span class="n">s3BucketUrl</span><span class="p">)</span>
+         <span class="k">finally</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">encryptedDir</span><span class="p">):</span>
+               <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">encryptedDir</span><span class="p">)</span>
+
+
+<span class="c1">##################################</span>
+<span class="c1"># _writeStoreIndicator() function</span>
+<span class="c1">##################################</span>
+
+<span class="k">def</span> <span class="nf">_writeStoreIndicator</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">stagingDirs</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Writes a store indicator file into staging directories.</span>
+<span class="sd">   Args:</span>
+<span class="sd">      config: Config object</span>
+<span class="sd">      stagingDirs: Dictionary mapping directory path to date suffix</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="k">for</span> <span class="n">stagingDir</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">stagingDirs</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+      <span class="n">writeIndicatorFile</span><span class="p">(</span><span class="n">stagingDir</span><span class="p">,</span> <span class="n">STORE_INDICATOR</span><span class="p">,</span>
+                         <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupUser</span><span class="p">,</span>
+                         <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupGroup</span><span class="p">)</span>
+
+
+<span class="c1">##################################</span>
+<span class="c1"># _clearExistingBackup() function</span>
+<span class="c1">##################################</span>
+
+<span class="k">def</span> <span class="nf">_clearExistingBackup</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">s3BucketUrl</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Clear any existing backup files for an S3 bucket URL.</span>
+<span class="sd">   Args:</span>
+<span class="sd">      config: Config object</span>
+<span class="sd">      s3BucketUrl: S3 bucket URL associated with the staging directory</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="n">suCommand</span> <span class="o">=</span> <span class="n">resolveCommand</span><span class="p">(</span><span class="n">SU_COMMAND</span><span class="p">)</span>
+   <span class="n">awsCommand</span> <span class="o">=</span> <span class="n">resolveCommand</span><span class="p">(</span><span class="n">AWS_COMMAND</span><span class="p">)</span>
+   <span class="n">actualCommand</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> s3 rm --recursive </span><span class="si">%s</span><span class="s2">/&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">awsCommand</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">s3BucketUrl</span><span class="p">)</span>
+   <span class="n">result</span> <span class="o">=</span> <span class="n">executeCommand</span><span class="p">(</span><span class="n">suCommand</span><span class="p">,</span> <span class="p">[</span><span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupUser</span><span class="p">,</span> <span class="s2">&quot;-c&quot;</span><span class="p">,</span> <span class="n">actualCommand</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+   <span class="k">if</span> <span class="n">result</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Error [</span><span class="si">%d</span><span class="s2">] calling AWS CLI to clear existing backup for [</span><span class="si">%s</span><span class="s2">].&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">s3BucketUrl</span><span class="p">))</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Completed clearing any existing backup in S3 for [</span><span class="si">%s</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">s3BucketUrl</span><span class="p">)</span>
+
+
+<span class="c1">###############################</span>
+<span class="c1"># _uploadStagingDir() function</span>
+<span class="c1">###############################</span>
+
+<span class="k">def</span> <span class="nf">_uploadStagingDir</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">stagingDir</span><span class="p">,</span> <span class="n">s3BucketUrl</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Upload the contents of a staging directory out to the Amazon S3 cloud.</span>
+<span class="sd">   Args:</span>
+<span class="sd">      config: Config object</span>
+<span class="sd">      stagingDir: Staging directory to upload</span>
+<span class="sd">      s3BucketUrl: S3 bucket URL associated with the staging directory</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="c1"># The version of awscli in Debian stretch (1.11.13-1) has a problem</span>
+   <span class="c1"># uploading empty files, due to running with Python 3 rather than Python 2</span>
+   <span class="c1"># as the upstream maintainers intended.  To work around this, I&#39;m explicitly</span>
+   <span class="c1"># excluding files like cback.stage, cback.collect, etc. which should be the</span>
+   <span class="c1"># only empty files we ever try to copy.  See: https://github.com/aws/aws-cli/issues/2403</span>
+   <span class="n">suCommand</span> <span class="o">=</span> <span class="n">resolveCommand</span><span class="p">(</span><span class="n">SU_COMMAND</span><span class="p">)</span>
+   <span class="n">awsCommand</span> <span class="o">=</span> <span class="n">resolveCommand</span><span class="p">(</span><span class="n">AWS_COMMAND</span><span class="p">)</span>
+   <span class="n">actualCommand</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> s3 cp --recursive --exclude </span><span class="se">\&quot;</span><span class="s2">*cback.*</span><span class="se">\&quot;</span><span class="s2"> </span><span class="si">%s</span><span class="s2">/ </span><span class="si">%s</span><span class="s2">/&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">awsCommand</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">stagingDir</span><span class="p">,</span> <span class="n">s3BucketUrl</span><span class="p">)</span>
+   <span class="n">result</span> <span class="o">=</span> <span class="n">executeCommand</span><span class="p">(</span><span class="n">suCommand</span><span class="p">,</span> <span class="p">[</span><span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupUser</span><span class="p">,</span> <span class="s2">&quot;-c&quot;</span><span class="p">,</span> <span class="n">actualCommand</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+   <span class="k">if</span> <span class="n">result</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Error [</span><span class="si">%d</span><span class="s2">] calling AWS CLI to upload staging directory to [</span><span class="si">%s</span><span class="s2">].&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">s3BucketUrl</span><span class="p">))</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Completed uploading staging dir [</span><span class="si">%s</span><span class="s2">] to [</span><span class="si">%s</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">stagingDir</span><span class="p">,</span> <span class="n">s3BucketUrl</span><span class="p">)</span>
+
+
+<span class="c1">###########################</span>
+<span class="c1"># _verifyUpload() function</span>
+<span class="c1">###########################</span>
+
+<span class="k">def</span> <span class="nf">_verifyUpload</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">stagingDir</span><span class="p">,</span> <span class="n">s3BucketUrl</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Verify that a staging directory was properly uploaded to the Amazon S3 cloud.</span>
+<span class="sd">   Args:</span>
+<span class="sd">      config: Config object</span>
+<span class="sd">      stagingDir: Staging directory to verify</span>
+<span class="sd">      s3BucketUrl: S3 bucket URL associated with the staging directory</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="p">(</span><span class="n">bucket</span><span class="p">,</span> <span class="n">prefix</span><span class="p">)</span> <span class="o">=</span> <span class="n">s3BucketUrl</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;s3://&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+   <span class="n">suCommand</span> <span class="o">=</span> <span class="n">resolveCommand</span><span class="p">(</span><span class="n">SU_COMMAND</span><span class="p">)</span>
+   <span class="n">awsCommand</span> <span class="o">=</span> <span class="n">resolveCommand</span><span class="p">(</span><span class="n">AWS_COMMAND</span><span class="p">)</span>
+   <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;Contents[].{Key: Key, Size: Size}&quot;</span>
+   <span class="n">actualCommand</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> s3api list-objects --bucket </span><span class="si">%s</span><span class="s2"> --prefix </span><span class="si">%s</span><span class="s2"> --query &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">awsCommand</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">query</span><span class="p">)</span>
+   <span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span> <span class="o">=</span> <span class="n">executeCommand</span><span class="p">(</span><span class="n">suCommand</span><span class="p">,</span> <span class="p">[</span><span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupUser</span><span class="p">,</span> <span class="s2">&quot;-c&quot;</span><span class="p">,</span> <span class="n">actualCommand</span><span class="p">],</span> <span class="n">returnOutput</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+   <span class="k">if</span> <span class="n">result</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Error [</span><span class="si">%d</span><span class="s2">] calling AWS CLI verify upload to [</span><span class="si">%s</span><span class="s2">].&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">s3BucketUrl</span><span class="p">))</span>
+   <span class="n">contents</span> <span class="o">=</span> <span class="p">{</span> <span class="p">}</span>
+   <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data</span><span class="p">)):</span>
+      <span class="n">key</span> <span class="o">=</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;Key&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+      <span class="n">size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">&quot;Size&quot;</span><span class="p">])</span>
+      <span class="n">contents</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">size</span>
+   <span class="n">files</span> <span class="o">=</span> <span class="n">FilesystemList</span><span class="p">()</span>
+   <span class="n">files</span><span class="o">.</span><span class="n">excludeBasenamePatterns</span> <span class="o">=</span> <span class="p">[</span> <span class="sa">r</span><span class="s2">&quot;cback\..*&quot;</span><span class="p">,</span> <span class="p">]</span>  <span class="c1"># because these are excluded from the upload</span>
+   <span class="n">files</span><span class="o">.</span><span class="n">addDirContents</span><span class="p">(</span><span class="n">stagingDir</span><span class="p">)</span>
+   <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">entry</span><span class="p">):</span>
+         <span class="n">key</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">stagingDir</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+         <span class="n">size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span><span class="o">.</span><span class="n">st_size</span><span class="p">)</span>
+         <span class="k">if</span> <span class="ow">not</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">contents</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;File was apparently not uploaded: [</span><span class="si">%s</span><span class="s2">]&quot;</span> <span class="o">%</span> <span class="n">entry</span><span class="p">)</span>
+         <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">size</span> <span class="o">!=</span> <span class="n">contents</span><span class="p">[</span><span class="n">key</span><span class="p">]:</span>
+               <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;File size differs [</span><span class="si">%s</span><span class="s2">], expected </span><span class="si">%s</span><span class="s2"> bytes but got </span><span class="si">%s</span><span class="s2"> bytes&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">contents</span><span class="p">[</span><span class="n">key</span><span class="p">]))</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Completed verifying upload from [</span><span class="si">%s</span><span class="s2">] to [</span><span class="si">%s</span><span class="s2">].&quot;</span><span class="p">,</span> <span class="n">stagingDir</span><span class="p">,</span> <span class="n">s3BucketUrl</span><span class="p">)</span>
+
+
+<span class="c1">################################</span>
+<span class="c1"># _encryptStagingDir() function</span>
+<span class="c1">################################</span>
+
+<span class="k">def</span> <span class="nf">_encryptStagingDir</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">local</span><span class="p">,</span> <span class="n">stagingDir</span><span class="p">,</span> <span class="n">encryptedDir</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Encrypt a staging directory, creating a new directory in the process.</span>
+<span class="sd">   Args:</span>
+<span class="sd">      config: Config object</span>
+<span class="sd">      stagingDir: Staging directory to use as source</span>
+<span class="sd">      encryptedDir: Target directory into which encrypted files should be written</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="n">suCommand</span> <span class="o">=</span> <span class="n">resolveCommand</span><span class="p">(</span><span class="n">SU_COMMAND</span><span class="p">)</span>
+   <span class="n">files</span> <span class="o">=</span> <span class="n">FilesystemList</span><span class="p">()</span>
+   <span class="n">files</span><span class="o">.</span><span class="n">addDirContents</span><span class="p">(</span><span class="n">stagingDir</span><span class="p">)</span>
+   <span class="k">for</span> <span class="n">cleartext</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">cleartext</span><span class="p">):</span>
+         <span class="n">encrypted</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">encryptedDir</span><span class="p">,</span> <span class="n">cleartext</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">stagingDir</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+         <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">cleartext</span><span class="p">)</span><span class="o">.</span><span class="n">st_size</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">encrypted</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+               <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span> <span class="c1"># don&#39;t bother encrypting empty files</span>
+         <span class="k">else</span><span class="p">:</span>
+            <span class="n">actualCommand</span> <span class="o">=</span> <span class="n">local</span><span class="o">.</span><span class="n">amazons3</span><span class="o">.</span><span class="n">encryptCommand</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;$</span><span class="si">{input}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">cleartext</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;$</span><span class="si">{output}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">encrypted</span><span class="p">)</span>
+            <span class="n">subdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">encrypted</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">subdir</span><span class="p">):</span>
+               <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">subdir</span><span class="p">)</span>
+               <span class="n">changeOwnership</span><span class="p">(</span><span class="n">subdir</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupUser</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupGroup</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">executeCommand</span><span class="p">(</span><span class="n">suCommand</span><span class="p">,</span> <span class="p">[</span><span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupUser</span><span class="p">,</span> <span class="s2">&quot;-c&quot;</span><span class="p">,</span> <span class="n">actualCommand</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">result</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+               <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Error [</span><span class="si">%d</span><span class="s2">] encrypting [</span><span class="si">%s</span><span class="s2">].&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">cleartext</span><span class="p">))</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Completed encrypting staging directory [</span><span class="si">%s</span><span class="s2">] into [</span><span class="si">%s</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">stagingDir</span><span class="p">,</span> <span class="n">encryptedDir</span><span class="p">)</span>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Cedar Backup v3  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright .
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.9.
+    </div>
+  </body>
+</html>

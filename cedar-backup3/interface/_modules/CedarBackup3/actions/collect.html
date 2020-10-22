@@ -1,0 +1,667 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>CedarBackup3.actions.collect &#8212; Cedar Backup v3  documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="Cedar Backup v3  documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Cedar Backup v3  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for CedarBackup3.actions.collect</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: iso-8859-1 -*-</span>
+<span class="c1"># vim: set ft=python ts=3 sw=3 expandtab:</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+<span class="c1">#</span>
+<span class="c1">#              C E D A R</span>
+<span class="c1">#          S O L U T I O N S       &quot;Software done right.&quot;</span>
+<span class="c1">#           S O F T W A R E</span>
+<span class="c1">#</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright (c) 2004-2008,2011,2015 Kenneth J. Pronovici.</span>
+<span class="c1"># All rights reserved.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is free software; you can redistribute it and/or</span>
+<span class="c1"># modify it under the terms of the GNU General Public License,</span>
+<span class="c1"># Version 2, as published by the Free Software Foundation.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</span>
+<span class="c1">#</span>
+<span class="c1"># Copies of the GNU General Public License are available from</span>
+<span class="c1"># the Free Software Foundation website, http://www.gnu.org/.</span>
+<span class="c1">#</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+<span class="c1">#</span>
+<span class="c1"># Author   : Kenneth J. Pronovici &lt;pronovic@ieee.org&gt;</span>
+<span class="c1"># Language : Python 3 (&gt;= 3.4)</span>
+<span class="c1"># Project  : Cedar Backup, release 3</span>
+<span class="c1"># Purpose  : Implements the standard &#39;collect&#39; action.</span>
+<span class="c1">#</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Module documentation</span>
+<span class="c1">########################################################################</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Implements the standard &#39;collect&#39; action.</span>
+<span class="sd">:author: Kenneth J. Pronovici &lt;pronovic@ieee.org&gt;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Imported modules</span>
+<span class="c1">########################################################################</span>
+
+<span class="c1"># System modules</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+
+<span class="c1"># Cedar Backup modules</span>
+<span class="kn">from</span> <span class="nn">CedarBackup3.filesystem</span> <span class="k">import</span> <span class="n">BackupFileList</span><span class="p">,</span> <span class="n">FilesystemList</span>
+<span class="kn">from</span> <span class="nn">CedarBackup3.util</span> <span class="k">import</span> <span class="n">isStartOfWeek</span><span class="p">,</span> <span class="n">changeOwnership</span><span class="p">,</span> <span class="n">displayBytes</span><span class="p">,</span> <span class="n">buildNormalizedPath</span>
+<span class="kn">from</span> <span class="nn">CedarBackup3.actions.constants</span> <span class="k">import</span> <span class="n">DIGEST_EXTENSION</span><span class="p">,</span> <span class="n">COLLECT_INDICATOR</span>
+<span class="kn">from</span> <span class="nn">CedarBackup3.actions.util</span> <span class="k">import</span> <span class="n">writeIndicatorFile</span>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Module-wide constants and variables</span>
+<span class="c1">########################################################################</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;CedarBackup3.log.actions.collect&quot;</span><span class="p">)</span>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Public functions</span>
+<span class="c1">########################################################################</span>
+
+<span class="c1">############################</span>
+<span class="c1"># executeCollect() function</span>
+<span class="c1">############################</span>
+
+<span class="c1"># pylint: disable=W0613</span>
+<div class="viewcode-block" id="executeCollect"><a class="viewcode-back" href="../../../CedarBackup3.actions.html#CedarBackup3.actions.collect.executeCollect">[docs]</a><span class="k">def</span> <span class="nf">executeCollect</span><span class="p">(</span><span class="n">configPath</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Executes the collect backup action.</span>
+
+<span class="sd">   *Note:* When the collect action is complete, we will write a collect</span>
+<span class="sd">   indicator to the collect directory, so it&#39;s obvious that the collect action</span>
+<span class="sd">   has completed.  The stage process uses this indicator to decide whether a</span>
+<span class="sd">   peer is ready to be staged.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      configPath (String representing a path on disk): Path to configuration file on disk</span>
+<span class="sd">      options (Options object): Program command-line options</span>
+<span class="sd">      config (Config object): Program configuration</span>
+<span class="sd">   Raises:</span>
+<span class="sd">      ValueError: Under many generic error conditions</span>
+<span class="sd">      TarError: If there is a problem creating a tar file</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Executing the &#39;collect&#39; action.&quot;</span><span class="p">)</span>
+   <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">config</span><span class="o">.</span><span class="n">collect</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Collect configuration is not properly filled in.&quot;</span><span class="p">)</span>
+   <span class="k">if</span> <span class="p">((</span><span class="n">config</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">collectFiles</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">collectFiles</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">and</span>
+       <span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">collectDirs</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">collectDirs</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">)):</span>
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;There must be at least one collect file or collect directory.&quot;</span><span class="p">)</span>
+   <span class="n">fullBackup</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">full</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Full backup flag is [</span><span class="si">%s</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">fullBackup</span><span class="p">)</span>
+   <span class="n">todayIsStart</span> <span class="o">=</span> <span class="n">isStartOfWeek</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">startingDay</span><span class="p">)</span>
+   <span class="n">resetDigest</span> <span class="o">=</span> <span class="n">fullBackup</span> <span class="ow">or</span> <span class="n">todayIsStart</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Reset digest flag is [</span><span class="si">%s</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">resetDigest</span><span class="p">)</span>
+   <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">collectFiles</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="k">for</span> <span class="n">collectFile</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">collectFiles</span><span class="p">:</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Working with collect file [</span><span class="si">%s</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">collectFile</span><span class="o">.</span><span class="n">absolutePath</span><span class="p">)</span>
+         <span class="n">collectMode</span> <span class="o">=</span> <span class="n">_getCollectMode</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">collectFile</span><span class="p">)</span>
+         <span class="n">archiveMode</span> <span class="o">=</span> <span class="n">_getArchiveMode</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">collectFile</span><span class="p">)</span>
+         <span class="n">digestPath</span> <span class="o">=</span> <span class="n">_getDigestPath</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">collectFile</span><span class="o">.</span><span class="n">absolutePath</span><span class="p">)</span>
+         <span class="n">tarfilePath</span> <span class="o">=</span> <span class="n">_getTarfilePath</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">collectFile</span><span class="o">.</span><span class="n">absolutePath</span><span class="p">,</span> <span class="n">archiveMode</span><span class="p">)</span>
+         <span class="k">if</span> <span class="n">fullBackup</span> <span class="ow">or</span> <span class="p">(</span><span class="n">collectMode</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;daily&#39;</span><span class="p">,</span> <span class="s1">&#39;incr&#39;</span><span class="p">,</span> <span class="p">])</span> <span class="ow">or</span> <span class="p">(</span><span class="n">collectMode</span> <span class="o">==</span> <span class="s1">&#39;weekly&#39;</span> <span class="ow">and</span> <span class="n">todayIsStart</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;File meets criteria to be backed up today.&quot;</span><span class="p">)</span>
+            <span class="n">_collectFile</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">collectFile</span><span class="o">.</span><span class="n">absolutePath</span><span class="p">,</span> <span class="n">tarfilePath</span><span class="p">,</span>
+                         <span class="n">collectMode</span><span class="p">,</span> <span class="n">archiveMode</span><span class="p">,</span> <span class="n">resetDigest</span><span class="p">,</span> <span class="n">digestPath</span><span class="p">)</span>
+         <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;File will not be backed up, per collect mode.&quot;</span><span class="p">)</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Completed collecting file [</span><span class="si">%s</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">collectFile</span><span class="o">.</span><span class="n">absolutePath</span><span class="p">)</span>
+   <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">collectDirs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="k">for</span> <span class="n">collectDir</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">collectDirs</span><span class="p">:</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Working with collect directory [</span><span class="si">%s</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">collectDir</span><span class="o">.</span><span class="n">absolutePath</span><span class="p">)</span>
+         <span class="n">collectMode</span> <span class="o">=</span> <span class="n">_getCollectMode</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">collectDir</span><span class="p">)</span>
+         <span class="n">archiveMode</span> <span class="o">=</span> <span class="n">_getArchiveMode</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">collectDir</span><span class="p">)</span>
+         <span class="n">ignoreFile</span> <span class="o">=</span> <span class="n">_getIgnoreFile</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">collectDir</span><span class="p">)</span>
+         <span class="n">linkDepth</span> <span class="o">=</span> <span class="n">_getLinkDepth</span><span class="p">(</span><span class="n">collectDir</span><span class="p">)</span>
+         <span class="n">dereference</span> <span class="o">=</span> <span class="n">_getDereference</span><span class="p">(</span><span class="n">collectDir</span><span class="p">)</span>
+         <span class="n">recursionLevel</span> <span class="o">=</span> <span class="n">_getRecursionLevel</span><span class="p">(</span><span class="n">collectDir</span><span class="p">)</span>
+         <span class="p">(</span><span class="n">excludePaths</span><span class="p">,</span> <span class="n">excludePatterns</span><span class="p">)</span> <span class="o">=</span> <span class="n">_getExclusions</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">collectDir</span><span class="p">)</span>
+         <span class="k">if</span> <span class="n">fullBackup</span> <span class="ow">or</span> <span class="p">(</span><span class="n">collectMode</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;daily&#39;</span><span class="p">,</span> <span class="s1">&#39;incr&#39;</span><span class="p">,</span> <span class="p">])</span> <span class="ow">or</span> <span class="p">(</span><span class="n">collectMode</span> <span class="o">==</span> <span class="s1">&#39;weekly&#39;</span> <span class="ow">and</span> <span class="n">todayIsStart</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Directory meets criteria to be backed up today.&quot;</span><span class="p">)</span>
+            <span class="n">_collectDirectory</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">collectDir</span><span class="o">.</span><span class="n">absolutePath</span><span class="p">,</span>
+                              <span class="n">collectMode</span><span class="p">,</span> <span class="n">archiveMode</span><span class="p">,</span> <span class="n">ignoreFile</span><span class="p">,</span> <span class="n">linkDepth</span><span class="p">,</span> <span class="n">dereference</span><span class="p">,</span>
+                              <span class="n">resetDigest</span><span class="p">,</span> <span class="n">excludePaths</span><span class="p">,</span> <span class="n">excludePatterns</span><span class="p">,</span> <span class="n">recursionLevel</span><span class="p">)</span>
+         <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Directory will not be backed up, per collect mode.&quot;</span><span class="p">)</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Completed collecting directory [</span><span class="si">%s</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">collectDir</span><span class="o">.</span><span class="n">absolutePath</span><span class="p">)</span>
+   <span class="n">writeIndicatorFile</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">targetDir</span><span class="p">,</span> <span class="n">COLLECT_INDICATOR</span><span class="p">,</span>
+                      <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupUser</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupGroup</span><span class="p">)</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Executed the &#39;collect&#39; action successfully.&quot;</span><span class="p">)</span></div>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Private utility functions</span>
+<span class="c1">########################################################################</span>
+
+<span class="c1">##########################</span>
+<span class="c1"># _collectFile() function</span>
+<span class="c1">##########################</span>
+
+<span class="k">def</span> <span class="nf">_collectFile</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">absolutePath</span><span class="p">,</span> <span class="n">tarfilePath</span><span class="p">,</span> <span class="n">collectMode</span><span class="p">,</span> <span class="n">archiveMode</span><span class="p">,</span> <span class="n">resetDigest</span><span class="p">,</span> <span class="n">digestPath</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Collects a configured collect file.</span>
+
+<span class="sd">   The indicated collect file is collected into the indicated tarfile.</span>
+<span class="sd">   For files that are collected incrementally, we&#39;ll use the indicated</span>
+<span class="sd">   digest path and pay attention to the reset digest flag (basically, the reset</span>
+<span class="sd">   digest flag ignores any existing digest, but a new digest is always</span>
+<span class="sd">   rewritten).</span>
+
+<span class="sd">   The caller must decide what the collect and archive modes are, since they</span>
+<span class="sd">   can be on both the collect configuration and the collect file itself.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      config: Config object</span>
+<span class="sd">      absolutePath: Absolute path of file to collect</span>
+<span class="sd">      tarfilePath: Path to tarfile that should be created</span>
+<span class="sd">      collectMode: Collect mode to use</span>
+<span class="sd">      archiveMode: Archive mode to use</span>
+<span class="sd">      resetDigest: Reset digest flag</span>
+<span class="sd">      digestPath: Path to digest file on disk, if needed</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="n">backupList</span> <span class="o">=</span> <span class="n">BackupFileList</span><span class="p">()</span>
+   <span class="n">backupList</span><span class="o">.</span><span class="n">addFile</span><span class="p">(</span><span class="n">absolutePath</span><span class="p">)</span>
+   <span class="n">_executeBackup</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">backupList</span><span class="p">,</span> <span class="n">absolutePath</span><span class="p">,</span> <span class="n">tarfilePath</span><span class="p">,</span> <span class="n">collectMode</span><span class="p">,</span> <span class="n">archiveMode</span><span class="p">,</span> <span class="n">resetDigest</span><span class="p">,</span> <span class="n">digestPath</span><span class="p">)</span>
+
+
+<span class="c1">###############################</span>
+<span class="c1"># _collectDirectory() function</span>
+<span class="c1">###############################</span>
+
+<span class="k">def</span> <span class="nf">_collectDirectory</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">absolutePath</span><span class="p">,</span> <span class="n">collectMode</span><span class="p">,</span> <span class="n">archiveMode</span><span class="p">,</span>
+                      <span class="n">ignoreFile</span><span class="p">,</span> <span class="n">linkDepth</span><span class="p">,</span> <span class="n">dereference</span><span class="p">,</span> <span class="n">resetDigest</span><span class="p">,</span>
+                      <span class="n">excludePaths</span><span class="p">,</span> <span class="n">excludePatterns</span><span class="p">,</span> <span class="n">recursionLevel</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Collects a configured collect directory.</span>
+
+<span class="sd">   The indicated collect directory is collected into the indicated tarfile.</span>
+<span class="sd">   For directories that are collected incrementally, we&#39;ll use the indicated</span>
+<span class="sd">   digest path and pay attention to the reset digest flag (basically, the reset</span>
+<span class="sd">   digest flag ignores any existing digest, but a new digest is always</span>
+<span class="sd">   rewritten).</span>
+
+<span class="sd">   The caller must decide what the collect and archive modes are, since they</span>
+<span class="sd">   can be on both the collect configuration and the collect directory itself.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      config: Config object</span>
+<span class="sd">      absolutePath: Absolute path of directory to collect</span>
+<span class="sd">      collectMode: Collect mode to use</span>
+<span class="sd">      archiveMode: Archive mode to use</span>
+<span class="sd">      ignoreFile: Ignore file to use</span>
+<span class="sd">      linkDepth: Link depth value to use</span>
+<span class="sd">      dereference: Dereference flag to use</span>
+<span class="sd">      resetDigest: Reset digest flag</span>
+<span class="sd">      excludePaths: List of absolute paths to exclude</span>
+<span class="sd">      excludePatterns: List of patterns to exclude</span>
+<span class="sd">      recursionLevel: Recursion level (zero for no recursion)</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="k">if</span> <span class="n">recursionLevel</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="c1"># Collect the actual directory because we&#39;re at recursion level 0</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Collecting directory [</span><span class="si">%s</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">absolutePath</span><span class="p">)</span>
+      <span class="n">tarfilePath</span> <span class="o">=</span> <span class="n">_getTarfilePath</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">absolutePath</span><span class="p">,</span> <span class="n">archiveMode</span><span class="p">)</span>
+      <span class="n">digestPath</span> <span class="o">=</span> <span class="n">_getDigestPath</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">absolutePath</span><span class="p">)</span>
+
+      <span class="n">backupList</span> <span class="o">=</span> <span class="n">BackupFileList</span><span class="p">()</span>
+      <span class="n">backupList</span><span class="o">.</span><span class="n">ignoreFile</span> <span class="o">=</span> <span class="n">ignoreFile</span>
+      <span class="n">backupList</span><span class="o">.</span><span class="n">excludePaths</span> <span class="o">=</span> <span class="n">excludePaths</span>
+      <span class="n">backupList</span><span class="o">.</span><span class="n">excludePatterns</span> <span class="o">=</span> <span class="n">excludePatterns</span>
+      <span class="n">backupList</span><span class="o">.</span><span class="n">addDirContents</span><span class="p">(</span><span class="n">absolutePath</span><span class="p">,</span> <span class="n">linkDepth</span><span class="o">=</span><span class="n">linkDepth</span><span class="p">,</span> <span class="n">dereference</span><span class="o">=</span><span class="n">dereference</span><span class="p">)</span>
+
+      <span class="n">_executeBackup</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">backupList</span><span class="p">,</span> <span class="n">absolutePath</span><span class="p">,</span> <span class="n">tarfilePath</span><span class="p">,</span> <span class="n">collectMode</span><span class="p">,</span> <span class="n">archiveMode</span><span class="p">,</span> <span class="n">resetDigest</span><span class="p">,</span> <span class="n">digestPath</span><span class="p">)</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="c1"># Find all of the immediate subdirectories</span>
+      <span class="n">subdirs</span> <span class="o">=</span> <span class="n">FilesystemList</span><span class="p">()</span>
+      <span class="n">subdirs</span><span class="o">.</span><span class="n">excludeFiles</span> <span class="o">=</span> <span class="kc">True</span>
+      <span class="n">subdirs</span><span class="o">.</span><span class="n">excludeLinks</span> <span class="o">=</span> <span class="kc">True</span>
+      <span class="n">subdirs</span><span class="o">.</span><span class="n">excludePaths</span> <span class="o">=</span> <span class="n">excludePaths</span>
+      <span class="n">subdirs</span><span class="o">.</span><span class="n">excludePatterns</span> <span class="o">=</span> <span class="n">excludePatterns</span>
+      <span class="n">subdirs</span><span class="o">.</span><span class="n">addDirContents</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">absolutePath</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">addSelf</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+      <span class="c1"># Back up the subdirectories separately</span>
+      <span class="k">for</span> <span class="n">subdir</span> <span class="ow">in</span> <span class="n">subdirs</span><span class="p">:</span>
+         <span class="n">_collectDirectory</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">subdir</span><span class="p">,</span> <span class="n">collectMode</span><span class="p">,</span> <span class="n">archiveMode</span><span class="p">,</span>
+                           <span class="n">ignoreFile</span><span class="p">,</span> <span class="n">linkDepth</span><span class="p">,</span> <span class="n">dereference</span><span class="p">,</span> <span class="n">resetDigest</span><span class="p">,</span>
+                           <span class="n">excludePaths</span><span class="p">,</span> <span class="n">excludePatterns</span><span class="p">,</span> <span class="n">recursionLevel</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+         <span class="n">excludePaths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">subdir</span><span class="p">)</span> <span class="c1"># this directory is already backed up, so exclude it</span>
+
+      <span class="c1"># Back up everything that hasn&#39;t previously been backed up</span>
+      <span class="n">_collectDirectory</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">absolutePath</span><span class="p">,</span> <span class="n">collectMode</span><span class="p">,</span> <span class="n">archiveMode</span><span class="p">,</span>
+                        <span class="n">ignoreFile</span><span class="p">,</span> <span class="n">linkDepth</span><span class="p">,</span> <span class="n">dereference</span><span class="p">,</span> <span class="n">resetDigest</span><span class="p">,</span>
+                        <span class="n">excludePaths</span><span class="p">,</span> <span class="n">excludePatterns</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+
+<span class="c1">############################</span>
+<span class="c1"># _executeBackup() function</span>
+<span class="c1">############################</span>
+
+<span class="k">def</span> <span class="nf">_executeBackup</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">backupList</span><span class="p">,</span> <span class="n">absolutePath</span><span class="p">,</span> <span class="n">tarfilePath</span><span class="p">,</span> <span class="n">collectMode</span><span class="p">,</span> <span class="n">archiveMode</span><span class="p">,</span> <span class="n">resetDigest</span><span class="p">,</span> <span class="n">digestPath</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Execute the backup process for the indicated backup list.</span>
+
+<span class="sd">   This function exists mainly to consolidate functionality between the</span>
+<span class="sd">   :any:`_collectFile` and :any:`_collectDirectory` functions.  Those functions build</span>
+<span class="sd">   the backup list; this function causes the backup to execute properly and</span>
+<span class="sd">   also manages usage of the digest file on disk as explained in their</span>
+<span class="sd">   comments.</span>
+
+<span class="sd">   For collect files, the digest file will always just contain the single file</span>
+<span class="sd">   that is being backed up.  This might little wasteful in terms of the number</span>
+<span class="sd">   of files that we keep around, but it&#39;s consistent and easy to understand.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      config: Config object</span>
+<span class="sd">      backupList: List to execute backup for</span>
+<span class="sd">      absolutePath: Absolute path of directory or file to collect</span>
+<span class="sd">      tarfilePath: Path to tarfile that should be created</span>
+<span class="sd">      collectMode: Collect mode to use</span>
+<span class="sd">      archiveMode: Archive mode to use</span>
+<span class="sd">      resetDigest: Reset digest flag</span>
+<span class="sd">      digestPath: Path to digest file on disk, if needed</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="k">if</span> <span class="n">collectMode</span> <span class="o">!=</span> <span class="s1">&#39;incr&#39;</span><span class="p">:</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Collect mode is [</span><span class="si">%s</span><span class="s2">]; no digest will be used.&quot;</span><span class="p">,</span> <span class="n">collectMode</span><span class="p">)</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">backupList</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">backupList</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">absolutePath</span><span class="p">:</span>  <span class="c1"># special case for individual file</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Backing up file [</span><span class="si">%s</span><span class="s2">] (</span><span class="si">%s</span><span class="s2">).&quot;</span><span class="p">,</span> <span class="n">absolutePath</span><span class="p">,</span> <span class="n">displayBytes</span><span class="p">(</span><span class="n">backupList</span><span class="o">.</span><span class="n">totalSize</span><span class="p">()))</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Backing up </span><span class="si">%d</span><span class="s2"> files in [</span><span class="si">%s</span><span class="s2">] (</span><span class="si">%s</span><span class="s2">).&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">backupList</span><span class="p">),</span> <span class="n">absolutePath</span><span class="p">,</span> <span class="n">displayBytes</span><span class="p">(</span><span class="n">backupList</span><span class="o">.</span><span class="n">totalSize</span><span class="p">()))</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">backupList</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+         <span class="n">backupList</span><span class="o">.</span><span class="n">generateTarfile</span><span class="p">(</span><span class="n">tarfilePath</span><span class="p">,</span> <span class="n">archiveMode</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+         <span class="n">changeOwnership</span><span class="p">(</span><span class="n">tarfilePath</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupUser</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupGroup</span><span class="p">)</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">resetDigest</span><span class="p">:</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Based on resetDigest flag, digest will be cleared.&quot;</span><span class="p">)</span>
+         <span class="n">oldDigest</span> <span class="o">=</span> <span class="p">{}</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Based on resetDigest flag, digest will loaded from disk.&quot;</span><span class="p">)</span>
+         <span class="n">oldDigest</span> <span class="o">=</span> <span class="n">_loadDigest</span><span class="p">(</span><span class="n">digestPath</span><span class="p">)</span>
+      <span class="p">(</span><span class="n">removed</span><span class="p">,</span> <span class="n">newDigest</span><span class="p">)</span> <span class="o">=</span> <span class="n">backupList</span><span class="o">.</span><span class="n">removeUnchanged</span><span class="p">(</span><span class="n">oldDigest</span><span class="p">,</span> <span class="n">captureDigest</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Removed </span><span class="si">%d</span><span class="s2"> unchanged files based on digest values.&quot;</span><span class="p">,</span> <span class="n">removed</span><span class="p">)</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">backupList</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">backupList</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">absolutePath</span><span class="p">:</span>  <span class="c1"># special case for individual file</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Backing up file [</span><span class="si">%s</span><span class="s2">] (</span><span class="si">%s</span><span class="s2">).&quot;</span><span class="p">,</span> <span class="n">absolutePath</span><span class="p">,</span> <span class="n">displayBytes</span><span class="p">(</span><span class="n">backupList</span><span class="o">.</span><span class="n">totalSize</span><span class="p">()))</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Backing up </span><span class="si">%d</span><span class="s2"> files in [</span><span class="si">%s</span><span class="s2">] (</span><span class="si">%s</span><span class="s2">).&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">backupList</span><span class="p">),</span> <span class="n">absolutePath</span><span class="p">,</span> <span class="n">displayBytes</span><span class="p">(</span><span class="n">backupList</span><span class="o">.</span><span class="n">totalSize</span><span class="p">()))</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">backupList</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+         <span class="n">backupList</span><span class="o">.</span><span class="n">generateTarfile</span><span class="p">(</span><span class="n">tarfilePath</span><span class="p">,</span> <span class="n">archiveMode</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+         <span class="n">changeOwnership</span><span class="p">(</span><span class="n">tarfilePath</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupUser</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupGroup</span><span class="p">)</span>
+      <span class="n">_writeDigest</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">newDigest</span><span class="p">,</span> <span class="n">digestPath</span><span class="p">)</span>
+
+
+<span class="c1">#########################</span>
+<span class="c1"># _loadDigest() function</span>
+<span class="c1">#########################</span>
+
+<span class="k">def</span> <span class="nf">_loadDigest</span><span class="p">(</span><span class="n">digestPath</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Loads the indicated digest path from disk into a dictionary.</span>
+
+<span class="sd">   If we can&#39;t load the digest successfully (either because it doesn&#39;t exist or</span>
+<span class="sd">   for some other reason), then an empty dictionary will be returned - but the</span>
+<span class="sd">   condition will be logged.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      digestPath: Path to the digest file on disk</span>
+
+<span class="sd">   Returns:</span>
+<span class="sd">       Dictionary representing contents of digest path</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">digestPath</span><span class="p">):</span>
+      <span class="n">digest</span> <span class="o">=</span> <span class="p">{}</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Digest [</span><span class="si">%s</span><span class="s2">] does not exist on disk.&quot;</span><span class="p">,</span> <span class="n">digestPath</span><span class="p">)</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="k">try</span><span class="p">:</span>
+         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">digestPath</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">digest</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">fix_imports</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># be compatible with Python 2</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Loaded digest [</span><span class="si">%s</span><span class="s2">] from disk: </span><span class="si">%d</span><span class="s2"> entries.&quot;</span><span class="p">,</span> <span class="n">digestPath</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">digest</span><span class="p">))</span>
+      <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+         <span class="n">digest</span> <span class="o">=</span> <span class="p">{}</span>
+         <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed loading digest [</span><span class="si">%s</span><span class="s2">] from disk: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">digestPath</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+   <span class="k">return</span> <span class="n">digest</span>
+
+
+<span class="c1">##########################</span>
+<span class="c1"># _writeDigest() function</span>
+<span class="c1">##########################</span>
+
+<span class="k">def</span> <span class="nf">_writeDigest</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">digest</span><span class="p">,</span> <span class="n">digestPath</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Writes the digest dictionary to the indicated digest path on disk.</span>
+
+<span class="sd">   If we can&#39;t write the digest successfully for any reason, we&#39;ll log the</span>
+<span class="sd">   condition but won&#39;t throw an exception.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      config: Config object</span>
+<span class="sd">      digest: Digest dictionary to write to disk</span>
+<span class="sd">      digestPath: Path to the digest file on disk</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="k">try</span><span class="p">:</span>
+      <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">digestPath</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+         <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">digest</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">fix_imports</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># be compatible with Python 2</span>
+      <span class="n">changeOwnership</span><span class="p">(</span><span class="n">digestPath</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupUser</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupGroup</span><span class="p">)</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Wrote new digest [</span><span class="si">%s</span><span class="s2">] to disk: </span><span class="si">%d</span><span class="s2"> entries.&quot;</span><span class="p">,</span> <span class="n">digestPath</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">digest</span><span class="p">))</span>
+   <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+      <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to write digest [</span><span class="si">%s</span><span class="s2">] to disk: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">digestPath</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Private attribute &quot;getter&quot; functions</span>
+<span class="c1">########################################################################</span>
+
+<span class="c1">############################</span>
+<span class="c1"># getCollectMode() function</span>
+<span class="c1">############################</span>
+
+<span class="k">def</span> <span class="nf">_getCollectMode</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Gets the collect mode that should be used for a collect directory or file.</span>
+<span class="sd">   If possible, use the one on the file or directory, otherwise take from collect section.</span>
+<span class="sd">   Args:</span>
+<span class="sd">      config: Config object</span>
+<span class="sd">      item: ``CollectFile`` or ``CollectDir`` object</span>
+<span class="sd">   Returns:</span>
+<span class="sd">       Collect mode to use</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">collectMode</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">collectMode</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">collectMode</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="n">collectMode</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">collectMode</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Collect mode is [</span><span class="si">%s</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">collectMode</span><span class="p">)</span>
+   <span class="k">return</span> <span class="n">collectMode</span>
+
+
+<span class="c1">#############################</span>
+<span class="c1"># _getArchiveMode() function</span>
+<span class="c1">#############################</span>
+
+<span class="k">def</span> <span class="nf">_getArchiveMode</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Gets the archive mode that should be used for a collect directory or file.</span>
+<span class="sd">   If possible, use the one on the file or directory, otherwise take from collect section.</span>
+<span class="sd">   Args:</span>
+<span class="sd">      config: Config object</span>
+<span class="sd">      item: ``CollectFile`` or ``CollectDir`` object</span>
+<span class="sd">   Returns:</span>
+<span class="sd">       Archive mode to use</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">archiveMode</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">archiveMode</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">archiveMode</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="n">archiveMode</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">archiveMode</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Archive mode is [</span><span class="si">%s</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">archiveMode</span><span class="p">)</span>
+   <span class="k">return</span> <span class="n">archiveMode</span>
+
+
+<span class="c1">############################</span>
+<span class="c1"># _getIgnoreFile() function</span>
+<span class="c1">############################</span>
+
+<span class="k">def</span> <span class="nf">_getIgnoreFile</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Gets the ignore file that should be used for a collect directory or file.</span>
+<span class="sd">   If possible, use the one on the file or directory, otherwise take from collect section.</span>
+<span class="sd">   Args:</span>
+<span class="sd">      config: Config object</span>
+<span class="sd">      item: ``CollectFile`` or ``CollectDir`` object</span>
+<span class="sd">   Returns:</span>
+<span class="sd">       Ignore file to use</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">ignoreFile</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">ignoreFile</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">ignoreFile</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="n">ignoreFile</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">ignoreFile</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Ignore file is [</span><span class="si">%s</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">ignoreFile</span><span class="p">)</span>
+   <span class="k">return</span> <span class="n">ignoreFile</span>
+
+
+<span class="c1">############################</span>
+<span class="c1"># _getLinkDepth() function</span>
+<span class="c1">############################</span>
+
+<span class="k">def</span> <span class="nf">_getLinkDepth</span><span class="p">(</span><span class="n">item</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Gets the link depth that should be used for a collect directory.</span>
+<span class="sd">   If possible, use the one on the directory, otherwise set a value of 0 (zero).</span>
+<span class="sd">   Args:</span>
+<span class="sd">      item: ``CollectDir`` object</span>
+<span class="sd">   Returns:</span>
+<span class="sd">       Link depth to use</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">linkDepth</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">linkDepth</span> <span class="o">=</span> <span class="mi">0</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="n">linkDepth</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">linkDepth</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Link depth is [</span><span class="si">%d</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">linkDepth</span><span class="p">)</span>
+   <span class="k">return</span> <span class="n">linkDepth</span>
+
+
+<span class="c1">############################</span>
+<span class="c1"># _getDereference() function</span>
+<span class="c1">############################</span>
+
+<span class="k">def</span> <span class="nf">_getDereference</span><span class="p">(</span><span class="n">item</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Gets the dereference flag that should be used for a collect directory.</span>
+<span class="sd">   If possible, use the one on the directory, otherwise set a value of False.</span>
+<span class="sd">   Args:</span>
+<span class="sd">      item: ``CollectDir`` object</span>
+<span class="sd">   Returns:</span>
+<span class="sd">       Dereference flag to use</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">dereference</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">dereference</span> <span class="o">=</span> <span class="kc">False</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="n">dereference</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">dereference</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Dereference flag is [</span><span class="si">%s</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">dereference</span><span class="p">)</span>
+   <span class="k">return</span> <span class="n">dereference</span>
+
+
+<span class="c1">################################</span>
+<span class="c1"># _getRecursionLevel() function</span>
+<span class="c1">################################</span>
+
+<span class="k">def</span> <span class="nf">_getRecursionLevel</span><span class="p">(</span><span class="n">item</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Gets the recursion level that should be used for a collect directory.</span>
+<span class="sd">   If possible, use the one on the directory, otherwise set a value of 0 (zero).</span>
+<span class="sd">   Args:</span>
+<span class="sd">      item: ``CollectDir`` object</span>
+<span class="sd">   Returns:</span>
+<span class="sd">       Recursion level to use</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">recursionLevel</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">recursionLevel</span> <span class="o">=</span> <span class="mi">0</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="n">recursionLevel</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">recursionLevel</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Recursion level is [</span><span class="si">%d</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">recursionLevel</span><span class="p">)</span>
+   <span class="k">return</span> <span class="n">recursionLevel</span>
+
+
+<span class="c1">############################</span>
+<span class="c1"># _getDigestPath() function</span>
+<span class="c1">############################</span>
+
+<span class="k">def</span> <span class="nf">_getDigestPath</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">absolutePath</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Gets the digest path associated with a collect directory or file.</span>
+<span class="sd">   Args:</span>
+<span class="sd">      config: Config object</span>
+<span class="sd">      absolutePath: Absolute path to generate digest for</span>
+<span class="sd">   Returns:</span>
+<span class="sd">       Absolute path to the digest associated with the collect directory or file</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="n">normalized</span> <span class="o">=</span> <span class="n">buildNormalizedPath</span><span class="p">(</span><span class="n">absolutePath</span><span class="p">)</span>
+   <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">normalized</span><span class="p">,</span> <span class="n">DIGEST_EXTENSION</span><span class="p">)</span>
+   <span class="n">digestPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">workingDir</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Digest path is [</span><span class="si">%s</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">digestPath</span><span class="p">)</span>
+   <span class="k">return</span> <span class="n">digestPath</span>
+
+
+<span class="c1">#############################</span>
+<span class="c1"># _getTarfilePath() function</span>
+<span class="c1">#############################</span>
+
+<span class="k">def</span> <span class="nf">_getTarfilePath</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">absolutePath</span><span class="p">,</span> <span class="n">archiveMode</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Gets the tarfile path (including correct extension) associated with a collect directory.</span>
+<span class="sd">   Args:</span>
+<span class="sd">      config: Config object</span>
+<span class="sd">      absolutePath: Absolute path to generate tarfile for</span>
+<span class="sd">      archiveMode: Archive mode to use for this tarfile</span>
+<span class="sd">   Returns:</span>
+<span class="sd">       Absolute path to the tarfile associated with the collect directory</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="k">if</span> <span class="n">archiveMode</span> <span class="o">==</span> <span class="s1">&#39;tar&#39;</span><span class="p">:</span>
+      <span class="n">extension</span> <span class="o">=</span> <span class="s2">&quot;tar&quot;</span>
+   <span class="k">elif</span> <span class="n">archiveMode</span> <span class="o">==</span> <span class="s1">&#39;targz&#39;</span><span class="p">:</span>
+      <span class="n">extension</span> <span class="o">=</span> <span class="s2">&quot;tar.gz&quot;</span>
+   <span class="k">elif</span> <span class="n">archiveMode</span> <span class="o">==</span> <span class="s1">&#39;tarbz2&#39;</span><span class="p">:</span>
+      <span class="n">extension</span> <span class="o">=</span> <span class="s2">&quot;tar.bz2&quot;</span>
+   <span class="n">normalized</span> <span class="o">=</span> <span class="n">buildNormalizedPath</span><span class="p">(</span><span class="n">absolutePath</span><span class="p">)</span>
+   <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">normalized</span><span class="p">,</span> <span class="n">extension</span><span class="p">)</span>
+   <span class="n">tarfilePath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">targetDir</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Tarfile path is [</span><span class="si">%s</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">tarfilePath</span><span class="p">)</span>
+   <span class="k">return</span> <span class="n">tarfilePath</span>
+
+
+<span class="c1">############################</span>
+<span class="c1"># _getExclusions() function</span>
+<span class="c1">############################</span>
+
+<span class="k">def</span> <span class="nf">_getExclusions</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">collectDir</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Gets exclusions (file and patterns) associated with a collect directory.</span>
+
+<span class="sd">   The returned files value is a list of absolute paths to be excluded from the</span>
+<span class="sd">   backup for a given directory.  It is derived from the collect configuration</span>
+<span class="sd">   absolute exclude paths and the collect directory&#39;s absolute and relative</span>
+<span class="sd">   exclude paths.</span>
+
+<span class="sd">   The returned patterns value is a list of patterns to be excluded from the</span>
+<span class="sd">   backup for a given directory.  It is derived from the list of patterns from</span>
+<span class="sd">   the collect configuration and from the collect directory itself.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      config: Config object</span>
+<span class="sd">      collectDir: Collect directory object</span>
+
+<span class="sd">   Returns:</span>
+<span class="sd">       Tuple (files, patterns) indicating what to exclude</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="n">paths</span> <span class="o">=</span> <span class="p">[]</span>
+   <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">absoluteExcludePaths</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">paths</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">absoluteExcludePaths</span><span class="p">)</span>
+   <span class="k">if</span> <span class="n">collectDir</span><span class="o">.</span><span class="n">absoluteExcludePaths</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">paths</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">collectDir</span><span class="o">.</span><span class="n">absoluteExcludePaths</span><span class="p">)</span>
+   <span class="k">if</span> <span class="n">collectDir</span><span class="o">.</span><span class="n">relativeExcludePaths</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="k">for</span> <span class="n">relativePath</span> <span class="ow">in</span> <span class="n">collectDir</span><span class="o">.</span><span class="n">relativeExcludePaths</span><span class="p">:</span>
+         <span class="n">paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">collectDir</span><span class="o">.</span><span class="n">absolutePath</span><span class="p">,</span> <span class="n">relativePath</span><span class="p">))</span>
+   <span class="n">patterns</span> <span class="o">=</span> <span class="p">[]</span>
+   <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">excludePatterns</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">patterns</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">excludePatterns</span><span class="p">)</span>
+   <span class="k">if</span> <span class="n">collectDir</span><span class="o">.</span><span class="n">excludePatterns</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">patterns</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">collectDir</span><span class="o">.</span><span class="n">excludePatterns</span><span class="p">)</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Exclude paths: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">paths</span><span class="p">)</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Exclude patterns: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">patterns</span><span class="p">)</span>
+   <span class="k">return</span><span class="p">(</span><span class="n">paths</span><span class="p">,</span> <span class="n">patterns</span><span class="p">)</span>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Cedar Backup v3  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright .
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.9.
+    </div>
+  </body>
+</html>

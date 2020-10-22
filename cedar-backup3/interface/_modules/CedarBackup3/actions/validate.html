@@ -1,0 +1,462 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>CedarBackup3.actions.validate &#8212; Cedar Backup v3  documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="Cedar Backup v3  documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Cedar Backup v3  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for CedarBackup3.actions.validate</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: iso-8859-1 -*-</span>
+<span class="c1"># vim: set ft=python ts=3 sw=3 expandtab:</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+<span class="c1">#</span>
+<span class="c1">#              C E D A R</span>
+<span class="c1">#          S O L U T I O N S       &quot;Software done right.&quot;</span>
+<span class="c1">#           S O F T W A R E</span>
+<span class="c1">#</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright (c) 2004-2007,2010,2015 Kenneth J. Pronovici.</span>
+<span class="c1"># All rights reserved.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is free software; you can redistribute it and/or</span>
+<span class="c1"># modify it under the terms of the GNU General Public License,</span>
+<span class="c1"># Version 2, as published by the Free Software Foundation.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</span>
+<span class="c1">#</span>
+<span class="c1"># Copies of the GNU General Public License are available from</span>
+<span class="c1"># the Free Software Foundation website, http://www.gnu.org/.</span>
+<span class="c1">#</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+<span class="c1">#</span>
+<span class="c1"># Author   : Kenneth J. Pronovici &lt;pronovic@ieee.org&gt;</span>
+<span class="c1"># Language : Python 3 (&gt;= 3.4)</span>
+<span class="c1"># Project  : Cedar Backup, release 3</span>
+<span class="c1"># Purpose  : Implements the standard &#39;validate&#39; action.</span>
+<span class="c1">#</span>
+<span class="c1"># # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #</span>
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Module documentation</span>
+<span class="c1">########################################################################</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Implements the standard &#39;validate&#39; action.</span>
+<span class="sd">:author: Kenneth J. Pronovici &lt;pronovic@ieee.org&gt;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Imported modules</span>
+<span class="c1">########################################################################</span>
+
+<span class="c1"># System modules</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="c1"># Cedar Backup modules</span>
+<span class="kn">from</span> <span class="nn">CedarBackup3.util</span> <span class="k">import</span> <span class="n">getUidGid</span><span class="p">,</span> <span class="n">getFunctionReference</span>
+<span class="kn">from</span> <span class="nn">CedarBackup3.actions.util</span> <span class="k">import</span> <span class="n">createWriter</span>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Module-wide constants and variables</span>
+<span class="c1">########################################################################</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;CedarBackup3.log.actions.validate&quot;</span><span class="p">)</span>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Public functions</span>
+<span class="c1">########################################################################</span>
+
+<span class="c1">#############################</span>
+<span class="c1"># executeValidate() function</span>
+<span class="c1">#############################</span>
+
+<span class="c1"># pylint: disable=W0613</span>
+<div class="viewcode-block" id="executeValidate"><a class="viewcode-back" href="../../../CedarBackup3.actions.html#CedarBackup3.actions.validate.executeValidate">[docs]</a><span class="k">def</span> <span class="nf">executeValidate</span><span class="p">(</span><span class="n">configPath</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Executes the validate action.</span>
+
+<span class="sd">   This action validates each of the individual sections in the config file.</span>
+<span class="sd">   This is a &quot;runtime&quot; validation.  The config file itself is already valid in</span>
+<span class="sd">   a structural sense, so what we check here that is that we can actually use</span>
+<span class="sd">   the configuration without any problems.</span>
+
+<span class="sd">   There&#39;s a separate validation function for each of the configuration</span>
+<span class="sd">   sections.  Each validation function returns a true/false indication for</span>
+<span class="sd">   whether configuration was valid, and then logs any configuration problems it</span>
+<span class="sd">   finds.  This way, one pass over configuration indicates most or all of the</span>
+<span class="sd">   obvious problems, rather than finding just one problem at a time.</span>
+
+<span class="sd">   Any reported problems will be logged at the ERROR level normally, or at the</span>
+<span class="sd">   INFO level if the quiet flag is enabled.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      configPath (String representing a path on disk): Path to configuration file on disk</span>
+<span class="sd">      options (Options object): Program command-line options</span>
+<span class="sd">      config (Config object): Program configuration</span>
+<span class="sd">   Raises:</span>
+<span class="sd">      ValueError: If some configuration value is invalid</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Executing the &#39;validate&#39; action.&quot;</span><span class="p">)</span>
+   <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">quiet</span><span class="p">:</span>
+      <span class="n">logfunc</span> <span class="o">=</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span>   <span class="c1"># info so it goes to the log</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="n">logfunc</span> <span class="o">=</span> <span class="n">logger</span><span class="o">.</span><span class="n">error</span>  <span class="c1"># error so it goes to the screen</span>
+   <span class="n">valid</span> <span class="o">=</span> <span class="kc">True</span>
+   <span class="n">valid</span> <span class="o">&amp;=</span> <span class="n">_validateReference</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">logfunc</span><span class="p">)</span>
+   <span class="n">valid</span> <span class="o">&amp;=</span> <span class="n">_validateOptions</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">logfunc</span><span class="p">)</span>
+   <span class="n">valid</span> <span class="o">&amp;=</span> <span class="n">_validateCollect</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">logfunc</span><span class="p">)</span>
+   <span class="n">valid</span> <span class="o">&amp;=</span> <span class="n">_validateStage</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">logfunc</span><span class="p">)</span>
+   <span class="n">valid</span> <span class="o">&amp;=</span> <span class="n">_validateStore</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">logfunc</span><span class="p">)</span>
+   <span class="n">valid</span> <span class="o">&amp;=</span> <span class="n">_validatePurge</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">logfunc</span><span class="p">)</span>
+   <span class="n">valid</span> <span class="o">&amp;=</span> <span class="n">_validateExtensions</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">logfunc</span><span class="p">)</span>
+   <span class="k">if</span> <span class="n">valid</span><span class="p">:</span>
+      <span class="n">logfunc</span><span class="p">(</span><span class="s2">&quot;Configuration is valid.&quot;</span><span class="p">)</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="n">logfunc</span><span class="p">(</span><span class="s2">&quot;Configuration is not valid.&quot;</span><span class="p">)</span></div>
+
+
+<span class="c1">########################################################################</span>
+<span class="c1"># Private utility functions</span>
+<span class="c1">########################################################################</span>
+
+<span class="c1">#######################</span>
+<span class="c1"># _checkDir() function</span>
+<span class="c1">#######################</span>
+
+<span class="k">def</span> <span class="nf">_checkDir</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">writable</span><span class="p">,</span> <span class="n">logfunc</span><span class="p">,</span> <span class="n">prefix</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Checks that the indicated directory is OK.</span>
+
+<span class="sd">   The path must exist, must be a directory, must be readable and executable,</span>
+<span class="sd">   and must optionally be writable.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      path: Path to check</span>
+<span class="sd">      writable: Check that path is writable</span>
+<span class="sd">      logfunc: Function to use for logging errors</span>
+<span class="sd">      prefix: Prefix to use on logged errors</span>
+
+<span class="sd">   Returns:</span>
+<span class="sd">       True if the directory is OK, False otherwise</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+      <span class="n">logfunc</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> [</span><span class="si">%s</span><span class="s2">] does not exist.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">path</span><span class="p">))</span>
+      <span class="k">return</span> <span class="kc">False</span>
+   <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+      <span class="n">logfunc</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> [</span><span class="si">%s</span><span class="s2">] is not a directory.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">path</span><span class="p">))</span>
+      <span class="k">return</span> <span class="kc">False</span>
+   <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">access</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">R_OK</span><span class="p">):</span>
+      <span class="n">logfunc</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> [</span><span class="si">%s</span><span class="s2">] is not readable.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">path</span><span class="p">))</span>
+      <span class="k">return</span> <span class="kc">False</span>
+   <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">access</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">X_OK</span><span class="p">):</span>
+      <span class="n">logfunc</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> [</span><span class="si">%s</span><span class="s2">] is not executable.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">path</span><span class="p">))</span>
+      <span class="k">return</span> <span class="kc">False</span>
+   <span class="k">if</span> <span class="n">writable</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">access</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">W_OK</span><span class="p">):</span>
+      <span class="n">logfunc</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> [</span><span class="si">%s</span><span class="s2">] is not writable.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">path</span><span class="p">))</span>
+      <span class="k">return</span> <span class="kc">False</span>
+   <span class="k">return</span> <span class="kc">True</span>
+
+
+<span class="c1">################################</span>
+<span class="c1"># _validateReference() function</span>
+<span class="c1">################################</span>
+
+<span class="k">def</span> <span class="nf">_validateReference</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">logfunc</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Execute runtime validations on reference configuration.</span>
+
+<span class="sd">   We only validate that reference configuration exists at all.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      config: Program configuration</span>
+<span class="sd">      logfunc: Function to use for logging errors</span>
+
+<span class="sd">   Returns:</span>
+<span class="sd">       True if configuration is valid, false otherwise</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="n">valid</span> <span class="o">=</span> <span class="kc">True</span>
+   <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">reference</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">logfunc</span><span class="p">(</span><span class="s2">&quot;Required reference configuration does not exist.&quot;</span><span class="p">)</span>
+      <span class="n">valid</span> <span class="o">=</span> <span class="kc">False</span>
+   <span class="k">return</span> <span class="n">valid</span>
+
+
+<span class="c1">##############################</span>
+<span class="c1"># _validateOptions() function</span>
+<span class="c1">##############################</span>
+
+<span class="k">def</span> <span class="nf">_validateOptions</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">logfunc</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Execute runtime validations on options configuration.</span>
+
+<span class="sd">   The following validations are enforced:</span>
+
+<span class="sd">      - The options section must exist</span>
+<span class="sd">      - The working directory must exist and must be writable</span>
+<span class="sd">      - The backup user and backup group must exist</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      config: Program configuration</span>
+<span class="sd">      logfunc: Function to use for logging errors</span>
+
+<span class="sd">   Returns:</span>
+<span class="sd">       True if configuration is valid, false otherwise</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="n">valid</span> <span class="o">=</span> <span class="kc">True</span>
+   <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">logfunc</span><span class="p">(</span><span class="s2">&quot;Required options configuration does not exist.&quot;</span><span class="p">)</span>
+      <span class="n">valid</span> <span class="o">=</span> <span class="kc">False</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="n">valid</span> <span class="o">&amp;=</span> <span class="n">_checkDir</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">workingDir</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">logfunc</span><span class="p">,</span> <span class="s2">&quot;Working directory&quot;</span><span class="p">)</span>
+      <span class="k">try</span><span class="p">:</span>
+         <span class="n">getUidGid</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupUser</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupGroup</span><span class="p">)</span>
+      <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+         <span class="n">logfunc</span><span class="p">(</span><span class="s2">&quot;Backup user:group [</span><span class="si">%s</span><span class="s2">:</span><span class="si">%s</span><span class="s2">] invalid.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupUser</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">backupGroup</span><span class="p">))</span>
+         <span class="n">valid</span> <span class="o">=</span> <span class="kc">False</span>
+   <span class="k">return</span> <span class="n">valid</span>
+
+
+<span class="c1">##############################</span>
+<span class="c1"># _validateCollect() function</span>
+<span class="c1">##############################</span>
+
+<span class="k">def</span> <span class="nf">_validateCollect</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">logfunc</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Execute runtime validations on collect configuration.</span>
+
+<span class="sd">   The following validations are enforced:</span>
+
+<span class="sd">      - The target directory must exist and must be writable</span>
+<span class="sd">      - Each of the individual collect directories must exist and must be readable</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      config: Program configuration</span>
+<span class="sd">      logfunc: Function to use for logging errors</span>
+
+<span class="sd">   Returns:</span>
+<span class="sd">       True if configuration is valid, false otherwise</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="n">valid</span> <span class="o">=</span> <span class="kc">True</span>
+   <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">collect</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">valid</span> <span class="o">&amp;=</span> <span class="n">_checkDir</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">targetDir</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">logfunc</span><span class="p">,</span> <span class="s2">&quot;Collect target directory&quot;</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">collectDirs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">for</span> <span class="n">collectDir</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">collectDirs</span><span class="p">:</span>
+            <span class="n">valid</span> <span class="o">&amp;=</span> <span class="n">_checkDir</span><span class="p">(</span><span class="n">collectDir</span><span class="o">.</span><span class="n">absolutePath</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">logfunc</span><span class="p">,</span> <span class="s2">&quot;Collect directory&quot;</span><span class="p">)</span>
+   <span class="k">return</span> <span class="n">valid</span>
+
+
+<span class="c1">############################</span>
+<span class="c1"># _validateStage() function</span>
+<span class="c1">############################</span>
+
+<span class="k">def</span> <span class="nf">_validateStage</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">logfunc</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Execute runtime validations on stage configuration.</span>
+
+<span class="sd">   The following validations are enforced:</span>
+
+<span class="sd">      - The target directory must exist and must be writable</span>
+<span class="sd">      - Each local peer&#39;s collect directory must exist and must be readable</span>
+
+<span class="sd">   *Note:* We currently do not validate anything having to do with remote peers,</span>
+<span class="sd">   since we don&#39;t have a straightforward way of doing it.  It would require</span>
+<span class="sd">   adding an rsh command rather than just an rcp command to configuration, and</span>
+<span class="sd">   that just doesn&#39;t seem worth it right now.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      config: Program configuration</span>
+<span class="sd">      logfunc: Function to use for logging errors</span>
+
+<span class="sd">   Returns:</span>
+<span class="sd">       True if configuration is valid, False otherwise</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="n">valid</span> <span class="o">=</span> <span class="kc">True</span>
+   <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">stage</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">valid</span> <span class="o">&amp;=</span> <span class="n">_checkDir</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">stage</span><span class="o">.</span><span class="n">targetDir</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">logfunc</span><span class="p">,</span> <span class="s2">&quot;Stage target dir &quot;</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">stage</span><span class="o">.</span><span class="n">localPeers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">for</span> <span class="n">peer</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">stage</span><span class="o">.</span><span class="n">localPeers</span><span class="p">:</span>
+            <span class="n">valid</span> <span class="o">&amp;=</span> <span class="n">_checkDir</span><span class="p">(</span><span class="n">peer</span><span class="o">.</span><span class="n">collectDir</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">logfunc</span><span class="p">,</span> <span class="s2">&quot;Local peer collect dir &quot;</span><span class="p">)</span>
+   <span class="k">return</span> <span class="n">valid</span>
+
+
+<span class="c1">############################</span>
+<span class="c1"># _validateStore() function</span>
+<span class="c1">############################</span>
+
+<span class="k">def</span> <span class="nf">_validateStore</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">logfunc</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Execute runtime validations on store configuration.</span>
+
+<span class="sd">   The following validations are enforced:</span>
+
+<span class="sd">      - The source directory must exist and must be readable</span>
+<span class="sd">      - The backup device (path and SCSI device) must be valid</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      config: Program configuration</span>
+<span class="sd">      logfunc: Function to use for logging errors</span>
+
+<span class="sd">   Returns:</span>
+<span class="sd">       True if configuration is valid, False otherwise</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="n">valid</span> <span class="o">=</span> <span class="kc">True</span>
+   <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">store</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">valid</span> <span class="o">&amp;=</span> <span class="n">_checkDir</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">store</span><span class="o">.</span><span class="n">sourceDir</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">logfunc</span><span class="p">,</span> <span class="s2">&quot;Store source directory&quot;</span><span class="p">)</span>
+      <span class="k">try</span><span class="p">:</span>
+         <span class="n">createWriter</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+      <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+         <span class="n">logfunc</span><span class="p">(</span><span class="s2">&quot;Backup device [</span><span class="si">%s</span><span class="s2">] [</span><span class="si">%s</span><span class="s2">] is not valid.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">store</span><span class="o">.</span><span class="n">devicePath</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">store</span><span class="o">.</span><span class="n">deviceScsiId</span><span class="p">))</span>
+         <span class="n">valid</span> <span class="o">=</span> <span class="kc">False</span>
+   <span class="k">return</span> <span class="n">valid</span>
+
+
+<span class="c1">############################</span>
+<span class="c1"># _validatePurge() function</span>
+<span class="c1">############################</span>
+
+<span class="k">def</span> <span class="nf">_validatePurge</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">logfunc</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Execute runtime validations on purge configuration.</span>
+
+<span class="sd">   The following validations are enforced:</span>
+
+<span class="sd">      - Each purge directory must exist and must be writable</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      config: Program configuration</span>
+<span class="sd">      logfunc: Function to use for logging errors</span>
+
+<span class="sd">   Returns:</span>
+<span class="sd">       True if configuration is valid, False otherwise</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="n">valid</span> <span class="o">=</span> <span class="kc">True</span>
+   <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">purge</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">purge</span><span class="o">.</span><span class="n">purgeDirs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">for</span> <span class="n">purgeDir</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">purge</span><span class="o">.</span><span class="n">purgeDirs</span><span class="p">:</span>
+            <span class="n">valid</span> <span class="o">&amp;=</span> <span class="n">_checkDir</span><span class="p">(</span><span class="n">purgeDir</span><span class="o">.</span><span class="n">absolutePath</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">logfunc</span><span class="p">,</span> <span class="s2">&quot;Purge directory&quot;</span><span class="p">)</span>
+   <span class="k">return</span> <span class="n">valid</span>
+
+
+<span class="c1">#################################</span>
+<span class="c1"># _validateExtensions() function</span>
+<span class="c1">#################################</span>
+
+<span class="k">def</span> <span class="nf">_validateExtensions</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">logfunc</span><span class="p">):</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Execute runtime validations on extensions configuration.</span>
+
+<span class="sd">   The following validations are enforced:</span>
+
+<span class="sd">      - Each indicated extension function must exist.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">      config: Program configuration</span>
+<span class="sd">      logfunc: Function to use for logging errors</span>
+
+<span class="sd">   Returns:</span>
+<span class="sd">       True if configuration is valid, False otherwise</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="n">valid</span> <span class="o">=</span> <span class="kc">True</span>
+   <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">extensions</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">extensions</span><span class="o">.</span><span class="n">actions</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">for</span> <span class="n">action</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">extensions</span><span class="o">.</span><span class="n">actions</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+               <span class="n">getFunctionReference</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">module</span><span class="p">,</span> <span class="n">action</span><span class="o">.</span><span class="n">function</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+               <span class="n">logfunc</span><span class="p">(</span><span class="s2">&quot;Unable to find function [</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">].&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">module</span><span class="p">,</span> <span class="n">action</span><span class="o">.</span><span class="n">function</span><span class="p">))</span>
+               <span class="n">valid</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+               <span class="n">logfunc</span><span class="p">(</span><span class="s2">&quot;Function [</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">] is not callable.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">module</span><span class="p">,</span> <span class="n">action</span><span class="o">.</span><span class="n">function</span><span class="p">))</span>
+               <span class="n">valid</span> <span class="o">=</span> <span class="kc">False</span>
+   <span class="k">return</span> <span class="n">valid</span>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Cedar Backup v3  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright .
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.9.
+    </div>
+  </body>
+</html>

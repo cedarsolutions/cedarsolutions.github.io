@@ -1,0 +1,1644 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>CedarBackup3.writers package &#8212; Cedar Backup v3  documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="Cedar Backup v3  documentation" href="index.html" />
+    <link rel="up" title="CedarBackup3 package" href="CedarBackup3.html" />
+    <link rel="prev" title="CedarBackup3.tools package" href="CedarBackup3.tools.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="CedarBackup3.tools.html" title="CedarBackup3.tools package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Cedar Backup v3  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="CedarBackup3.html" accesskey="U">CedarBackup3 package</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-CedarBackup3.writers">
+<span id="cedarbackup3-writers-package"></span><h1>CedarBackup3.writers package<a class="headerlink" href="#module-CedarBackup3.writers" title="Permalink to this headline">¶</a></h1>
+<p>Cedar Backup writers.</p>
+<p>This package consolidates all of the modules that implenent &#8220;image writer&#8221;
+functionality, including utilities and specific writer implementations.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">author:</th><td class="field-body">Kenneth J. Pronovici &lt;<a class="reference external" href="mailto:pronovic&#37;&#52;&#48;ieee&#46;org">pronovic<span>&#64;</span>ieee<span>&#46;</span>org</a>&gt;</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-CedarBackup3.writers.cdwriter">
+<span id="cedarbackup3-writers-cdwriter-module"></span><h2>CedarBackup3.writers.cdwriter module<a class="headerlink" href="#module-CedarBackup3.writers.cdwriter" title="Permalink to this headline">¶</a></h2>
+<p>Provides functionality related to CD writer devices.</p>
+<div class="section" id="module-attributes">
+<h3>Module Attributes<a class="headerlink" href="#module-attributes" title="Permalink to this headline">¶</a></h3>
+<dl class="attribute">
+<dt id="CedarBackup3.writers.cdwriter.MEDIA_CDRW_74">
+<code class="descclassname">CedarBackup3.writers.cdwriter.</code><code class="descname">MEDIA_CDRW_74</code><a class="headerlink" href="#CedarBackup3.writers.cdwriter.MEDIA_CDRW_74" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constant representing 74-minute CD-RW media</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.cdwriter.MEDIA_CDR_74">
+<code class="descclassname">CedarBackup3.writers.cdwriter.</code><code class="descname">MEDIA_CDR_74</code><a class="headerlink" href="#CedarBackup3.writers.cdwriter.MEDIA_CDR_74" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constant representing 74-minute CD-R media</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.cdwriter.MEDIA_CDRW_80">
+<code class="descclassname">CedarBackup3.writers.cdwriter.</code><code class="descname">MEDIA_CDRW_80</code><a class="headerlink" href="#CedarBackup3.writers.cdwriter.MEDIA_CDRW_80" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constant representing 80-minute CD-RW media</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.cdwriter.MEDIA_CDR_80">
+<code class="descclassname">CedarBackup3.writers.cdwriter.</code><code class="descname">MEDIA_CDR_80</code><a class="headerlink" href="#CedarBackup3.writers.cdwriter.MEDIA_CDR_80" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constant representing 80-minute CD-R media</p>
+</dd></dl>
+
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">author:</th><td class="field-body">Kenneth J. Pronovici &lt;<a class="reference external" href="mailto:pronovic&#37;&#52;&#48;ieee&#46;org">pronovic<span>&#64;</span>ieee<span>&#46;</span>org</a>&gt;</td>
+</tr>
+</tbody>
+</table>
+<dl class="class">
+<dt id="CedarBackup3.writers.cdwriter.CdWriter">
+<em class="property">class </em><code class="descclassname">CedarBackup3.writers.cdwriter.</code><code class="descname">CdWriter</code><span class="sig-paren">(</span><em>device</em>, <em>scsiId=None</em>, <em>driveSpeed=None</em>, <em>mediaType=1</em>, <em>noEject=False</em>, <em>refreshMediaDelay=0</em>, <em>ejectDelay=0</em>, <em>unittest=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/cdwriter.html#CdWriter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.cdwriter.CdWriter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Class representing a device that knows how to write CD media.</p>
+<p>This is a class representing a device that knows how to write CD media.  It
+provides common operations for the device, such as ejecting the media,
+writing an ISO image to the media, or checking for the current media
+capacity.  It also provides a place to store device attributes, such as
+whether the device supports writing multisession discs, etc.</p>
+<p>This class is implemented in terms of the <code class="docutils literal"><span class="pre">eject</span></code> and <code class="docutils literal"><span class="pre">cdrecord</span></code>
+programs, both of which should be available on most UN*X platforms.</p>
+<p><strong>Image Writer Interface</strong></p>
+<p>The following methods make up the &#8220;image writer&#8221; interface shared
+with other kinds of writers (such as DVD writers):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="fm">__init__</span>
+<span class="n">initializeImage</span><span class="p">()</span>
+<span class="n">addImageEntry</span><span class="p">()</span>
+<span class="n">writeImage</span><span class="p">()</span>
+<span class="n">setImageNewDisc</span><span class="p">()</span>
+<span class="n">retrieveCapacity</span><span class="p">()</span>
+<span class="n">getEstimatedImageSize</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Only these methods will be used by other Cedar Backup functionality
+that expects a compatible image writer.</p>
+<p>The media attribute is also assumed to be available.</p>
+<p><strong>Media Types</strong></p>
+<p>This class knows how to write to two different kinds of media, represented
+by the following constants:</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal"><span class="pre">MEDIA_CDR_74</span></code>: 74-minute CD-R media (650 MB capacity)</li>
+<li><code class="docutils literal"><span class="pre">MEDIA_CDRW_74</span></code>: 74-minute CD-RW media (650 MB capacity)</li>
+<li><code class="docutils literal"><span class="pre">MEDIA_CDR_80</span></code>: 80-minute CD-R media (700 MB capacity)</li>
+<li><code class="docutils literal"><span class="pre">MEDIA_CDRW_80</span></code>: 80-minute CD-RW media (700 MB capacity)</li>
+</ul>
+</div></blockquote>
+<p>Most hardware can read and write both 74-minute and 80-minute CD-R and
+CD-RW media.  Some older drives may only be able to write CD-R media.
+The difference between the two is that CD-RW media can be rewritten
+(erased), while CD-R media cannot be.</p>
+<p>I do not support any other configurations for a couple of reasons.  The
+first is that I&#8217;ve never tested any other kind of media.  The second is
+that anything other than 74 or 80 minute is apparently non-standard.</p>
+<p><strong>Device Attributes vs. Media Attributes</strong></p>
+<p>A given writer instance has two different kinds of attributes associated
+with it, which I call device attributes and media attributes.  Device
+attributes are things which can be determined without looking at the
+media, such as whether the drive supports writing multisession disks or
+has a tray.  Media attributes are attributes which vary depending on the
+state of the media, such as the remaining capacity on a disc.  In
+general, device attributes are available via instance variables and are
+constant over the life of an object, while media attributes can be
+retrieved through method calls.</p>
+<p><strong>Talking to Hardware</strong></p>
+<p>This class needs to talk to CD writer hardware in two different ways:
+through cdrecord to actually write to the media, and through the
+filesystem to do things like open and close the tray.</p>
+<p>Historically, CdWriter has interacted with cdrecord using the scsiId
+attribute, and with most other utilities using the device attribute.
+This changed somewhat in Cedar Backup 2.9.0.</p>
+<p>When Cedar Backup was first written, the only way to interact with
+cdrecord was by using a SCSI device id.  IDE devices were mapped to
+pseudo-SCSI devices through the kernel.  Later, extended SCSI &#8220;methods&#8221;
+arrived, and it became common to see <code class="docutils literal"><span class="pre">ATA:1,0,0</span></code> or <code class="docutils literal"><span class="pre">ATAPI:0,0,0</span></code> as a
+way to address IDE hardware.  By late 2006, <code class="docutils literal"><span class="pre">ATA</span></code> and <code class="docutils literal"><span class="pre">ATAPI</span></code> had
+apparently been deprecated in favor of just addressing the IDE device
+directly by name, i.e. <code class="docutils literal"><span class="pre">/dev/cdrw</span></code>.</p>
+<p>Because of this latest development, it no longer makes sense to require a
+CdWriter to be created with a SCSI id &#8211; there might not be one.  So, the
+passed-in SCSI id is now optional.  Also, there is now a hardwareId
+attribute.  This attribute is filled in with either the SCSI id (if
+provided) or the device (otherwise).  The hardware id is the value that
+will be passed to cdrecord in the <code class="docutils literal"><span class="pre">dev=</span></code> argument.</p>
+<p><strong>Testing</strong></p>
+<p>It&#8217;s rather difficult to test this code in an automated fashion, even if
+you have access to a physical CD writer drive.  It&#8217;s even more difficult
+to test it if you are running on some build daemon (think of a Debian
+autobuilder) which can&#8217;t be expected to have any hardware or any media
+that you could write to.</p>
+<p>Because of this, much of the implementation below is in terms of static
+methods that are supposed to take defined actions based on their
+arguments.  Public methods are then implemented in terms of a series of
+calls to simplistic static methods.  This way, we can test as much as
+possible of the functionality via testing the static methods, while
+hoping that if the static methods are called appropriately, things will
+work properly.  It&#8217;s not perfect, but it&#8217;s much better than no testing at
+all.</p>
+<dl class="method">
+<dt id="CedarBackup3.writers.cdwriter.CdWriter.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>device</em>, <em>scsiId=None</em>, <em>driveSpeed=None</em>, <em>mediaType=1</em>, <em>noEject=False</em>, <em>refreshMediaDelay=0</em>, <em>ejectDelay=0</em>, <em>unittest=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/cdwriter.html#CdWriter.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.cdwriter.CdWriter.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes a CD writer object.</p>
+<p>The current user must have write access to the device at the time the
+object is instantiated, or an exception will be thrown.  However, no
+media-related validation is done, and in fact there is no need for any
+media to be in the drive until one of the other media attribute-related
+methods is called.</p>
+<p>The various instance variables such as <code class="docutils literal"><span class="pre">deviceType</span></code>, <code class="docutils literal"><span class="pre">deviceVendor</span></code>,
+etc. might be <code class="docutils literal"><span class="pre">None</span></code>, if we&#8217;re unable to parse this specific information
+from the <code class="docutils literal"><span class="pre">cdrecord</span></code> output.  This information is just for reference.</p>
+<p>The SCSI id is optional, but the device path is required.  If the SCSI id
+is passed in, then the hardware id attribute will be taken from the SCSI
+id.  Otherwise, the hardware id will be taken from the device.</p>
+<p>If cdrecord improperly detects whether your writer device has a tray and
+can be safely opened and closed, then pass in <code class="docutils literal"><span class="pre">noEject=False</span></code>.  This
+will override the properties and the device will never be ejected.</p>
+<p><em>Note:</em> The <code class="docutils literal"><span class="pre">unittest</span></code> parameter should never be set to <code class="docutils literal"><span class="pre">True</span></code>
+outside of Cedar Backup code.  It is intended for use in unit testing
+Cedar Backup internals and has no other sensible purpose.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>device</strong> (Absolute path to a filesystem device, i.e. <code class="docutils literal"><span class="pre">/dev/cdrw</span></code>) &#8211; Filesystem device associated with this writer</li>
+<li><strong>scsiId</strong> (If provided, SCSI id in the form <code class="docutils literal"><span class="pre">[&lt;method&gt;:]scsibus,target,lun</span></code>) &#8211; SCSI id for the device (optional)</li>
+<li><strong>driveSpeed</strong> (Use <code class="docutils literal"><span class="pre">2</span></code> for 2x device, etc. or <code class="docutils literal"><span class="pre">None</span></code> to use device default) &#8211; Speed at which the drive writes</li>
+<li><strong>mediaType</strong> (<em>One of the valid media type as discussed above</em>) &#8211; Type of the media that is assumed to be in the drive</li>
+<li><strong>noEject</strong> (<em>Boolean true/false</em>) &#8211; Overrides properties to indicate that the device does not support eject</li>
+<li><strong>refreshMediaDelay</strong> (<em>Number of seconds, an integer &gt;= 0</em>) &#8211; Refresh media delay to use, if any</li>
+<li><strong>ejectDelay</strong> (<em>Number of seconds, an integer &gt;= 0</em>) &#8211; Eject delay to use, if any</li>
+<li><strong>unittest</strong> (<em>Boolean true/false</em>) &#8211; Turns off certain validations, for use in unit testing</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If the device is not valid for some reason</li>
+<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If the SCSI id is not in a valid form</li>
+<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If the drive speed is not an integer &gt;= 1</li>
+<li><code class="xref py py-exc docutils literal"><span class="pre">IOError</span></code> &#8211; If device properties could not be read for some reason</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="CedarBackup3.writers.cdwriter.CdWriter.addImageEntry">
+<code class="descname">addImageEntry</code><span class="sig-paren">(</span><em>path</em>, <em>graftPoint</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/cdwriter.html#CdWriter.addImageEntry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.cdwriter.CdWriter.addImageEntry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a filepath entry to the writer&#8217;s associated ISO image.</p>
+<p>The contents of the filepath &#8211; but not the path itself &#8211; will be added
+to the image at the indicated graft point.  If you don&#8217;t want to use a
+graft point, just pass <code class="docutils literal"><span class="pre">None</span></code>.</p>
+<p><em>Note:</em> Before calling this method, you must call <a class="reference internal" href="#CedarBackup3.writers.cdwriter.CdWriter.initializeImage" title="CedarBackup3.writers.cdwriter.CdWriter.initializeImage"><code class="xref any py py-meth docutils literal"><span class="pre">initializeImage</span></code></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>path</strong> (<em>String representing a path on disk</em>) &#8211; File or directory to be added to the image</li>
+<li><strong>graftPoint</strong> (<em>String representing a graft point path, as described above</em>) &#8211; Graft point to be used when adding this entry</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If initializeImage() was not previously called</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="CedarBackup3.writers.cdwriter.CdWriter.closeTray">
+<code class="descname">closeTray</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/cdwriter.html#CdWriter.closeTray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.cdwriter.CdWriter.closeTray" title="Permalink to this definition">¶</a></dt>
+<dd><p>Closes the device&#8217;s tray.</p>
+<p>This only works if the device has a tray and supports ejecting its media.
+We have no way to know if the tray is currently open or closed, so we
+just send the appropriate command and hope for the best.  If the device
+does not have a tray or does not support ejecting its media, then we do
+nothing.</p>
+<p>If the writer was constructed with <code class="docutils literal"><span class="pre">noEject=True</span></code>, then this is a no-op.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">IOError</span></code> &#8211; If there is an error talking to the device</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.cdwriter.CdWriter.device">
+<code class="descname">device</code><a class="headerlink" href="#CedarBackup3.writers.cdwriter.CdWriter.device" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filesystem device name for this writer.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.cdwriter.CdWriter.deviceBufferSize">
+<code class="descname">deviceBufferSize</code><a class="headerlink" href="#CedarBackup3.writers.cdwriter.CdWriter.deviceBufferSize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Size of the device&#8217;s write buffer, in bytes.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.cdwriter.CdWriter.deviceCanEject">
+<code class="descname">deviceCanEject</code><a class="headerlink" href="#CedarBackup3.writers.cdwriter.CdWriter.deviceCanEject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicates whether the device supports ejecting its media.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.cdwriter.CdWriter.deviceHasTray">
+<code class="descname">deviceHasTray</code><a class="headerlink" href="#CedarBackup3.writers.cdwriter.CdWriter.deviceHasTray" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicates whether the device has a media tray.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.cdwriter.CdWriter.deviceId">
+<code class="descname">deviceId</code><a class="headerlink" href="#CedarBackup3.writers.cdwriter.CdWriter.deviceId" title="Permalink to this definition">¶</a></dt>
+<dd><p>Device identification, as returned from <code class="docutils literal"><span class="pre">cdrecord</span> <span class="pre">-prcap</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.cdwriter.CdWriter.deviceSupportsMulti">
+<code class="descname">deviceSupportsMulti</code><a class="headerlink" href="#CedarBackup3.writers.cdwriter.CdWriter.deviceSupportsMulti" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicates whether device supports multisession discs.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.cdwriter.CdWriter.deviceType">
+<code class="descname">deviceType</code><a class="headerlink" href="#CedarBackup3.writers.cdwriter.CdWriter.deviceType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Type of the device, as returned from <code class="docutils literal"><span class="pre">cdrecord</span> <span class="pre">-prcap</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.cdwriter.CdWriter.deviceVendor">
+<code class="descname">deviceVendor</code><a class="headerlink" href="#CedarBackup3.writers.cdwriter.CdWriter.deviceVendor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Vendor of the device, as returned from <code class="docutils literal"><span class="pre">cdrecord</span> <span class="pre">-prcap</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.cdwriter.CdWriter.driveSpeed">
+<code class="descname">driveSpeed</code><a class="headerlink" href="#CedarBackup3.writers.cdwriter.CdWriter.driveSpeed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Speed at which the drive writes.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.cdwriter.CdWriter.ejectDelay">
+<code class="descname">ejectDelay</code><a class="headerlink" href="#CedarBackup3.writers.cdwriter.CdWriter.ejectDelay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Eject delay, in seconds.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CedarBackup3.writers.cdwriter.CdWriter.getEstimatedImageSize">
+<code class="descname">getEstimatedImageSize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/cdwriter.html#CdWriter.getEstimatedImageSize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.cdwriter.CdWriter.getEstimatedImageSize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the estimated size of the image associated with the writer.
+:returns: Estimated size of the image, in bytes</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><code class="xref py py-exc docutils literal"><span class="pre">IOError</span></code> &#8211; If there is a problem calling <code class="docutils literal"><span class="pre">mkisofs</span></code></li>
+<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If initializeImage() was not previously called</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.cdwriter.CdWriter.hardwareId">
+<code class="descname">hardwareId</code><a class="headerlink" href="#CedarBackup3.writers.cdwriter.CdWriter.hardwareId" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hardware id for this writer, either SCSI id or device path.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CedarBackup3.writers.cdwriter.CdWriter.initializeImage">
+<code class="descname">initializeImage</code><span class="sig-paren">(</span><em>newDisc</em>, <em>tmpdir</em>, <em>mediaLabel=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/cdwriter.html#CdWriter.initializeImage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.cdwriter.CdWriter.initializeImage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the writer&#8217;s associated ISO image.</p>
+<p>This method initializes the <code class="docutils literal"><span class="pre">image</span></code> instance variable so that the caller
+can use the <code class="docutils literal"><span class="pre">addImageEntry</span></code> method.  Once entries have been added, the
+<code class="docutils literal"><span class="pre">writeImage</span></code> method can be called with no arguments.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>newDisc</strong> (<em>Boolean true/false</em>) &#8211; Indicates whether the disc should be re-initialized</li>
+<li><strong>tmpdir</strong> (<em>String representing a directory path on disk</em>) &#8211; Temporary directory to use if needed</li>
+<li><strong>mediaLabel</strong> (<em>String, no more than 25 characters long</em>) &#8211; Media label to be applied to the image, if any</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="CedarBackup3.writers.cdwriter.CdWriter.isRewritable">
+<code class="descname">isRewritable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/cdwriter.html#CdWriter.isRewritable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.cdwriter.CdWriter.isRewritable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicates whether the media is rewritable per configuration.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.cdwriter.CdWriter.media">
+<code class="descname">media</code><a class="headerlink" href="#CedarBackup3.writers.cdwriter.CdWriter.media" title="Permalink to this definition">¶</a></dt>
+<dd><p>Definition of media that is expected to be in the device.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CedarBackup3.writers.cdwriter.CdWriter.openTray">
+<code class="descname">openTray</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/cdwriter.html#CdWriter.openTray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.cdwriter.CdWriter.openTray" title="Permalink to this definition">¶</a></dt>
+<dd><p>Opens the device&#8217;s tray and leaves it open.</p>
+<p>This only works if the device has a tray and supports ejecting its media.
+We have no way to know if the tray is currently open or closed, so we
+just send the appropriate command and hope for the best.  If the device
+does not have a tray or does not support ejecting its media, then we do
+nothing.</p>
+<p>If the writer was constructed with <code class="docutils literal"><span class="pre">noEject=True</span></code>, then this is a no-op.</p>
+<p>Starting with Debian wheezy on my backup hardware, I started seeing
+consistent problems with the eject command.  I couldn&#8217;t tell whether
+these problems were due to the device management system or to the new
+kernel (3.2.0).  Initially, I saw simple eject failures, possibly because
+I was opening and closing the tray too quickly.  I worked around that
+behavior with the new ejectDelay flag.</p>
+<p>Later, I sometimes ran into issues after writing an image to a disc:
+eject would give errors like &#8220;unable to eject, last error: Inappropriate
+ioctl for device&#8221;.  Various sources online (like Ubuntu bug #875543)
+suggested that the drive was being locked somehow, and that the
+workaround was to run &#8216;eject -i off&#8217; to unlock it.  Sure enough, that
+fixed the problem for me, so now it&#8217;s a normal error-handling strategy.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">IOError</span></code> &#8211; If there is an error talking to the device</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="CedarBackup3.writers.cdwriter.CdWriter.refreshMedia">
+<code class="descname">refreshMedia</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/cdwriter.html#CdWriter.refreshMedia"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.cdwriter.CdWriter.refreshMedia" title="Permalink to this definition">¶</a></dt>
+<dd><p>Opens and then immediately closes the device&#8217;s tray, to refresh the
+device&#8217;s idea of the media.</p>
+<p>Sometimes, a device gets confused about the state of its media.  Often,
+all it takes to solve the problem is to eject the media and then
+immediately reload it.  (There are also configurable eject and refresh
+media delays which can be applied, for situations where this makes a
+difference.)</p>
+<p>This only works if the device has a tray and supports ejecting its media.
+We have no way to know if the tray is currently open or closed, so we
+just send the appropriate command and hope for the best.  If the device
+does not have a tray or does not support ejecting its media, then we do
+nothing.  The configured delays still apply, though.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">IOError</span></code> &#8211; If there is an error talking to the device</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.cdwriter.CdWriter.refreshMediaDelay">
+<code class="descname">refreshMediaDelay</code><a class="headerlink" href="#CedarBackup3.writers.cdwriter.CdWriter.refreshMediaDelay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Refresh media delay, in seconds.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CedarBackup3.writers.cdwriter.CdWriter.retrieveCapacity">
+<code class="descname">retrieveCapacity</code><span class="sig-paren">(</span><em>entireDisc=False</em>, <em>useMulti=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/cdwriter.html#CdWriter.retrieveCapacity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.cdwriter.CdWriter.retrieveCapacity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves capacity for the current media in terms of a <code class="docutils literal"><span class="pre">MediaCapacity</span></code>
+object.</p>
+<p>If <code class="docutils literal"><span class="pre">entireDisc</span></code> is passed in as <code class="docutils literal"><span class="pre">True</span></code> the capacity will be for the
+entire disc, as if it were to be rewritten from scratch.  If the drive
+does not support writing multisession discs or if <code class="docutils literal"><span class="pre">useMulti</span></code> is passed
+in as <code class="docutils literal"><span class="pre">False</span></code>, the capacity will also be as if the disc were to be
+rewritten from scratch, but the indicated boundaries value will be
+<code class="docutils literal"><span class="pre">None</span></code>.  The same will happen if the disc cannot be read for some
+reason.  Otherwise, the capacity (including the boundaries) will
+represent whatever space remains on the disc to be filled by future
+sessions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>entireDisc</strong> (<em>Boolean true/false</em>) &#8211; Indicates whether to return capacity for entire disc</li>
+<li><strong>useMulti</strong> (<em>Boolean true/false</em>) &#8211; Indicates whether a multisession disc should be assumed, if possible</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><code class="docutils literal"><span class="pre">MediaCapacity</span></code> object describing the capacity of the media</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">IOError</span></code> &#8211; If the media could not be read for some reason</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.cdwriter.CdWriter.scsiId">
+<code class="descname">scsiId</code><a class="headerlink" href="#CedarBackup3.writers.cdwriter.CdWriter.scsiId" title="Permalink to this definition">¶</a></dt>
+<dd><p>SCSI id for the device, in the form <code class="docutils literal"><span class="pre">[&lt;method&gt;:]scsibus,target,lun</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CedarBackup3.writers.cdwriter.CdWriter.setImageNewDisc">
+<code class="descname">setImageNewDisc</code><span class="sig-paren">(</span><em>newDisc</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/cdwriter.html#CdWriter.setImageNewDisc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.cdwriter.CdWriter.setImageNewDisc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resets (overrides) the newDisc flag on the internal image.
+:param newDisc: New disc flag to set</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If initializeImage() was not previously called</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="CedarBackup3.writers.cdwriter.CdWriter.unlockTray">
+<code class="descname">unlockTray</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/cdwriter.html#CdWriter.unlockTray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.cdwriter.CdWriter.unlockTray" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unlocks the device&#8217;s tray.
+:raises: <code class="xref py py-exc docutils literal"><span class="pre">IOError</span></code> &#8211; If there is an error talking to the device</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CedarBackup3.writers.cdwriter.CdWriter.writeImage">
+<code class="descname">writeImage</code><span class="sig-paren">(</span><em>imagePath=None</em>, <em>newDisc=False</em>, <em>writeMulti=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/cdwriter.html#CdWriter.writeImage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.cdwriter.CdWriter.writeImage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes an ISO image to the media in the device.</p>
+<p>If <code class="docutils literal"><span class="pre">newDisc</span></code> is passed in as <code class="docutils literal"><span class="pre">True</span></code>, we assume that the entire disc
+will be overwritten, and the media will be blanked before writing it if
+possible (i.e. if the media is rewritable).</p>
+<p>If <code class="docutils literal"><span class="pre">writeMulti</span></code> is passed in as <code class="docutils literal"><span class="pre">True</span></code>, then a multisession disc will
+be written if possible (i.e. if the drive supports writing multisession
+discs).</p>
+<p>if <code class="docutils literal"><span class="pre">imagePath</span></code> is passed in as <code class="docutils literal"><span class="pre">None</span></code>, then the existing image
+configured with <code class="docutils literal"><span class="pre">initializeImage</span></code> will be used.  Under these
+circumstances, the passed-in <code class="docutils literal"><span class="pre">newDisc</span></code> flag will be ignored.</p>
+<p>By default, we assume that the disc can be written multisession and that
+we should append to the current contents of the disc.  In any case, the
+ISO image must be generated appropriately (i.e. must take into account
+any existing session boundaries, etc.)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>imagePath</strong> (<em>String representing a path on disk</em>) &#8211; Path to an ISO image on disk, or <code class="docutils literal"><span class="pre">None</span></code> to use writer&#8217;s image</li>
+<li><strong>newDisc</strong> (<em>Boolean true/false</em>) &#8211; Indicates whether the entire disc will overwritten</li>
+<li><strong>writeMulti</strong> (<em>Boolean true/false</em>) &#8211; Indicates whether a multisession disc should be written, if possible</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If the image path is not absolute</li>
+<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If some path cannot be encoded properly</li>
+<li><code class="xref py py-exc docutils literal"><span class="pre">IOError</span></code> &#8211; If the media could not be written to for some reason</li>
+<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If no image is passed in and initializeImage() was not previously called</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="CedarBackup3.writers.cdwriter.MediaCapacity">
+<em class="property">class </em><code class="descclassname">CedarBackup3.writers.cdwriter.</code><code class="descname">MediaCapacity</code><span class="sig-paren">(</span><em>bytesUsed</em>, <em>bytesAvailable</em>, <em>boundaries</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/cdwriter.html#MediaCapacity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.cdwriter.MediaCapacity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Class encapsulating information about CD media capacity.</p>
+<p>Space used includes the required media lead-in (unless the disk is unused).
+Space available attempts to provide a picture of how many bytes are
+available for data storage, including any required lead-in.</p>
+<p>The boundaries value is either <code class="docutils literal"><span class="pre">None</span></code> (if multisession discs are not
+supported or if the disc has no boundaries) or in exactly the form provided
+by <code class="docutils literal"><span class="pre">cdrecord</span> <span class="pre">-msinfo</span></code>.  It can be passed as-is to the <code class="docutils literal"><span class="pre">IsoImage</span></code> class.</p>
+<dl class="method">
+<dt id="CedarBackup3.writers.cdwriter.MediaCapacity.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>bytesUsed</em>, <em>bytesAvailable</em>, <em>boundaries</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/cdwriter.html#MediaCapacity.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.cdwriter.MediaCapacity.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes a capacity object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><code class="xref py py-exc docutils literal"><span class="pre">IndexError</span></code> &#8211; If the boundaries tuple does not have enough elements</li>
+<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If the boundaries values are not integers</li>
+<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If the bytes used and available values are not floats</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.cdwriter.MediaCapacity.boundaries">
+<code class="descname">boundaries</code><a class="headerlink" href="#CedarBackup3.writers.cdwriter.MediaCapacity.boundaries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Session disc boundaries, in terms of ISO sectors.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.cdwriter.MediaCapacity.bytesAvailable">
+<code class="descname">bytesAvailable</code><a class="headerlink" href="#CedarBackup3.writers.cdwriter.MediaCapacity.bytesAvailable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Space available on disc, in bytes.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.cdwriter.MediaCapacity.bytesUsed">
+<code class="descname">bytesUsed</code><a class="headerlink" href="#CedarBackup3.writers.cdwriter.MediaCapacity.bytesUsed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Space used on disc, in bytes.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.cdwriter.MediaCapacity.totalCapacity">
+<code class="descname">totalCapacity</code><a class="headerlink" href="#CedarBackup3.writers.cdwriter.MediaCapacity.totalCapacity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Total capacity of the disc, in bytes.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.cdwriter.MediaCapacity.utilized">
+<code class="descname">utilized</code><a class="headerlink" href="#CedarBackup3.writers.cdwriter.MediaCapacity.utilized" title="Permalink to this definition">¶</a></dt>
+<dd><p>Percentage of the total capacity which is utilized.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="CedarBackup3.writers.cdwriter.MediaDefinition">
+<em class="property">class </em><code class="descclassname">CedarBackup3.writers.cdwriter.</code><code class="descname">MediaDefinition</code><span class="sig-paren">(</span><em>mediaType</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/cdwriter.html#MediaDefinition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.cdwriter.MediaDefinition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Class encapsulating information about CD media definitions.</p>
+<p>The following media types are accepted:</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal"><span class="pre">MEDIA_CDR_74</span></code>: 74-minute CD-R media (650 MB capacity)</li>
+<li><code class="docutils literal"><span class="pre">MEDIA_CDRW_74</span></code>: 74-minute CD-RW media (650 MB capacity)</li>
+<li><code class="docutils literal"><span class="pre">MEDIA_CDR_80</span></code>: 80-minute CD-R media (700 MB capacity)</li>
+<li><code class="docutils literal"><span class="pre">MEDIA_CDRW_80</span></code>: 80-minute CD-RW media (700 MB capacity)</li>
+</ul>
+</div></blockquote>
+<p>Note that all of the capacities associated with a media definition are in
+terms of ISO sectors (<code class="docutils literal"><span class="pre">util.ISO_SECTOR_SIZE)</span></code>.</p>
+<dl class="method">
+<dt id="CedarBackup3.writers.cdwriter.MediaDefinition.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>mediaType</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/cdwriter.html#MediaDefinition.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.cdwriter.MediaDefinition.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a media definition for the indicated media type.
+:param mediaType: Type of the media, as discussed above</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If the media type is unknown or unsupported</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.cdwriter.MediaDefinition.capacity">
+<code class="descname">capacity</code><a class="headerlink" href="#CedarBackup3.writers.cdwriter.MediaDefinition.capacity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Total capacity of the media before any required lead-in.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.cdwriter.MediaDefinition.initialLeadIn">
+<code class="descname">initialLeadIn</code><a class="headerlink" href="#CedarBackup3.writers.cdwriter.MediaDefinition.initialLeadIn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initial lead-in required for first image written to media.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.cdwriter.MediaDefinition.leadIn">
+<code class="descname">leadIn</code><a class="headerlink" href="#CedarBackup3.writers.cdwriter.MediaDefinition.leadIn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Lead-in required on successive images written to media.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.cdwriter.MediaDefinition.mediaType">
+<code class="descname">mediaType</code><a class="headerlink" href="#CedarBackup3.writers.cdwriter.MediaDefinition.mediaType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configured media type.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.cdwriter.MediaDefinition.rewritable">
+<code class="descname">rewritable</code><a class="headerlink" href="#CedarBackup3.writers.cdwriter.MediaDefinition.rewritable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Boolean indicating whether the media is rewritable.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="module-CedarBackup3.writers.dvdwriter">
+<span id="cedarbackup3-writers-dvdwriter-module"></span><h2>CedarBackup3.writers.dvdwriter module<a class="headerlink" href="#module-CedarBackup3.writers.dvdwriter" title="Permalink to this headline">¶</a></h2>
+<p>Provides functionality related to DVD writer devices.</p>
+<div class="section" id="id1">
+<h3>Module Attributes<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<dl class="attribute">
+<dt id="CedarBackup3.writers.dvdwriter.MEDIA_DVDPLUSR">
+<code class="descclassname">CedarBackup3.writers.dvdwriter.</code><code class="descname">MEDIA_DVDPLUSR</code><a class="headerlink" href="#CedarBackup3.writers.dvdwriter.MEDIA_DVDPLUSR" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constant representing DVD+R media</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.dvdwriter.MEDIA_DVDPLUSRW">
+<code class="descclassname">CedarBackup3.writers.dvdwriter.</code><code class="descname">MEDIA_DVDPLUSRW</code><a class="headerlink" href="#CedarBackup3.writers.dvdwriter.MEDIA_DVDPLUSRW" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constant representing DVD+RW media</p>
+</dd></dl>
+
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">author:</th><td class="field-body">Kenneth J. Pronovici &lt;<a class="reference external" href="mailto:pronovic&#37;&#52;&#48;ieee&#46;org">pronovic<span>&#64;</span>ieee<span>&#46;</span>org</a>&gt;</td>
+</tr>
+<tr class="field-even field"><th class="field-name">author:</th><td class="field-body">Dmitry Rutsky &lt;<a class="reference external" href="mailto:rutsky&#37;&#52;&#48;inbox&#46;ru">rutsky<span>&#64;</span>inbox<span>&#46;</span>ru</a>&gt;</td>
+</tr>
+</tbody>
+</table>
+<dl class="class">
+<dt id="CedarBackup3.writers.dvdwriter.DvdWriter">
+<em class="property">class </em><code class="descclassname">CedarBackup3.writers.dvdwriter.</code><code class="descname">DvdWriter</code><span class="sig-paren">(</span><em>device</em>, <em>scsiId=None</em>, <em>driveSpeed=None</em>, <em>mediaType=2</em>, <em>noEject=False</em>, <em>refreshMediaDelay=0</em>, <em>ejectDelay=0</em>, <em>unittest=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/dvdwriter.html#DvdWriter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.dvdwriter.DvdWriter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Class representing a device that knows how to write some kinds of DVD media.</p>
+<p><strong>Summary</strong></p>
+<p>This is a class representing a device that knows how to write some kinds
+of DVD media.  It provides common operations for the device, such as
+ejecting the media and writing data to the media.</p>
+<p>This class is implemented in terms of the <code class="docutils literal"><span class="pre">eject</span></code> and <code class="docutils literal"><span class="pre">growisofs</span></code>
+utilities, all of which should be available on most UN*X platforms.</p>
+<p><strong>Image Writer Interface</strong></p>
+<p>The following methods make up the &#8220;image writer&#8221; interface shared
+with other kinds of writers:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="fm">__init__</span>
+<span class="n">initializeImage</span><span class="p">()</span>
+<span class="n">addImageEntry</span><span class="p">()</span>
+<span class="n">writeImage</span><span class="p">()</span>
+<span class="n">setImageNewDisc</span><span class="p">()</span>
+<span class="n">retrieveCapacity</span><span class="p">()</span>
+<span class="n">getEstimatedImageSize</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Only these methods will be used by other Cedar Backup functionality
+that expects a compatible image writer.</p>
+<p>The media attribute is also assumed to be available.</p>
+<p>Unlike the <code class="docutils literal"><span class="pre">CdWriter</span></code>, the <code class="docutils literal"><span class="pre">DvdWriter</span></code> can only operate in terms of
+filesystem devices, not SCSI devices.  So, although the constructor
+interface accepts a SCSI device parameter for the sake of compatibility,
+it&#8217;s not used.</p>
+<p><strong>Media Types</strong></p>
+<p>This class knows how to write to DVD+R and DVD+RW media, represented
+by the following constants:</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal"><span class="pre">MEDIA_DVDPLUSR</span></code>: DVD+R media (4.4 GB capacity)</li>
+<li><code class="docutils literal"><span class="pre">MEDIA_DVDPLUSRW</span></code>: DVD+RW media (4.4 GB capacity)</li>
+</ul>
+</div></blockquote>
+<p>The difference is that DVD+RW media can be rewritten, while DVD+R media
+cannot be (although at present, <code class="docutils literal"><span class="pre">DvdWriter</span></code> does not really
+differentiate between rewritable and non-rewritable media).</p>
+<p>The capacities are 4.4 GB because Cedar Backup deals in &#8220;true&#8221; gigabytes
+of 1024*1024*1024 bytes per gigabyte.</p>
+<p>The underlying <code class="docutils literal"><span class="pre">growisofs</span></code> utility does support other kinds of media
+(including DVD-R, DVD-RW and BlueRay) which work somewhat differently
+than standard DVD+R and DVD+RW media.  I don&#8217;t support these other kinds
+of media because I haven&#8217;t had any opportunity to work with them.  The
+same goes for dual-layer media of any type.</p>
+<p><strong>Device Attributes vs. Media Attributes</strong></p>
+<p>As with the cdwriter functionality, a given dvdwriter instance has two
+different kinds of attributes associated with it.  I call these device
+attributes and media attributes.</p>
+<p>Device attributes are things which can be determined without looking at
+the media.  Media attributes are attributes which vary depending on the
+state of the media.  In general, device attributes are available via
+instance variables and are constant over the life of an object, while
+media attributes can be retrieved through method calls.</p>
+<p>Compared to cdwriters, dvdwriters have very few attributes.  This is due
+to differences between the way <code class="docutils literal"><span class="pre">growisofs</span></code> works relative to
+<code class="docutils literal"><span class="pre">cdrecord</span></code>.</p>
+<p><strong>Media Capacity</strong></p>
+<p>One major difference between the <code class="docutils literal"><span class="pre">cdrecord</span></code>/<code class="docutils literal"><span class="pre">mkisofs</span></code> utilities used by
+the cdwriter class and the <code class="docutils literal"><span class="pre">growisofs</span></code> utility used here is that the
+process of estimating remaining capacity and image size is more
+straightforward with <code class="docutils literal"><span class="pre">cdrecord</span></code>/<code class="docutils literal"><span class="pre">mkisofs</span></code> than with <code class="docutils literal"><span class="pre">growisofs</span></code>.</p>
+<p>In this class, remaining capacity is calculated by asking doing a dry run
+of <code class="docutils literal"><span class="pre">growisofs</span></code> and grabbing some information from the output of that
+command.  Image size is estimated by asking the <code class="docutils literal"><span class="pre">IsoImage</span></code> class for an
+estimate and then adding on a &#8220;fudge factor&#8221; determined through
+experimentation.</p>
+<p><strong>Testing</strong></p>
+<p>It&#8217;s rather difficult to test this code in an automated fashion, even if
+you have access to a physical DVD writer drive.  It&#8217;s even more difficult
+to test it if you are running on some build daemon (think of a Debian
+autobuilder) which can&#8217;t be expected to have any hardware or any media
+that you could write to.</p>
+<p>Because of this, some of the implementation below is in terms of static
+methods that are supposed to take defined actions based on their
+arguments.  Public methods are then implemented in terms of a series of
+calls to simplistic static methods.  This way, we can test as much as
+possible of the &#8220;difficult&#8221; functionality via testing the static methods,
+while hoping that if the static methods are called appropriately, things
+will work properly.  It&#8217;s not perfect, but it&#8217;s much better than no
+testing at all.</p>
+<dl class="method">
+<dt id="CedarBackup3.writers.dvdwriter.DvdWriter.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>device</em>, <em>scsiId=None</em>, <em>driveSpeed=None</em>, <em>mediaType=2</em>, <em>noEject=False</em>, <em>refreshMediaDelay=0</em>, <em>ejectDelay=0</em>, <em>unittest=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/dvdwriter.html#DvdWriter.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.dvdwriter.DvdWriter.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes a DVD writer object.</p>
+<p>Since <code class="docutils literal"><span class="pre">growisofs</span></code> can only address devices using the device path (i.e.
+<code class="docutils literal"><span class="pre">/dev/dvd</span></code>), the hardware id will always be set based on the device.  If
+passed in, it will be saved for reference purposes only.</p>
+<p>We have no way to query the device to ask whether it has a tray or can be
+safely opened and closed.  So, the <code class="docutils literal"><span class="pre">noEject</span></code> flag is used to set these
+values.  If <code class="docutils literal"><span class="pre">noEject=False</span></code>, then we assume a tray exists and open/close
+is safe.  If <code class="docutils literal"><span class="pre">noEject=True</span></code>, then we assume that there is no tray and
+open/close is not safe.</p>
+<p>The SCSI id, if provided, is in the form <code class="docutils literal"><span class="pre">[&lt;method&gt;:]scsibus,target,lun</span></code>.</p>
+<p><em>Note:</em> The <code class="docutils literal"><span class="pre">unittest</span></code> parameter should never be set to <code class="docutils literal"><span class="pre">True</span></code>
+outside of Cedar Backup code.  It is intended for use in unit testing
+Cedar Backup internals and has no other sensible purpose.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>device</strong> &#8211; Absolute path to the writer filesystem device, like <code class="docutils literal"><span class="pre">/dev/dvd</span></code></li>
+<li><strong>scsiId</strong> &#8211; SCSI id for the device (optional, for reference only)</li>
+<li><strong>driveSpeed</strong> &#8211; Speed at which the drive writes, like 2 for a 2x device, or None for device default</li>
+<li><strong>mediaType</strong> &#8211; Type of the media that is assumed to be in the drive</li>
+<li><strong>noEject</strong> (<em>Boolean true/false</em>) &#8211; Tells Cedar Backup that the device cannot safely be ejected</li>
+<li><strong>refreshMediaDelay</strong> (<em>Integer &gt;= 0</em>) &#8211; Refresh media delay to use, if any</li>
+<li><strong>ejectDelay</strong> (<em>Integer &gt;= 0</em>) &#8211; Eject delay to use, if any</li>
+<li><strong>unittest</strong> (<em>Boolean true/false</em>) &#8211; Turns off certain validations, for use in unit testing</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If the device is not valid for some reason</li>
+<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If the SCSI id is not in a valid form</li>
+<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If the drive speed is not an integer &gt;= 1</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="CedarBackup3.writers.dvdwriter.DvdWriter.addImageEntry">
+<code class="descname">addImageEntry</code><span class="sig-paren">(</span><em>path</em>, <em>graftPoint</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/dvdwriter.html#DvdWriter.addImageEntry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.dvdwriter.DvdWriter.addImageEntry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a filepath entry to the writer&#8217;s associated ISO image.</p>
+<p>The contents of the filepath &#8211; but not the path itself &#8211; will be added
+to the image at the indicated graft point.  If you don&#8217;t want to use a
+graft point, just pass <code class="docutils literal"><span class="pre">None</span></code>.</p>
+<p><em>Note:</em> Before calling this method, you must call <a class="reference internal" href="#CedarBackup3.writers.dvdwriter.DvdWriter.initializeImage" title="CedarBackup3.writers.dvdwriter.DvdWriter.initializeImage"><code class="xref any py py-meth docutils literal"><span class="pre">initializeImage</span></code></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>path</strong> (<em>String representing a path on disk</em>) &#8211; File or directory to be added to the image</li>
+<li><strong>graftPoint</strong> (<em>String representing a graft point path, as described above</em>) &#8211; Graft point to be used when adding this entry</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If initializeImage() was not previously called</li>
+<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If the path is not a valid file or directory</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="CedarBackup3.writers.dvdwriter.DvdWriter.closeTray">
+<code class="descname">closeTray</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/dvdwriter.html#DvdWriter.closeTray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.dvdwriter.DvdWriter.closeTray" title="Permalink to this definition">¶</a></dt>
+<dd><p>Closes the device&#8217;s tray.</p>
+<p>This only works if the device has a tray and supports ejecting its media.
+We have no way to know if the tray is currently open or closed, so we
+just send the appropriate command and hope for the best.  If the device
+does not have a tray or does not support ejecting its media, then we do
+nothing.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">IOError</span></code> &#8211; If there is an error talking to the device</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.dvdwriter.DvdWriter.device">
+<code class="descname">device</code><a class="headerlink" href="#CedarBackup3.writers.dvdwriter.DvdWriter.device" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filesystem device name for this writer.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.dvdwriter.DvdWriter.deviceCanEject">
+<code class="descname">deviceCanEject</code><a class="headerlink" href="#CedarBackup3.writers.dvdwriter.DvdWriter.deviceCanEject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicates whether the device supports ejecting its media.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.dvdwriter.DvdWriter.deviceHasTray">
+<code class="descname">deviceHasTray</code><a class="headerlink" href="#CedarBackup3.writers.dvdwriter.DvdWriter.deviceHasTray" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicates whether the device has a media tray.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.dvdwriter.DvdWriter.driveSpeed">
+<code class="descname">driveSpeed</code><a class="headerlink" href="#CedarBackup3.writers.dvdwriter.DvdWriter.driveSpeed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Speed at which the drive writes.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.dvdwriter.DvdWriter.ejectDelay">
+<code class="descname">ejectDelay</code><a class="headerlink" href="#CedarBackup3.writers.dvdwriter.DvdWriter.ejectDelay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Eject delay, in seconds.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CedarBackup3.writers.dvdwriter.DvdWriter.getEstimatedImageSize">
+<code class="descname">getEstimatedImageSize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/dvdwriter.html#DvdWriter.getEstimatedImageSize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.dvdwriter.DvdWriter.getEstimatedImageSize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the estimated size of the image associated with the writer.</p>
+<p>This is an estimate and is conservative.  The actual image could be as
+much as 450 blocks (sectors) smaller under some circmstances.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Estimated size of the image, in bytes</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><code class="xref py py-exc docutils literal"><span class="pre">IOError</span></code> &#8211; If there is a problem calling <code class="docutils literal"><span class="pre">mkisofs</span></code></li>
+<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If initializeImage() was not previously called</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.dvdwriter.DvdWriter.hardwareId">
+<code class="descname">hardwareId</code><a class="headerlink" href="#CedarBackup3.writers.dvdwriter.DvdWriter.hardwareId" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hardware id for this writer (always the device path).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CedarBackup3.writers.dvdwriter.DvdWriter.initializeImage">
+<code class="descname">initializeImage</code><span class="sig-paren">(</span><em>newDisc</em>, <em>tmpdir</em>, <em>mediaLabel=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/dvdwriter.html#DvdWriter.initializeImage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.dvdwriter.DvdWriter.initializeImage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the writer&#8217;s associated ISO image.</p>
+<p>This method initializes the <code class="docutils literal"><span class="pre">image</span></code> instance variable so that the caller
+can use the <code class="docutils literal"><span class="pre">addImageEntry</span></code> method.  Once entries have been added, the
+<code class="docutils literal"><span class="pre">writeImage</span></code> method can be called with no arguments.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>newDisc</strong> (<em>Boolean true/false</em>) &#8211; Indicates whether the disc should be re-initialized</li>
+<li><strong>tmpdir</strong> (<em>String representing a directory path on disk</em>) &#8211; Temporary directory to use if needed</li>
+<li><strong>mediaLabel</strong> (<em>String, no more than 25 characters long</em>) &#8211; Media label to be applied to the image, if any</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="CedarBackup3.writers.dvdwriter.DvdWriter.isRewritable">
+<code class="descname">isRewritable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/dvdwriter.html#DvdWriter.isRewritable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.dvdwriter.DvdWriter.isRewritable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicates whether the media is rewritable per configuration.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.dvdwriter.DvdWriter.media">
+<code class="descname">media</code><a class="headerlink" href="#CedarBackup3.writers.dvdwriter.DvdWriter.media" title="Permalink to this definition">¶</a></dt>
+<dd><p>Definition of media that is expected to be in the device.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CedarBackup3.writers.dvdwriter.DvdWriter.openTray">
+<code class="descname">openTray</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/dvdwriter.html#DvdWriter.openTray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.dvdwriter.DvdWriter.openTray" title="Permalink to this definition">¶</a></dt>
+<dd><p>Opens the device&#8217;s tray and leaves it open.</p>
+<p>This only works if the device has a tray and supports ejecting its media.
+We have no way to know if the tray is currently open or closed, so we
+just send the appropriate command and hope for the best.  If the device
+does not have a tray or does not support ejecting its media, then we do
+nothing.</p>
+<p>Starting with Debian wheezy on my backup hardware, I started seeing
+consistent problems with the eject command.  I couldn&#8217;t tell whether
+these problems were due to the device management system or to the new
+kernel (3.2.0).  Initially, I saw simple eject failures, possibly because
+I was opening and closing the tray too quickly.  I worked around that
+behavior with the new ejectDelay flag.</p>
+<p>Later, I sometimes ran into issues after writing an image to a disc:
+eject would give errors like &#8220;unable to eject, last error: Inappropriate
+ioctl for device&#8221;.  Various sources online (like Ubuntu bug #875543)
+suggested that the drive was being locked somehow, and that the
+workaround was to run &#8216;eject -i off&#8217; to unlock it.  Sure enough, that
+fixed the problem for me, so now it&#8217;s a normal error-handling strategy.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">IOError</span></code> &#8211; If there is an error talking to the device</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="CedarBackup3.writers.dvdwriter.DvdWriter.refreshMedia">
+<code class="descname">refreshMedia</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/dvdwriter.html#DvdWriter.refreshMedia"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.dvdwriter.DvdWriter.refreshMedia" title="Permalink to this definition">¶</a></dt>
+<dd><p>Opens and then immediately closes the device&#8217;s tray, to refresh the
+device&#8217;s idea of the media.</p>
+<p>Sometimes, a device gets confused about the state of its media.  Often,
+all it takes to solve the problem is to eject the media and then
+immediately reload it.  (There are also configurable eject and refresh
+media delays which can be applied, for situations where this makes a
+difference.)</p>
+<p>This only works if the device has a tray and supports ejecting its media.
+We have no way to know if the tray is currently open or closed, so we
+just send the appropriate command and hope for the best.  If the device
+does not have a tray or does not support ejecting its media, then we do
+nothing.  The configured delays still apply, though.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">IOError</span></code> &#8211; If there is an error talking to the device</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.dvdwriter.DvdWriter.refreshMediaDelay">
+<code class="descname">refreshMediaDelay</code><a class="headerlink" href="#CedarBackup3.writers.dvdwriter.DvdWriter.refreshMediaDelay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Refresh media delay, in seconds.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CedarBackup3.writers.dvdwriter.DvdWriter.retrieveCapacity">
+<code class="descname">retrieveCapacity</code><span class="sig-paren">(</span><em>entireDisc=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/dvdwriter.html#DvdWriter.retrieveCapacity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.dvdwriter.DvdWriter.retrieveCapacity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves capacity for the current media in terms of a <code class="docutils literal"><span class="pre">MediaCapacity</span></code>
+object.</p>
+<p>If <code class="docutils literal"><span class="pre">entireDisc</span></code> is passed in as <code class="docutils literal"><span class="pre">True</span></code>, the capacity will be for the
+entire disc, as if it were to be rewritten from scratch.  The same will
+happen if the disc can&#8217;t be read for some reason. Otherwise, the capacity
+will be calculated by subtracting the sectors currently used on the disc,
+as reported by <code class="docutils literal"><span class="pre">growisofs</span></code> itself.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>entireDisc</strong> (<em>Boolean true/false</em>) &#8211; Indicates whether to return capacity for entire disc</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><code class="docutils literal"><span class="pre">MediaCapacity</span></code> object describing the capacity of the media</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If there is a problem parsing the <code class="docutils literal"><span class="pre">growisofs</span></code> output</li>
+<li><code class="xref py py-exc docutils literal"><span class="pre">IOError</span></code> &#8211; If the media could not be read for some reason</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.dvdwriter.DvdWriter.scsiId">
+<code class="descname">scsiId</code><a class="headerlink" href="#CedarBackup3.writers.dvdwriter.DvdWriter.scsiId" title="Permalink to this definition">¶</a></dt>
+<dd><p>SCSI id for the device (saved for reference only).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CedarBackup3.writers.dvdwriter.DvdWriter.setImageNewDisc">
+<code class="descname">setImageNewDisc</code><span class="sig-paren">(</span><em>newDisc</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/dvdwriter.html#DvdWriter.setImageNewDisc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.dvdwriter.DvdWriter.setImageNewDisc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resets (overrides) the newDisc flag on the internal image.
+:param newDisc: New disc flag to set</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If initializeImage() was not previously called</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="CedarBackup3.writers.dvdwriter.DvdWriter.unlockTray">
+<code class="descname">unlockTray</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/dvdwriter.html#DvdWriter.unlockTray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.dvdwriter.DvdWriter.unlockTray" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unlocks the device&#8217;s tray via &#8216;eject -i off&#8217;.
+:raises: <code class="xref py py-exc docutils literal"><span class="pre">IOError</span></code> &#8211; If there is an error talking to the device</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CedarBackup3.writers.dvdwriter.DvdWriter.writeImage">
+<code class="descname">writeImage</code><span class="sig-paren">(</span><em>imagePath=None</em>, <em>newDisc=False</em>, <em>writeMulti=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/dvdwriter.html#DvdWriter.writeImage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.dvdwriter.DvdWriter.writeImage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes an ISO image to the media in the device.</p>
+<p>If <code class="docutils literal"><span class="pre">newDisc</span></code> is passed in as <code class="docutils literal"><span class="pre">True</span></code>, we assume that the entire disc
+will be re-created from scratch.  Note that unlike <code class="docutils literal"><span class="pre">CdWriter</span></code>,
+<code class="docutils literal"><span class="pre">DvdWriter</span></code> does not blank rewritable media before reusing it; however,
+<code class="docutils literal"><span class="pre">growisofs</span></code> is called such that the media will be re-initialized as
+needed.</p>
+<p>If <code class="docutils literal"><span class="pre">imagePath</span></code> is passed in as <code class="docutils literal"><span class="pre">None</span></code>, then the existing image
+configured with <code class="docutils literal"><span class="pre">initializeImage()</span></code> will be used.  Under these
+circumstances, the passed-in <code class="docutils literal"><span class="pre">newDisc</span></code> flag will be ignored and the
+value passed in to <code class="docutils literal"><span class="pre">initializeImage()</span></code> will apply instead.</p>
+<p>The <code class="docutils literal"><span class="pre">writeMulti</span></code> argument is ignored.  It exists for compatibility with
+the Cedar Backup image writer interface.</p>
+<p><em>Note:</em> The image size indicated in the log (&#8220;Image size will be...&#8221;) is
+an estimate.  The estimate is conservative and is probably larger than
+the actual space that <code class="docutils literal"><span class="pre">dvdwriter</span></code> will use.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>imagePath</strong> (<em>String representing a path on disk</em>) &#8211; Path to an ISO image on disk, or <code class="docutils literal"><span class="pre">None</span></code> to use writer&#8217;s image</li>
+<li><strong>newDisc</strong> (<em>Boolean true/false</em>) &#8211; Indicates whether the disc should be re-initialized</li>
+<li><strong>writeMulti</strong> (<em>Boolean true/false</em>) &#8211; Unused</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If the image path is not absolute</li>
+<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If some path cannot be encoded properly</li>
+<li><code class="xref py py-exc docutils literal"><span class="pre">IOError</span></code> &#8211; If the media could not be written to for some reason</li>
+<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If no image is passed in and initializeImage() was not previously called</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="CedarBackup3.writers.dvdwriter.MediaCapacity">
+<em class="property">class </em><code class="descclassname">CedarBackup3.writers.dvdwriter.</code><code class="descname">MediaCapacity</code><span class="sig-paren">(</span><em>bytesUsed</em>, <em>bytesAvailable</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/dvdwriter.html#MediaCapacity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.dvdwriter.MediaCapacity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Class encapsulating information about DVD media capacity.</p>
+<p>Space used and space available do not include any information about media
+lead-in or other overhead.</p>
+<dl class="method">
+<dt id="CedarBackup3.writers.dvdwriter.MediaCapacity.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>bytesUsed</em>, <em>bytesAvailable</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/dvdwriter.html#MediaCapacity.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.dvdwriter.MediaCapacity.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes a capacity object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If the bytes used and available values are not floats</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.dvdwriter.MediaCapacity.bytesAvailable">
+<code class="descname">bytesAvailable</code><a class="headerlink" href="#CedarBackup3.writers.dvdwriter.MediaCapacity.bytesAvailable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Space available on disc, in bytes.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.dvdwriter.MediaCapacity.bytesUsed">
+<code class="descname">bytesUsed</code><a class="headerlink" href="#CedarBackup3.writers.dvdwriter.MediaCapacity.bytesUsed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Space used on disc, in bytes.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.dvdwriter.MediaCapacity.totalCapacity">
+<code class="descname">totalCapacity</code><a class="headerlink" href="#CedarBackup3.writers.dvdwriter.MediaCapacity.totalCapacity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Total capacity of the disc, in bytes.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.dvdwriter.MediaCapacity.utilized">
+<code class="descname">utilized</code><a class="headerlink" href="#CedarBackup3.writers.dvdwriter.MediaCapacity.utilized" title="Permalink to this definition">¶</a></dt>
+<dd><p>Percentage of the total capacity which is utilized.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="CedarBackup3.writers.dvdwriter.MediaDefinition">
+<em class="property">class </em><code class="descclassname">CedarBackup3.writers.dvdwriter.</code><code class="descname">MediaDefinition</code><span class="sig-paren">(</span><em>mediaType</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/dvdwriter.html#MediaDefinition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.dvdwriter.MediaDefinition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Class encapsulating information about DVD media definitions.</p>
+<p>The following media types are accepted:</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal"><span class="pre">MEDIA_DVDPLUSR</span></code>: DVD+R media (4.4 GB capacity)</li>
+<li><code class="docutils literal"><span class="pre">MEDIA_DVDPLUSRW</span></code>: DVD+RW media (4.4 GB capacity)</li>
+</ul>
+</div></blockquote>
+<p>Note that the capacity attribute returns capacity in terms of ISO sectors
+(<code class="docutils literal"><span class="pre">util.ISO_SECTOR_SIZE)</span></code>.  This is for compatibility with the CD writer
+functionality.</p>
+<p>The capacities are 4.4 GB because Cedar Backup deals in &#8220;true&#8221; gigabytes
+of 1024*1024*1024 bytes per gigabyte.</p>
+<dl class="method">
+<dt id="CedarBackup3.writers.dvdwriter.MediaDefinition.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>mediaType</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/dvdwriter.html#MediaDefinition.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.dvdwriter.MediaDefinition.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a media definition for the indicated media type.
+:param mediaType: Type of the media, as discussed above</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If the media type is unknown or unsupported</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.dvdwriter.MediaDefinition.capacity">
+<code class="descname">capacity</code><a class="headerlink" href="#CedarBackup3.writers.dvdwriter.MediaDefinition.capacity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Total capacity of media in 2048-byte sectors.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.dvdwriter.MediaDefinition.mediaType">
+<code class="descname">mediaType</code><a class="headerlink" href="#CedarBackup3.writers.dvdwriter.MediaDefinition.mediaType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configured media type.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.dvdwriter.MediaDefinition.rewritable">
+<code class="descname">rewritable</code><a class="headerlink" href="#CedarBackup3.writers.dvdwriter.MediaDefinition.rewritable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Boolean indicating whether the media is rewritable.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="module-CedarBackup3.writers.util">
+<span id="cedarbackup3-writers-util-module"></span><h2>CedarBackup3.writers.util module<a class="headerlink" href="#module-CedarBackup3.writers.util" title="Permalink to this headline">¶</a></h2>
+<p>Provides utilities related to image writers.
+:author: Kenneth J. Pronovici &lt;<a class="reference external" href="mailto:pronovic&#37;&#52;&#48;ieee&#46;org">pronovic<span>&#64;</span>ieee<span>&#46;</span>org</a>&gt;</p>
+<dl class="class">
+<dt id="CedarBackup3.writers.util.IsoImage">
+<em class="property">class </em><code class="descclassname">CedarBackup3.writers.util.</code><code class="descname">IsoImage</code><span class="sig-paren">(</span><em>device=None</em>, <em>boundaries=None</em>, <em>graftPoint=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/util.html#IsoImage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.util.IsoImage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Represents an ISO filesystem image.</p>
+<p><strong>Summary</strong></p>
+<p>This object represents an ISO 9660 filesystem image.  It is implemented
+in terms of the <code class="docutils literal"><span class="pre">mkisofs</span></code> program, which has been ported to many
+operating systems and platforms.  A &#8220;sensible subset&#8221; of the <code class="docutils literal"><span class="pre">mkisofs</span></code>
+functionality is made available through the public interface, allowing
+callers to set a variety of basic options such as publisher id,
+application id, etc. as well as specify exactly which files and
+directories they want included in their image.</p>
+<p>By default, the image is created using the Rock Ridge protocol (using the
+<code class="docutils literal"><span class="pre">-r</span></code> option to <code class="docutils literal"><span class="pre">mkisofs</span></code>) because Rock Ridge discs are generally more
+useful on UN*X filesystems than standard ISO 9660 images.  However,
+callers can fall back to the default <code class="docutils literal"><span class="pre">mkisofs</span></code> functionality by setting
+the <code class="docutils literal"><span class="pre">useRockRidge</span></code> instance variable to <code class="docutils literal"><span class="pre">False</span></code>.  Note, however, that
+this option is not well-tested.</p>
+<p><strong>Where Files and Directories are Placed in the Image</strong></p>
+<p>Although this class is implemented in terms of the <code class="docutils literal"><span class="pre">mkisofs</span></code> program,
+its standard &#8220;image contents&#8221; semantics are slightly different than the original
+<code class="docutils literal"><span class="pre">mkisofs</span></code> semantics.  The difference is that files and directories are
+added to the image with some additional information about their source
+directory kept intact.</p>
+<p>As an example, suppose you add the file <code class="docutils literal"><span class="pre">/etc/profile</span></code> to your image and
+you do not configure a graft point.  The file <code class="docutils literal"><span class="pre">/profile</span></code> will be created
+in the image.  The behavior for directories is similar.  For instance,
+suppose that you add <code class="docutils literal"><span class="pre">/etc/X11</span></code> to the image and do not configure a
+graft point.  In this case, the directory <code class="docutils literal"><span class="pre">/X11</span></code> will be created in the
+image, even if the original <code class="docutils literal"><span class="pre">/etc/X11</span></code> directory is empty.  I{This
+behavior differs from the standard <code class="docutils literal"><span class="pre">mkisofs</span></code> behavior!}</p>
+<p>If a graft point is configured, it will be used to modify the point at
+which a file or directory is added into an image.  Using the examples
+from above, let&#8217;s assume you set a graft point of <code class="docutils literal"><span class="pre">base</span></code> when adding
+<code class="docutils literal"><span class="pre">/etc/profile</span></code> and <code class="docutils literal"><span class="pre">/etc/X11</span></code> to your image.  In this case, the file
+<code class="docutils literal"><span class="pre">/base/profile</span></code> and the directory <code class="docutils literal"><span class="pre">/base/X11</span></code> would be added to the
+image.</p>
+<p>I feel that this behavior is more consistent than the original <code class="docutils literal"><span class="pre">mkisofs</span></code>
+behavior.  However, to be fair, it is not quite as flexible, and some
+users might not like it.  For this reason, the <code class="docutils literal"><span class="pre">contentsOnly</span></code> parameter
+to the <a class="reference internal" href="#CedarBackup3.writers.util.IsoImage.addEntry" title="CedarBackup3.writers.util.IsoImage.addEntry"><code class="xref any py py-meth docutils literal"><span class="pre">addEntry</span></code></a> method can be used to revert to the original behavior
+if desired.</p>
+<dl class="method">
+<dt id="CedarBackup3.writers.util.IsoImage.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>device=None</em>, <em>boundaries=None</em>, <em>graftPoint=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/util.html#IsoImage.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.util.IsoImage.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes an empty ISO image object.</p>
+<p>Only the most commonly-used configuration items can be set using this
+constructor.  If you have a need to change the others, do so immediately
+after creating your object.</p>
+<p>The device and boundaries values are both required in order to write
+multisession discs.  If either is missing or <code class="docutils literal"><span class="pre">None</span></code>, a multisession disc
+will not be written.  The boundaries tuple is in terms of ISO sectors, as
+built by an image writer class and returned in a <code class="docutils literal"><span class="pre">writer.MediaCapacity</span></code>
+object.</p>
+<p>The boundaries parameter is a tuple of <code class="docutils literal"><span class="pre">(last_sess_start,</span> <span class="pre">next_sess_start)</span></code>,
+as returned from <code class="docutils literal"><span class="pre">cdrecord</span> <span class="pre">-msinfo</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>device</strong> (<em>Either be a filesystem path or a SCSI address</em>) &#8211; Name of the device that the image will be written to</li>
+<li><strong>boundaries</strong> &#8211; Session boundaries as required by <code class="docutils literal"><span class="pre">mkisofs</span></code>, or <code class="docutils literal"><span class="pre">None</span></code></li>
+<li><strong>graftPoint</strong> (String representing a graft point path (see <a class="reference internal" href="#CedarBackup3.writers.util.IsoImage.addEntry" title="CedarBackup3.writers.util.IsoImage.addEntry"><code class="xref any py py-meth docutils literal"><span class="pre">addEntry</span></code></a>) &#8211; Default graft point for this page</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="CedarBackup3.writers.util.IsoImage.addEntry">
+<code class="descname">addEntry</code><span class="sig-paren">(</span><em>path</em>, <em>graftPoint=None</em>, <em>override=False</em>, <em>contentsOnly=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/util.html#IsoImage.addEntry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.util.IsoImage.addEntry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds an individual file or directory into the ISO image.</p>
+<p>The path must exist and must be a file or a directory.  By default, the
+entry will be placed into the image at the root directory, but this
+behavior can be overridden using the <code class="docutils literal"><span class="pre">graftPoint</span></code> parameter or instance
+variable.</p>
+<p>You can use the <code class="docutils literal"><span class="pre">contentsOnly</span></code> behavior to revert to the &#8220;original&#8221;
+<code class="docutils literal"><span class="pre">mkisofs</span></code> behavior for adding directories, which is to add only the
+items within the directory, and not the directory itself.</p>
+<p><em>Note:</em> Things get <em>odd</em> if you try to add a directory to an image that
+will be written to a multisession disc, and the same directory already
+exists in an earlier session on that disc.  Not all of the data gets
+written.  You really wouldn&#8217;t want to do this anyway, I guess.</p>
+<p><em>Note:</em> An exception will be thrown if the path has already been added to
+the image, unless the <code class="docutils literal"><span class="pre">override</span></code> parameter is set to <code class="docutils literal"><span class="pre">True</span></code>.</p>
+<p><em>Note:</em> The method <code class="docutils literal"><span class="pre">graftPoints</span></code> parameter overrides the object-wide
+instance variable.  If neither the method parameter or object-wide value
+is set, the path will be written at the image root.  The graft point
+behavior is determined by the value which is in effect I{at the time this
+method is called}, so you <em>must</em> set the object-wide value before
+calling this method for the first time, or your image may not be
+consistent.</p>
+<p><em>Note:</em> You <em>cannot</em> use the local <code class="docutils literal"><span class="pre">graftPoint</span></code> parameter to &#8220;turn off&#8221;
+an object-wide instance variable by setting it to <code class="docutils literal"><span class="pre">None</span></code>.  Python&#8217;s
+default argument functionality buys us a lot, but it can&#8217;t make this
+method psychic. :)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>path</strong> (<em>String representing a path on disk</em>) &#8211; File or directory to be added to the image</li>
+<li><strong>graftPoint</strong> (<em>String representing a graft point path, as described above</em>) &#8211; Graft point to be used when adding this entry</li>
+<li><strong>override</strong> (<em>Boolean true/false</em>) &#8211; Override an existing entry with the same path</li>
+<li><strong>contentsOnly</strong> (<em>Boolean true/false</em>) &#8211; Add directory contents only (standard <code class="docutils literal"><span class="pre">mkisofs</span></code> behavior)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If path is not a file or directory, or does not exist</li>
+<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If the path has already been added, and override is not set</li>
+<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If a path cannot be encoded properly</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.util.IsoImage.applicationId">
+<code class="descname">applicationId</code><a class="headerlink" href="#CedarBackup3.writers.util.IsoImage.applicationId" title="Permalink to this definition">¶</a></dt>
+<dd><p>Optionally specifies the ISO header application id value.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.util.IsoImage.biblioFile">
+<code class="descname">biblioFile</code><a class="headerlink" href="#CedarBackup3.writers.util.IsoImage.biblioFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Optionally specifies the ISO bibliographic file name.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.util.IsoImage.boundaries">
+<code class="descname">boundaries</code><a class="headerlink" href="#CedarBackup3.writers.util.IsoImage.boundaries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Session boundaries as required by <code class="docutils literal"><span class="pre">mkisofs</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.util.IsoImage.device">
+<code class="descname">device</code><a class="headerlink" href="#CedarBackup3.writers.util.IsoImage.device" title="Permalink to this definition">¶</a></dt>
+<dd><p>Device that image will be written to (device path or SCSI id).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CedarBackup3.writers.util.IsoImage.getEstimatedSize">
+<code class="descname">getEstimatedSize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/util.html#IsoImage.getEstimatedSize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.util.IsoImage.getEstimatedSize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the estimated size (in bytes) of the ISO image.</p>
+<p>This is implemented via the <code class="docutils literal"><span class="pre">-print-size</span></code> option to <code class="docutils literal"><span class="pre">mkisofs</span></code>, so it
+might take a bit of time to execute.  However, the result is as accurate
+as we can get, since it takes into account all of the ISO overhead, the
+true cost of directories in the structure, etc, etc.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Estimated size of the image, in bytes</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><code class="xref py py-exc docutils literal"><span class="pre">IOError</span></code> &#8211; If there is a problem calling <code class="docutils literal"><span class="pre">mkisofs</span></code></li>
+<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If there are no filesystem entries in the image</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.util.IsoImage.graftPoint">
+<code class="descname">graftPoint</code><a class="headerlink" href="#CedarBackup3.writers.util.IsoImage.graftPoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Default image-wide graft point (see <a class="reference internal" href="#CedarBackup3.writers.util.IsoImage.addEntry" title="CedarBackup3.writers.util.IsoImage.addEntry"><code class="xref any py py-meth docutils literal"><span class="pre">addEntry</span></code></a> for details).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.util.IsoImage.preparerId">
+<code class="descname">preparerId</code><a class="headerlink" href="#CedarBackup3.writers.util.IsoImage.preparerId" title="Permalink to this definition">¶</a></dt>
+<dd><p>Optionally specifies the ISO header preparer id value.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.util.IsoImage.publisherId">
+<code class="descname">publisherId</code><a class="headerlink" href="#CedarBackup3.writers.util.IsoImage.publisherId" title="Permalink to this definition">¶</a></dt>
+<dd><p>Optionally specifies the ISO header publisher id value.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.util.IsoImage.useRockRidge">
+<code class="descname">useRockRidge</code><a class="headerlink" href="#CedarBackup3.writers.util.IsoImage.useRockRidge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicates whether to use RockRidge (default is <code class="docutils literal"><span class="pre">True</span></code>).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="CedarBackup3.writers.util.IsoImage.volumeId">
+<code class="descname">volumeId</code><a class="headerlink" href="#CedarBackup3.writers.util.IsoImage.volumeId" title="Permalink to this definition">¶</a></dt>
+<dd><p>Optionally specifies the ISO header volume id value.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CedarBackup3.writers.util.IsoImage.writeImage">
+<code class="descname">writeImage</code><span class="sig-paren">(</span><em>imagePath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/util.html#IsoImage.writeImage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.util.IsoImage.writeImage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes this image to disk using the image path.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>imagePath</strong> (<em>String representing a path on disk</em>) &#8211; Path to write image out as</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><code class="xref py py-exc docutils literal"><span class="pre">IOError</span></code> &#8211; If there is an error writing the image to disk</li>
+<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If there are no filesystem entries in the image</li>
+<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If a path cannot be encoded properly</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="CedarBackup3.writers.util.readMediaLabel">
+<code class="descclassname">CedarBackup3.writers.util.</code><code class="descname">readMediaLabel</code><span class="sig-paren">(</span><em>devicePath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/util.html#readMediaLabel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.util.readMediaLabel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the media label (volume name) from the indicated device.
+The volume name is read using the <code class="docutils literal"><span class="pre">volname</span></code> command.
+:param devicePath: Device path to read from</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Media label as a string, or None if there is no name or it could not be read</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="CedarBackup3.writers.util.validateDevice">
+<code class="descclassname">CedarBackup3.writers.util.</code><code class="descname">validateDevice</code><span class="sig-paren">(</span><em>device</em>, <em>unittest=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/util.html#validateDevice"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.util.validateDevice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validates a configured device.
+The device must be an absolute path, must exist, and must be writable.
+The unittest flag turns off validation of the device on disk.
+:param device: Filesystem device path
+:param unittest: Indicates whether we&#8217;re unit testing</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Device as a string, for instance <code class="docutils literal"><span class="pre">&quot;/dev/cdrw&quot;</span></code></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If the device value is invalid</li>
+<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If some path cannot be encoded properly</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="CedarBackup3.writers.util.validateDriveSpeed">
+<code class="descclassname">CedarBackup3.writers.util.</code><code class="descname">validateDriveSpeed</code><span class="sig-paren">(</span><em>driveSpeed</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/util.html#validateDriveSpeed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.util.validateDriveSpeed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validates a drive speed value.
+Drive speed must be an integer which is &gt;= 1.
+<em>Note:</em> For consistency, if <code class="docutils literal"><span class="pre">None</span></code> is passed in, <code class="docutils literal"><span class="pre">None</span></code> will be returned.
+:param driveSpeed: Speed at which the drive writes</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Drive speed as an integer</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If the drive speed value is invalid</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="CedarBackup3.writers.util.validateScsiId">
+<code class="descclassname">CedarBackup3.writers.util.</code><code class="descname">validateScsiId</code><span class="sig-paren">(</span><em>scsiId</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CedarBackup3/writers/util.html#validateScsiId"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CedarBackup3.writers.util.validateScsiId" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validates a SCSI id string.
+SCSI id must be a string in the form <code class="docutils literal"><span class="pre">[&lt;method&gt;:]scsibus,target,lun</span></code>.
+For Mac OS X (Darwin), we also accept the form <code class="docutils literal"><span class="pre">IO.*Services[/N]</span></code>.
+<em>Note:</em> For consistency, if <code class="docutils literal"><span class="pre">None</span></code> is passed in, <code class="docutils literal"><span class="pre">None</span></code> will be returned.
+:param scsiId: SCSI id for the device</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">SCSI id as a string, for instance <code class="docutils literal"><span class="pre">&quot;ATA:1,0,0&quot;</span></code></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If the SCSI id string is invalid</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">CedarBackup3.writers package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-CedarBackup3.writers.cdwriter">CedarBackup3.writers.cdwriter module</a><ul>
+<li><a class="reference internal" href="#module-attributes">Module Attributes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-CedarBackup3.writers.dvdwriter">CedarBackup3.writers.dvdwriter module</a><ul>
+<li><a class="reference internal" href="#id1">Module Attributes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-CedarBackup3.writers.util">CedarBackup3.writers.util module</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="CedarBackup3.tools.html"
+                        title="previous chapter">CedarBackup3.tools package</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/CedarBackup3.writers.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="CedarBackup3.tools.html" title="CedarBackup3.tools package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Cedar Backup v3  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="CedarBackup3.html" >CedarBackup3 package</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright .
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.9.
+    </div>
+  </body>
+</html>
